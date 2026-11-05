@@ -592,6 +592,42 @@
     showToast("فایل پشتیبان آماده شد.");
   }
 
+  function validateWorkspaceBackup(data) {
+    const allowedRootFields = new Set(["schema", "version", "exportedAt", "tasks", "favorites"]);
+    if (!data || typeof data !== "object" || Array.isArray(data) ||
+        Object.keys(data).some(key => !allowedRootFields.has(key)) ||
+        data.schema !== "mr-siavash-ai-workspace" || data.version !== 1 ||
+        !Array.isArray(data.tasks)) {
+      throw new Error("فرمت فایل پشتیبان معتبر نیست.");
+    }
+    if (data.exportedAt !== undefined &&
+        (typeof data.exportedAt !== "string" || data.exportedAt.length > 40)) {
+      throw new Error("زمان ساخت فایل پشتیبان معتبر نیست.");
+    }
+    if (data.tasks.length > MAX_TASKS) {
+      throw new Error("فایل پشتیبان بیش از ۱۰۰ کار دارد؛ آن را به چند فایل کوچک‌تر تقسیم کن.");
+    }
+    if (data.favorites !== undefined &&
+        (!Array.isArray(data.favorites) || data.favorites.length > 50 ||
+         new Set(data.favorites).size !== data.favorites.length ||
+         data.favorites.some(id => typeof id !== "string" || !/^[a-z0-9-]{2,64}$/.test(id)))) {
+      throw new Error("ساختار نشان‌شده‌ها در فایل پشتیبان معتبر نیست.");
+    }
+
+    const allowedTaskFields = new Set(["id", "text", "done"]);
+    data.tasks.forEach((task, index) => {
+      if (!task || typeof task !== "object" || Array.isArray(task) ||
+          Object.keys(task).some(key => !allowedTaskFields.has(key)) ||
+          (task.id !== undefined &&
+            (typeof task.id !== "string" || !/^[A-Za-z0-9-]{1,128}$/.test(task.id))) ||
+          typeof task.text !== "string" || !task.text.trim() || task.text.length > 120 ||
+          typeof task.done !== "boolean") {
+        throw new Error("ساختار کار شماره " + (index + 1) + " معتبر نیست؛ هیچ داده‌ای وارد نشد.");
+      }
+    });
+    return data;
+  }
+
   async function importWorkspace(file) {
     if (!file) return;
     if (file.size > MAX_IMPORT_BYTES) {
@@ -599,28 +635,12 @@
       return;
     }
     try {
-      const data = JSON.parse(await file.text());
-      if (!data || data.schema !== "mr-siavash-ai-workspace" || data.version !== 1 || !Array.isArray(data.tasks)) {
-        throw new Error("فرمت فایل پشتیبان معتبر نیست.");
-      }
-      if (data.tasks.length > MAX_TASKS) {
-        throw new Error("فایل پشتیبان بیش از ۱۰۰ کار دارد؛ آن را به چند فایل کوچک‌تر تقسیم کن.");
-      }
-      if (data.favorites !== undefined && (!Array.isArray(data.favorites) ||
-          data.favorites.some(id => typeof id !== "string"))) {
-        throw new Error("ساختار نشان‌شده‌ها در فایل پشتیبان معتبر نیست.");
-      }
-      const incoming = data.tasks.map((task, index) => {
-        if (!task || typeof task.text !== "string" || typeof task.done !== "boolean" ||
-            !task.text.trim()) {
-          throw new Error("ساختار کار شماره " + (index + 1) + " معتبر نیست؛ هیچ داده‌ای وارد نشد.");
-        }
-        return {
-          id: createId(),
-          text: task.text.trim().replace(/\s+/g, " ").slice(0, 120),
-          done: task.done
-        };
-      });
+      const data = validateWorkspaceBackup(JSON.parse(await file.text()));
+      const incoming = data.tasks.map(task => ({
+        id: createId(),
+        text: task.text.trim().replace(/\s+/g, " "),
+        done: task.done
+      }));
       const existing = new Set(tasks.map(task => task.text.toLocaleLowerCase("fa")));
       const unique = incoming.filter(task => {
         const key = task.text.toLocaleLowerCase("fa");
