@@ -587,7 +587,7 @@ test("static document enforces a restrictive self-hosted Content Security Policy
   const match = html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/);
   assert.ok(match, "a CSP meta policy must be present");
   const directives = new Map(match[1].split(";").map(part => {
-    const [name, ...values] = part.trim().split(/\\s+/);
+    const [name, ...values] = part.trim().split(/\s+/);
     return [name, values];
   }));
   for (const name of ["default-src", "base-uri", "object-src", "script-src", "style-src",
@@ -600,10 +600,10 @@ test("static document enforces a restrictive self-hosted Content Security Policy
   assert.deepEqual(directives.get("object-src"), ["'none'"]);
   assert.deepEqual(directives.get("frame-src"), ["'none'"]);
   assert.ok(directives.has("upgrade-insecure-requests"));
-  assert.doesNotMatch(match[1], /unsafe-inline|unsafe-eval|https?:\\/\\//i);
-  assert.doesNotMatch(html, /\\son[a-z]+\\s*=/i, "inline event handlers would violate the policy");
-  assert.doesNotMatch(html, /<script(?![^>]*\\bsrc=)[^>]*>/i, "inline scripts would violate the policy");
-  assert.doesNotMatch(html, /\\sstyle\\s*=/i, "inline style attributes would violate the policy");
+  assert.doesNotMatch(match[1], /unsafe-inline|unsafe-eval|https?:\/\//i);
+  assert.doesNotMatch(html, /\son[a-z]+\s*=/i, "inline event handlers would violate the policy");
+  assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)[^>]*>/i, "inline scripts would violate the policy");
+  assert.doesNotMatch(html, /\sstyle\s*=/i, "inline style attributes would violate the policy");
   assert.match(html, /name="referrer" content="strict-origin-when-cross-origin"/);
-  assert.doesNotMatch(css, /@import|url\\(\\s*["']?https?:/i, "stylesheets must not introduce remote resources");
+  assert.doesNotMatch(css, /@import|url\(\s*["']?https?:/i, "stylesheets must not introduce remote resources");
 });
