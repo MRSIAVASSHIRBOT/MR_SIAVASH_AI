@@ -59,6 +59,28 @@ self.addEventListener("fetch", event => {
   const shellUrls = new Set(SHELL_FILES.map(path => new URL(path, scopeUrl).href));
   if (!shellUrls.has(requestUrl.href)) return;
 
+  const moduleRegistryUrl = new URL("./modules.json", scopeUrl).href;
+  if (requestUrl.href === moduleRegistryUrl) {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      const cached = await cache.match(request);
+      try {
+        const response = await fetch(request);
+        const contentType = response && response.headers && response.headers.get("content-type") || "";
+        const isJson = /^application\/(?:json|[a-z0-9.+-]+\+json)(?:\s*;|$)/i.test(contentType);
+        if (response && response.ok && isJson) {
+          try { await cache.put(request, response.clone()); }
+          catch (error) { console.warn("Could not refresh cached module registry."); }
+          return response;
+        }
+        return cached || response;
+      } catch (error) {
+        return cached || new Response("", { status: 504, statusText: "Offline" });
+      }
+    })());
+    return;
+  }
+
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(request);
