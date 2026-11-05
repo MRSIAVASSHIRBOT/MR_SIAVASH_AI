@@ -112,3 +112,16 @@ test("workspace task controls are wired to accessible UI elements", () => {
 test("service worker cache is versioned after front-end asset changes", () => {
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v3"/);
 });
+
+test("workspace import rejects oversized backups and malformed task records", () => {
+  assert.match(app, /data\\.tasks\\.length > MAX_TASKS/);
+  assert.match(app, /ساختار کار شماره/);
+  assert.match(app, /data\\.favorites !== undefined/);
+  assert.match(app, /task\\.text\\.trim\\(\\)\\.replace\\(\\/\\\\s\\+\\/g/);
+});
+
+test("workspace loading repairs missing and duplicate task IDs", () => {
+  assert.match(app, /const seenTaskIds = new Set\\(\\)/);
+  assert.match(app, /seenTaskIds\\.has\\(id\\)/);
+  assert.match(app, /if \\(!id \\|\\| seenTaskIds\\.has\\(id\\)\\) id = createId\\(\\)/);
+});
