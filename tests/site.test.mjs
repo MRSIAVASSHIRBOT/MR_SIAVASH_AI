@@ -263,8 +263,9 @@ test("formal JSON Schema matches the runtime module registry contract", () => {
   assert.deepEqual([...moduleContract.required].sort(), Object.keys(moduleRegistry.modules[0]).sort());
   assert.deepEqual(Object.keys(moduleContract.properties).sort(), Object.keys(moduleRegistry.modules[0]).sort());
   assert.equal(moduleContract.properties.id.pattern, "^[a-z0-9-]{2,64}$");
-  assert.equal(moduleContract.properties.modules, undefined);
+  assert.equal(moduleSchema.properties.modules.maxItems, 50);
   assert.equal(moduleContract.properties.features.maxItems, 8);
+  assert.equal(moduleContract.properties.features.items.maxLength, 120);
   assert.equal(moduleContract.allOf[0].if.properties.type.const, "LOCAL");
   assert.equal(moduleContract.allOf[0].then.properties.status.const, "فعال در همین مرورگر");
   assert.equal(moduleContract.allOf[1].if.properties.type.const, "ROADMAP");
