@@ -128,11 +128,6 @@ test("install precaches the complete shell before activating the worker", async 
 });
 
 test("install does not activate a worker when atomic shell precache fails", async () => {
-  const harness = createHarness();
-  const sourceWithFailingCache = source.replace(
-    "async addAll(urls) { writes.push({ precache: urls }); }",
-    "async addAll(urls) { throw new Error('precache failed'); }"
-  );
   const listeners = new Map();
   let skipWaitingCalls = 0;
   const cache = { async addAll() { throw new Error("precache failed"); } };
@@ -147,7 +142,7 @@ test("install does not activate a worker when atomic shell precache fails", asyn
     async keys() { return ["mr-siavash-ai-shell-v6"]; },
     async delete() { return true; }
   };
-  vm.runInNewContext(sourceWithFailingCache, { self, caches, URL, Set, Response, fetch, console });
+  vm.runInNewContext(source, { self, caches, URL, Set, Response, fetch, console });
   let installPromise;
   listeners.get("install")({ waitUntil(value) { installPromise = value; } });
   await assert.rejects(installPromise, /precache failed/);
