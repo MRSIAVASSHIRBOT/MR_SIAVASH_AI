@@ -12,7 +12,10 @@ const moduleRegistry = JSON.parse(moduleRegistryText);
 const moduleSchemaText = await readFile(new URL("../schemas/module-registry.schema.json", import.meta.url), "utf8");
 const moduleSchema = JSON.parse(moduleSchemaText);
 const platformText = await readFile(new URL("../docs/PLATFORM_CONTRACTS.md", import.meta.url), "utf8");
+const openapiText = await readFile(new URL("../docs/backend/openapi.yaml", import.meta.url), "utf8");
+const openapiValidatorText = await readFile(new URL("../scripts/validate-openapi.rb", import.meta.url), "utf8");
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
+const workflowText = await readFile(new URL("../.github/workflows/deploy.yml", import.meta.url), "utf8");
 
 test("HTML references app assets and install manifest", () => {
   assert.match(html, /href="\.\/*styles\.css"/);
@@ -447,4 +450,15 @@ test("module IDs remain stable to protect favorites and cross-module references"
   assert.equal(ids.includes("ai-hub"), true);
   assert.equal(ids.includes("network-linux"), true);
   assert.match(platformText, /Stable lowercase identifier; immutable after release/);
+});
+
+
+test("proposed backend contract has an executable CI validation gate", () => {
+  assert.match(workflowText, /ruby scripts\/validate-openapi\.rb/);
+  assert.match(openapiText, /openapi: 3\.1\.0/);
+  assert.match(openapiText, /DESIGN CONTRACT ONLY/);
+  assert.match(openapiValidatorText, /unresolved reference/);
+  assert.match(openapiValidatorText, /must require bearerAuth/);
+  assert.match(openapiValidatorText, /Idempotency-Key/);
+  assert.match(openapiValidatorText, /TaskUpdate must reject empty patches/);
 });
