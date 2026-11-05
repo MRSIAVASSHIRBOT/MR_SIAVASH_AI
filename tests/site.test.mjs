@@ -11,6 +11,8 @@ const moduleRegistryText = await readFile(new URL("../modules.json", import.meta
 const moduleRegistry = JSON.parse(moduleRegistryText);
 const moduleSchemaText = await readFile(new URL("../schemas/module-registry.schema.json", import.meta.url), "utf8");
 const moduleSchema = JSON.parse(moduleSchemaText);
+const workspaceSchemaText = await readFile(new URL("../schemas/workspace-backup.schema.json", import.meta.url), "utf8");
+const workspaceSchema = JSON.parse(workspaceSchemaText);
 const platformText = await readFile(new URL("../docs/PLATFORM_CONTRACTS.md", import.meta.url), "utf8");
 const openapiText = await readFile(new URL("../docs/backend/openapi.yaml", import.meta.url), "utf8");
 const openapiValidatorText = await readFile(new URL("../scripts/validate-openapi.rb", import.meta.url), "utf8");
@@ -527,4 +529,55 @@ test("cross-tab favorites snapshots reject malformed or oversized values", () =>
   assert.deepEqual(Array.from(parse(JSON.stringify(["ai-hub", "agents", "ai-hub"]))), ["ai-hub", "agents"]);
   assert.throws(() => parse(JSON.stringify(["invalid id"])));
   assert.throws(() => parse(JSON.stringify(Array.from({ length: 51 }, (_, i) => "module-" + i))));
+});
+
+
+test("formal workspace backup JSON Schema matches the versioned import contract", () => {
+  assert.equal(workspaceSchema.$schema, "https://json-schema.org/draft/2020-12/schema");
+  assert.equal(workspaceSchema.additionalProperties, false);
+  assert.deepEqual(workspaceSchema.required, ["schema", "version", "tasks"]);
+  assert.equal(workspaceSchema.properties.schema.const, "mr-siavash-ai-workspace");
+  assert.equal(workspaceSchema.properties.version.const, 1);
+  assert.equal(workspaceSchema.properties.tasks.maxItems, 100);
+  assert.equal(workspaceSchema.properties.favorites.maxItems, 50);
+  assert.equal(workspaceSchema.$defs.task.additionalProperties, false);
+  assert.deepEqual([...workspaceSchema.$defs.task.required].sort(), ["done", "text"]);
+  assert.equal(workspaceSchema.$defs.task.properties.text.maxLength, 120);
+  assert.equal(workspaceSchema.$defs.task.properties.text.pattern, "\\S");
+  assert.equal(workspaceSchema.$defs.task.properties.done.type, "boolean");
+});
+
+test("workspace backup runtime validator rejects unknown fields and invalid nested records", () => {
+  const start = app.indexOf("  function validateWorkspaceBackup(data) {");
+  const end = app.indexOf("\n  async function importWorkspace(file)", start);
+  assert.ok(start >= 0 && end > start, "workspace backup validator boundaries must exist");
+  const validate = vm.runInNewContext("(function() { const MAX_TASKS = 100; return (" +
+    app.slice(start, end).trim() + "); })()");
+  const valid = {
+    schema: "mr-siavash-ai-workspace",
+    version: 1,
+    exportedAt: "2026-11-06T00:00:00.000Z",
+    tasks: [{ id: "task-1", text: "Learn Linux", done: false }],
+    favorites: ["ai-hub", "workspace"]
+  };
+  assert.deepEqual(JSON.parse(JSON.stringify(validate(structuredClone(valid)))), valid);
+
+  const unknownRoot = structuredClone(valid);
+  unknownRoot.owner = "unexpected";
+  assert.throws(() => validate(unknownRoot));
+  const unknownTask = structuredClone(valid);
+  unknownTask.tasks[0].html = "<script>";
+  assert.throws(() => validate(unknownTask));
+  const longText = structuredClone(valid);
+  longText.tasks[0].text = "x".repeat(121);
+  assert.throws(() => validate(longText));
+  const duplicateFavorites = structuredClone(valid);
+  duplicateFavorites.favorites = ["ai-hub", "ai-hub"];
+  assert.throws(() => validate(duplicateFavorites));
+  const tooManyFavorites = structuredClone(valid);
+  tooManyFavorites.favorites = Array.from({ length: 51 }, (_, i) => "module-" + i);
+  assert.throws(() => validate(tooManyFavorites));
+  const invalidId = structuredClone(valid);
+  invalidId.tasks[0].id = "id with spaces";
+  assert.throws(() => validate(invalidId));
 });
