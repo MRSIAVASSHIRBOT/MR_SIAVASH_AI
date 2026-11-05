@@ -607,3 +607,14 @@ test("static document enforces a restrictive self-hosted Content Security Policy
   assert.match(html, /name="referrer" content="strict-origin-when-cross-origin"/);
   assert.doesNotMatch(css, /@import|url\(\s*["']?https?:/i, "stylesheets must not introduce remote resources");
 });
+
+
+test("GitHub Pages deployment is restricted to successful main-branch non-PR runs", () => {
+  assert.match(workflowText, /if: github\.ref == 'refs\/heads\/main' && github\.event_name != 'pull_request'/);
+  assert.match(workflowText, /needs: quality/);
+  assert.match(workflowText, /timeout-minutes: 10/);
+  assert.match(workflowText, /pages: write/);
+  assert.match(workflowText, /id-token: write/);
+  assert.match(workflowText, /url: \$\{\{ steps\.deployment\.outputs\.page_url \}\}/);
+  assert.match(workflowText, /if: github\.event_name != 'pull_request'/) === false;
+});
