@@ -390,6 +390,73 @@
     return true;
   }
 
+  function parseStoredTasks(raw) {
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== "object" || parsed.version !== 2 ||
+        !Array.isArray(parsed.tasks) || parsed.tasks.length > MAX_TASKS) {
+      throw new Error("ساختار کارهای ذخیره‌شده معتبر نیست.");
+    }
+    const seenIds = new Set();
+    return parsed.tasks.map(task => {
+      if (!task || typeof task !== "object" || typeof task.id !== "string" ||
+          !task.id.trim() || task.id.length > 128 || seenIds.has(task.id) ||
+          typeof task.text !== "string" || typeof task.done !== "boolean") {
+        throw new Error("یکی از کارهای ذخیره‌شده معتبر نیست.");
+      }
+      seenIds.add(task.id);
+      const text = task.text.trim().replace(/\s+/g, " ");
+      if (!text || text.length > 120) throw new Error("متن یکی از کارها خارج از محدوده است.");
+      return { id: task.id, text, done: task.done };
+    });
+  }
+
+  function parseStoredFavorites(raw) {
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length > 50 ||
+        parsed.some(id => typeof id !== "string" || !/^[a-z0-9-]{2,64}$/.test(id))) {
+      throw new Error("ساختار نشان‌شده‌های ذخیره‌شده معتبر نیست.");
+    }
+    return normalizeFavoriteIds(parsed, modules, modules.length === 0);
+  }
+
+  function handleStorageChange(event) {
+    if (event.storageArea && event.storageArea !== localStorage) return;
+    if (event.key === null) {
+      tasks = [];
+      favorites = new Set();
+      renderTasks();
+      renderFeatured();
+      renderCatalog();
+      if (selectedModule) openModule(selectedModule.id, { updateHistory: false });
+      updateStorageNote();
+      showToast("ذخیره‌سازی مرورگر در تب دیگر پاک شد؛ نمای فعلی همگام شد.");
+      return;
+    }
+    if (event.key === STORAGE_KEY) {
+      try {
+        tasks = event.newValue === null ? [] : parseStoredTasks(event.newValue);
+        renderTasks();
+        updateStorageNote();
+        showToast("کارهای فضای کار از تب دیگر به‌روزرسانی شدند.");
+      } catch (error) {
+        showToast("دادهٔ کارها در تب دیگر نامعتبر بود؛ وضعیت فعلی حفظ شد.");
+      }
+      return;
+    }
+    if (event.key === FAVORITES_KEY) {
+      try {
+        favorites = new Set(event.newValue === null ? [] : parseStoredFavorites(event.newValue));
+        renderFeatured();
+        renderCatalog();
+        if (selectedModule) openModule(selectedModule.id, { updateHistory: false });
+        updateStorageNote();
+        showToast("نشان‌شده‌ها از تب دیگر به‌روزرسانی شدند.");
+      } catch (error) {
+        showToast("دادهٔ نشان‌شده‌ها در تب دیگر نامعتبر بود؛ وضعیت فعلی حفظ شد.");
+      }
+    }
+  }
+
   function loadWorkspace() {
     let parsed = null;
     try {
@@ -706,6 +773,7 @@
   function initWorkspace() {
     loadWorkspace();
     renderTasks();
+    window.addEventListener("storage", handleStorageChange);
     $("#taskForm").addEventListener("submit", event => {
       event.preventDefault();
       const input = $("#taskInput");
