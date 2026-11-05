@@ -16,7 +16,7 @@ The repository provides a static web application with:
 - JSON export and validated, bounded JSON import for local workspace data, defined by schemas/workspace-backup.schema.json.
 - Restrictive same-origin Content Security Policy and Referrer-Policy on the static entry document.
 - PWA manifest and versioned service-worker cache for the static app shell, including the module registry.
-- GitHub Actions workflow with syntax and repository-structure tests before GitHub Pages deployment.
+- GitHub Actions workflow with syntax, API-contract and repository tests; GitHub Pages deployment is gated to successful pushes or manual runs on main.
 
 ### What is not connected yet
 
