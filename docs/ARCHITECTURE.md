@@ -43,3 +43,10 @@ The workspace backup format is JSON with schema identifier mr-siavash-ai-workspa
 ## Deployment
 
 GitHub Actions runs JavaScript syntax checks and dependency-free structure tests before publishing the static root to GitHub Pages. The repository owner must enable GitHub Pages with the GitHub Actions source in repository settings.
+
+
+## API contract boundary
+
+The proposed API is documented in docs/backend/openapi.yaml. It separates public module metadata and health checks from authenticated user workspace operations. The API contract is not a running service.
+
+Before implementation, use docs/THREAT_MODEL.md and enforce user ownership in server-side repository queries. The authenticated principal must come from a verified session, never from a client-supplied user identifier.
