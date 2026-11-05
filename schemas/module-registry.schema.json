@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/blob/main/schemas/module-registry.schema.json",
+  "$id": "https://raw.githubusercontent.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/main/schemas/module-registry.schema.json",
   "title": "MR_SIAVASH_AI Module Registry",
   "description": "Public presentation metadata contract. It does not define permissions or runtime integrations.",
   "type": "object",
