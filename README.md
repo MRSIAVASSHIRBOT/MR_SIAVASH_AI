@@ -67,3 +67,13 @@ The workflow runs syntax and structure tests before uploading the static site. T
 ## License
 
 No license has been granted yet. All rights are reserved by the repository owner unless a license is added.
+
+
+## Backend contract (design-only)
+
+- docs/backend/openapi.yaml defines a proposed v1 API boundary.
+- docs/THREAT_MODEL.md records the initial security threat model.
+- docs/backend/README.md explains the implementation gates.
+- docs/ROADMAP.md coordinates the workstreams and release stages.
+
+These are design artifacts only. No backend API, real authentication, account system or cloud synchronization is deployed by the static site.

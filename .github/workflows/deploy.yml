@@ -4,15 +4,16 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: github-pages
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -35,7 +36,12 @@ jobs:
 
   deploy:
     name: Deploy static site
+    if: github.event_name != 'pull_request'
     needs: quality
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
     environment:
       name: github-pages
     runs-on: ubuntu-latest
