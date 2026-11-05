@@ -46,10 +46,30 @@ test("workspace import is bounded and schema-checked", () => {
   assert.match(app, /MAX_IMPORT_BYTES = 256 \* 1024/);
   assert.match(app, /data\.schema !== "mr-siavash-ai-workspace"/);
   assert.match(app, /MAX_TASKS = 100/);
+  assert.match(app, /data\.version !== 1/);
 });
 
 test("client code does not contain a hard-coded provider secret", () => {
   assert.doesNotMatch(app, /\b(?:sk|ghp|github_pat)_[A-Za-z0-9]{20,}\b/);
+});
+
+test("user-provided task text is rendered as text, not parsed as markup", () => {
+  assert.match(app, /text\.textContent = task\.text/);
+  assert.doesNotMatch(app, /\b(?:innerHTML|outerHTML|insertAdjacentHTML)\b/);
+});
+
+test("client code avoids dynamic code execution and inline event attributes", () => {
+  assert.doesNotMatch(app, /\beval\s*\(/);
+  assert.doesNotMatch(app, /new\s+Function\s*\(/);
+  assert.doesNotMatch(html, /\son[a-z]+\s*=/i);
+  assert.doesNotMatch(html, /javascript\s*:/i);
+});
+
+test("workspace controls expose labels and live status regions", () => {
+  assert.match(html, /for="taskInput"/);
+  assert.match(html, /aria-live="polite"/);
+  assert.match(html, /aria-label="فیلتر وضعیت کارها"/);
+  assert.match(html, /id="taskNoResults"/);
 });
 
 test("stylesheet braces are balanced", () => {
@@ -64,13 +84,13 @@ test("web manifest is valid and scoped to the deployment path", () => {
   assert.ok(Array.isArray(manifest.icons) && manifest.icons.length > 0);
 });
 
-test("service worker caches the static shell and ignores non-GET requests", () => {
+test("service worker caches only the same-origin static shell and ignores writes", () => {
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v3"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /request\.mode === "navigate"/);
   assert.match(sw, /request\.method !== "GET"/);
+  assert.match(sw, /requestUrl\.origin !== scopeUrl\.origin/);
 });
-
 
 test("proposed backend contract is explicitly design-only and versioned", async () => {
   const api = await readFile(new URL("../docs/backend/openapi.yaml", import.meta.url), "utf8");
@@ -87,11 +107,13 @@ test("proposed backend contract is explicitly design-only and versioned", async 
 test("security and roadmap docs define production gates", async () => {
   const threat = await readFile(new URL("../docs/THREAT_MODEL.md", import.meta.url), "utf8");
   const roadmap = await readFile(new URL("../docs/ROADMAP.md", import.meta.url), "utf8");
+  const quality = await readFile(new URL("../docs/QUALITY_GATES.md", import.meta.url), "utf8");
   assert.match(threat, /STRIDE review/);
   assert.match(threat, /cross-user isolation tests/);
   assert.match(threat, /secrets and tool permissions remain server-side/i);
   assert.match(roadmap, /parallel workstreams/);
   assert.match(roadmap, /No backend endpoints are live/);
+  assert.match(quality, /manual browser verification/i);
 });
 
 test("workspace task controls are wired to accessible UI elements", () => {
