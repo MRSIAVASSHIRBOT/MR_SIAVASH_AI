@@ -8,13 +8,13 @@ const source = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 function createHarness(fetchImpl = async () => new Response("asset", {
   status: 200,
   headers: { "Content-Type": "text/css" }
-})) {
+}), cachedResponse = null) {
   const listeners = new Map();
   const writes = [];
   let skipWaitingCalls = 0;
   const cache = {
-    async match() { return null; },
-    async put(key, value) { writes.push({ key: String(key), value }); },
+    async match() { return cachedResponse; },
+    async put(key, value) { writes.push({ key: key.url || String(key), value }); },
     async add() {},
     async addAll(urls) { writes.push({ precache: urls }); }
   };
@@ -147,4 +147,58 @@ test("install does not activate a worker when atomic shell precache fails", asyn
   listeners.get("install")({ waitUntil(value) { installPromise = value; } });
   await assert.rejects(installPromise, /precache failed/);
   assert.equal(skipWaitingCalls, 0);
+});
+
+
+test("module registry uses network-first refresh and replaces its cached JSON", async () => {
+  let fetchCalls = 0;
+  const { listeners, writes } = createHarness(async () => {
+    fetchCalls += 1;
+    return new Response(JSON.stringify({ version: 2 }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  });
+  const response = await dispatchFetch(listeners, {
+    method: "GET", mode: "cors", url: "https://example.test/app/modules.json"
+  });
+  assert.equal(fetchCalls, 1);
+  assert.equal(response.status, 200);
+  assert.equal(await response.json().then(value => value.version), 2);
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0].key, "https://example.test/app/modules.json");
+});
+
+test("module registry serves its last valid cached response when the network is unavailable", async () => {
+  const cached = new Response(JSON.stringify({ version: 1 }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
+  let fetchCalls = 0;
+  const { listeners } = createHarness(async () => {
+    fetchCalls += 1;
+    throw new Error("offline");
+  }, cached);
+  const response = await dispatchFetch(listeners, {
+    method: "GET", mode: "cors", url: "https://example.test/app/modules.json"
+  });
+  assert.equal(fetchCalls, 1);
+  assert.equal(response.status, 200);
+  assert.equal(await response.json().then(value => value.version), 1);
+});
+
+test("module registry does not replace a valid cache with an HTML fallback", async () => {
+  const cached = new Response(JSON.stringify({ version: 1 }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
+  const { listeners, writes } = createHarness(async () => new Response("<html></html>", {
+    status: 200,
+    headers: { "Content-Type": "text/html" }
+  }), cached);
+  const response = await dispatchFetch(listeners, {
+    method: "GET", mode: "cors", url: "https://example.test/app/modules.json"
+  });
+  assert.equal(await response.json().then(value => value.version), 1);
+  assert.equal(writes.length, 0);
 });
