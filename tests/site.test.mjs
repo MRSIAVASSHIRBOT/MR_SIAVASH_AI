@@ -100,7 +100,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v7"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v8"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /request\.mode === "navigate"/);
@@ -146,7 +146,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v7"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v8"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -175,7 +175,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v7"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v8"/);
 });
 
 
@@ -580,4 +580,30 @@ test("workspace backup runtime validator rejects unknown fields and invalid nest
   const invalidId = structuredClone(valid);
   invalidId.tasks[0].id = "id with spaces";
   assert.throws(() => validate(invalidId));
+});
+
+
+test("static document enforces a restrictive self-hosted Content Security Policy", () => {
+  const match = html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)"/);
+  assert.ok(match, "a CSP meta policy must be present");
+  const directives = new Map(match[1].split(";").map(part => {
+    const [name, ...values] = part.trim().split(/\s+/);
+    return [name, values];
+  }));
+  for (const name of ["default-src", "base-uri", "object-src", "script-src", "style-src",
+    "img-src", "font-src", "connect-src", "manifest-src", "worker-src", "form-action", "frame-src"]) {
+    assert.ok(directives.has(name), "missing CSP directive: " + name);
+  }
+  assert.deepEqual(directives.get("default-src"), ["'self'"]);
+  assert.deepEqual(directives.get("script-src"), ["'self'"]);
+  assert.deepEqual(directives.get("style-src"), ["'self'"]);
+  assert.deepEqual(directives.get("object-src"), ["'none'"]);
+  assert.deepEqual(directives.get("frame-src"), ["'none'"]);
+  assert.ok(directives.has("upgrade-insecure-requests"));
+  assert.doesNotMatch(match[1], /unsafe-inline|unsafe-eval|https?:\/\//i);
+  assert.doesNotMatch(html, /\son[a-z]+\s*=/i, "inline event handlers would violate the policy");
+  assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)[^>]*>/i, "inline scripts would violate the policy");
+  assert.doesNotMatch(html, /\sstyle\s*=/i, "inline style attributes would violate the policy");
+  assert.match(html, /name="referrer" content="strict-origin-when-cross-origin"/);
+  assert.doesNotMatch(css, /@import|url\(\s*["']?https?:/i, "stylesheets must not introduce remote resources");
 });

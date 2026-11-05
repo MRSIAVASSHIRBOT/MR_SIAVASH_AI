@@ -14,6 +14,7 @@ The repository provides a static web application with:
 - Accessible module detail dialogs and keyboard shortcuts (Ctrl/Cmd + K, /).
 - Browser-local workspace task manager with search, status filters, progress counts and confirmed bulk cleanup.
 - JSON export and validated, bounded JSON import for local workspace data, defined by schemas/workspace-backup.schema.json.
+- Restrictive same-origin Content Security Policy and Referrer-Policy on the static entry document.
 - PWA manifest and versioned service-worker cache for the static app shell, including the module registry.
 - GitHub Actions workflow with syntax and repository-structure tests before GitHub Pages deployment.
 

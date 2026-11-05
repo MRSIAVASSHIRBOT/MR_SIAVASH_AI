@@ -26,7 +26,7 @@ function createHarness(fetchImpl = async () => new Response("asset", {
   };
   const caches = {
     async open() { return cache; },
-    async keys() { return ["mr-siavash-ai-shell-v7"]; },
+    async keys() { return ["mr-siavash-ai-shell-v8"]; },
     async delete() { return true; }
   };
   vm.runInNewContext(source, { self, caches, URL, Set, Response, fetch: fetchImpl, console });
@@ -139,7 +139,7 @@ test("install does not activate a worker when atomic shell precache fails", asyn
   };
   const caches = {
     async open() { return cache; },
-    async keys() { return ["mr-siavash-ai-shell-v7"]; },
+    async keys() { return ["mr-siavash-ai-shell-v8"]; },
     async delete() { return true; }
   };
   vm.runInNewContext(source, { self, caches, URL, Set, Response, fetch, console });
