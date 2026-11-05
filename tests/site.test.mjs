@@ -185,3 +185,15 @@ test("workspace import commits task and favorite state only after persistence su
 test("favorite changes are persisted before replacing the in-memory set", () => {
   assert.match(app, /const nextFavorites = new Set\(favorites\);[\s\S]*?if \(!persist\(FAVORITES_KEY, Array\.from\(nextFavorites\)\)\) return false;\s*favorites = nextFavorites;/);
 });
+
+
+test("mobile navigation exposes an accurate accessible control relationship", () => {
+  assert.match(html, /id="mobileMenuButton"[^>]*aria-controls="mainNav"/);
+  assert.match(app, /button\.setAttribute\("aria-expanded", String\(open\)\)/);
+  assert.match(app, /button\.setAttribute\("aria-label", open \? "بستن ناوبری" : "باز کردن ناوبری"\)/);
+  assert.match(app, /button\.setAttribute\("aria-label", "باز کردن ناوبری"\)/);
+});
+
+test("global module search shortcut does not steal keystrokes from editors or dialogs", () => {
+  assert.match(app, /event\.key\.toLowerCase\(\) === "k" &&\s*!typing && !\$\("#moduleDialog"\)\.open/);
+});
