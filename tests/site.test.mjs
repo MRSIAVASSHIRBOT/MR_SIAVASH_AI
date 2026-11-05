@@ -152,3 +152,17 @@ test("security and repository guidance document the static-only service-worker b
   assert.match(readme, /tests\/service-worker\.test\.mjs/);
   assert.match(roadmap, /private responses bypass the service-worker cache/);
 });
+
+
+test("workspace refuses to evict existing tasks when capacity is reached", () => {
+  assert.match(app, /if \(tasks\.length >= MAX_TASKS\)/);
+  assert.match(app, /ابتدا یک کار را حذف یا تکمیل کن/);
+  assert.doesNotMatch(app, /tasks\.unshift\(\{ id: createId\(\), text: clean, done: false \}\);\s*tasks = tasks\.slice\(0, MAX_TASKS\)/);
+});
+
+test("workspace import reports accepted and skipped tasks at capacity", () => {
+  assert.match(app, /const availableSlots = Math\.max\(0, MAX_TASKS - tasks\.length\)/);
+  assert.match(app, /const accepted = unique\.slice\(0, availableSlots\)/);
+  assert.match(app, /const skipped = unique\.length - accepted\.length/);
+  assert.match(app, /هیچ کاری از پشتیبان اضافه نشد/);
+});
