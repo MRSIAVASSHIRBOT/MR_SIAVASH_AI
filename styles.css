@@ -358,3 +358,16 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   .task-filter-list { justify-content: flex-start; }
   .task-stats { gap: 9px; }
 }
+
+
+/* Version 1.5 — persistent module registry recovery status */
+.registry-status { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin: 0 0 18px; padding: 14px 16px; border: 1px solid rgba(220,170,90,.35); border-radius: 12px; background: rgba(105,75,25,.16); }
+.registry-status[hidden] { display: none; }
+.registry-status strong { display: block; color: var(--text); font-size: 12px; }
+.registry-status p { margin: 5px 0 0; color: var(--muted); font-size: 10px; line-height: 1.8; }
+.registry-status button { flex: 0 0 auto; }
+.registry-status button:disabled { cursor: wait; opacity: .65; }
+@media (max-width: 560px) {
+  .registry-status { align-items: stretch; flex-direction: column; }
+  .registry-status button { width: 100%; }
+}
