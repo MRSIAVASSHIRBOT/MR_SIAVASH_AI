@@ -284,8 +284,12 @@ function createModuleLoaderHarness(fetchImpl, timer = callback => {
   const source = app.slice(start, end).trim();
   const context = {
     modules: [],
+    MAX_REGISTRY_BYTES: 64 * 1024,
     fetch: fetchImpl,
     AbortController,
+    TextDecoder,
+    TextEncoder,
+    Uint8Array,
     validateModuleRegistry: registry => Object.freeze(registry.modules),
     window: { setTimeout: timer, clearTimeout() {} }
   };
@@ -301,8 +305,8 @@ test("module registry loader omits credentials, validates JSON media type and cl
     requestOptions = options;
     return {
       ok: true,
-      headers: { get: () => "application/json; charset=utf-8" },
-      async json() { return { modules: [{ id: "test-module" }] }; }
+      headers: { get: name => name === "content-type" ? "application/json; charset=utf-8" : null },
+      async text() { return JSON.stringify({ modules: [{ id: "test-module" }] }); }
     };
   }, (callback, delay) => {
     timeoutMs = delay;
@@ -322,8 +326,8 @@ test("module registry loader rejects HTML fallback responses before parsing", as
   let parsed = false;
   const context = createModuleLoaderHarness(async () => ({
     ok: true,
-    headers: { get: () => "text/html; charset=utf-8" },
-    async json() { parsed = true; return { modules: [] }; }
+    headers: { get: name => name === "content-type" ? "text/html; charset=utf-8" : null },
+    async text() { parsed = true; return JSON.stringify({ modules: [] }); }
   }), () => 1);
   await assert.rejects(context.runLoadModuleRegistry(), /نوع محتوای فهرست/);
   assert.equal(parsed, false);
@@ -354,4 +358,59 @@ test("module registry failure has a persistent accessible recovery path", () => 
 test("registry recovery reports failure without replacing the local workspace", () => {
   assert.match(app, /setRegistryStatus\("بارگذاری ناموفق بود\. اتصال را بررسی کن و دوباره تلاش کن\.", true, false\)/);
   assert.match(app, /بخش‌های محلی همچنان در دسترس هستند/);
+});
+
+
+test("module registry loader rejects an oversized declared response before reading it", async () => {
+  let bodyRead = false;
+  const context = createModuleLoaderHarness(async () => ({
+    ok: true,
+    headers: { get: name => name === "content-type" ? "application/json" : name === "content-length" ? String(64 * 1024 + 1) : null },
+    async text() { bodyRead = true; return "{}"; }
+  }), () => 1);
+  await assert.rejects(context.runLoadModuleRegistry(), /حجم فهرست/);
+  assert.equal(bodyRead, false);
+});
+
+test("module registry loader enforces its byte limit while streaming without a content length", async () => {
+  let cancelled = false;
+  const oversizedChunk = new Uint8Array(64 * 1024 + 1);
+  const context = createModuleLoaderHarness(async () => ({
+    ok: true,
+    headers: { get: name => name === "content-type" ? "application/json" : null },
+    body: {
+      getReader() {
+        return {
+          async read() { return { done: false, value: oversizedChunk }; },
+          async cancel() { cancelled = true; },
+          releaseLock() {}
+        };
+      }
+    }
+  }), () => 1);
+  await assert.rejects(context.runLoadModuleRegistry(), /حجم فهرست/);
+  assert.equal(cancelled, true);
+});
+
+test("module registry loader decodes a bounded streamed JSON response", async () => {
+  const bytes = new TextEncoder().encode(JSON.stringify({ modules: [{ id: "streamed-module" }] }));
+  let read = false;
+  const context = createModuleLoaderHarness(async () => ({
+    ok: true,
+    headers: { get: name => name === "content-type" ? "application/json" : null },
+    body: {
+      getReader() {
+        return {
+          async read() {
+            if (read) return { done: true };
+            read = true;
+            return { done: false, value: bytes };
+          },
+          releaseLock() {}
+        };
+      }
+    }
+  }), () => 1);
+  await context.runLoadModuleRegistry();
+  assert.equal(context.modules.length, 1);
 });
