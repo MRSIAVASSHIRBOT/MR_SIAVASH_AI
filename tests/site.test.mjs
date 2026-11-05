@@ -141,3 +141,14 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v4"/);
 });
+
+
+test("security and repository guidance document the static-only service-worker boundary", async () => {
+  const threat = await readFile(new URL("../docs/THREAT_MODEL.md", import.meta.url), "utf8");
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+  const roadmap = await readFile(new URL("../docs/ROADMAP.md", import.meta.url), "utf8");
+  assert.match(threat, /exact-URL allowlist for public static shell assets/);
+  assert.match(threat, /not a general response cache/);
+  assert.match(readme, /tests\/service-worker\.test\.mjs/);
+  assert.match(roadmap, /private responses bypass the service-worker cache/);
+});
