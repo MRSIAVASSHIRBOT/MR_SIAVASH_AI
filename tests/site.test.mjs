@@ -616,5 +616,5 @@ test("GitHub Pages deployment is restricted to successful main-branch non-PR run
   assert.match(workflowText, /pages: write/);
   assert.match(workflowText, /id-token: write/);
   assert.match(workflowText, /url: \$\{\{ steps\.deployment\.outputs\.page_url \}\}/);
-  assert.match(workflowText, /if: github\.event_name != 'pull_request'/) === false;
+  assert.doesNotMatch(workflowText, /if: github\.event_name != 'pull_request'/);
 });
