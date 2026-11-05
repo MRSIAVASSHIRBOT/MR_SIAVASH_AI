@@ -4,6 +4,7 @@ This directory contains design artifacts only. It does not contain a running bac
 
 ## Contract
 - openapi.yaml defines the proposed v1 boundary for health, public module metadata and authenticated per-user workspace tasks.
+- scripts/validate-openapi.rb checks references, operation IDs, path parameters, authentication boundaries, request bodies, pagination limits and idempotency requirements in CI.
 - ../THREAT_MODEL.md defines the initial assets, trust boundaries, threats and production blockers.
 - User identity is always derived from a validated server-side session. Never accept a user ID from request JSON as an authorization decision.
 
