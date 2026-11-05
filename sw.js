@@ -1,17 +1,16 @@
 "use strict";
 
 const CACHE_PREFIX = "mr-siavash-ai-shell-";
-const CACHE_NAME = CACHE_PREFIX + "v5";
+const CACHE_NAME = CACHE_PREFIX + "v6";
 const SHELL_FILES = ["./", "./index.html", "./styles.css", "./app.js", "./favicon.svg", "./manifest.webmanifest", "./modules.json"];
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE_NAME);
     const urls = SHELL_FILES.map(path => new URL(path, self.registration.scope).href);
-    await Promise.all(urls.map(async url => {
-      try { await cache.add(url); }
-      catch (error) { console.warn("Could not cache app shell resource:", url); }
-    }));
+    // The app depends on every shell resource, especially modules.json. Do not
+    // activate a worker whose offline shell is incomplete.
+    await cache.addAll(urls);
     await self.skipWaiting();
   })());
 });
