@@ -14,7 +14,7 @@ The repository provides a static web application with:
 - Accessible module detail dialogs and keyboard shortcuts (Ctrl/Cmd + K, /).
 - Browser-local workspace task manager with search, status filters, progress counts and confirmed bulk cleanup.
 - JSON export and validated, bounded JSON import for local workspace data.
-- PWA manifest and versioned service-worker cache for the static app shell.
+- PWA manifest and versioned service-worker cache for the static app shell, including the module registry.
 - GitHub Actions workflow with syntax and repository-structure tests before GitHub Pages deployment.
 
 ### What is not connected yet
@@ -25,7 +25,8 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 
 - index.html — application shell and page sections
 - styles.css — visual system and responsive layouts
-- app.js — navigation, module catalog, favorites, local workspace and data portability
+- app.js — navigation, registry validation, favorites, local workspace and data portability
+- modules.json — versioned, validated module catalog (public static metadata)
 - manifest.webmanifest — installable web-app metadata
 - sw.js — static-shell offline cache
 - tests/site.test.mjs — dependency-free Node.js structure and safety checks
