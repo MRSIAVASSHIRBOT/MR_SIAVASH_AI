@@ -61,7 +61,8 @@ test("versioned module registry contains nine unique, categorized modules", () =
 test("application validates and freezes the external module registry before initialization", () => {
   assert.match(app, /function validateModuleRegistry\(registry\)/);
   assert.match(app, /function loadModuleRegistry\(\)/);
-  assert.match(app, /modules = Object\.freeze\(validateModuleRegistry\(registry\)\)/);
+  assert.match(app, /return Object\.freeze\(registry\.modules\.map\(module =>/);
+  assert.match(app, /modules = validateModuleRegistry\(registry\)/);
   assert.match(app, /await loadModuleRegistry\(\);[\s\S]*?init\(\);/);
 });
 
