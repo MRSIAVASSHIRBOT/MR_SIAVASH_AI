@@ -9,7 +9,7 @@ The current repository is a static, browser-executed front end. It must not clai
 1. **Presentation:** semantic HTML, RTL layout, responsive CSS, keyboard navigation, dialogs, status indicators.
 2. **Client application:** module registry, hash routing, saved-module state, local task operations, JSON import/export.
 3. **Browser persistence:** versioned localStorage keys. Data is scoped to one browser profile and is not synchronized.
-4. **Offline shell:** service worker caches only same-origin static application resources. It does not cache API responses or non-GET requests.
+4. **Offline shell:** service worker uses an explicit exact-URL allowlist for static application resources. It bypasses API, authenticated, query-string, cross-origin, unknown-route, and non-GET requests; navigation fallback is limited to the app document and stores only successful HTML responses.
 
 ## Module boundaries
 
