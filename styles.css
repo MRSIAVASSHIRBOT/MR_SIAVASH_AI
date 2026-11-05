@@ -341,3 +341,20 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
   .task-tools { flex-wrap: wrap; }
   .card-bottom { align-items: center; }
 }
+
+/* Version 0.4 — workspace search, status filters and progress summary */
+.task-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 16px 0 9px; }
+.task-search { width: min(260px,100%); min-height: 36px; padding: 7px 10px; }
+.task-filter-list { display: flex; flex-wrap: wrap; gap: 5px; }
+.task-filter-list .filter-chip { padding: 6px 10px; font-size: 9px; }
+.task-stats { display: flex; align-items: center; flex-wrap: wrap; gap: 13px; margin: 0 0 12px; color: var(--dim); font-size: 9px; }
+.task-stats strong { color: var(--green-bright); font-variant-numeric: tabular-nums; }
+.task-stats .tool-button { margin-right: auto; }
+.task-no-results { padding: 24px 12px 16px; }
+.task-no-results strong { font-size: 11px; }
+@media (max-width: 680px) {
+  .task-controls { align-items: stretch; }
+  .task-search { width: 100%; }
+  .task-filter-list { justify-content: flex-start; }
+  .task-stats { gap: 9px; }
+}
