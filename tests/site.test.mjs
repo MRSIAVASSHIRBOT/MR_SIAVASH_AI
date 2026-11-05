@@ -26,6 +26,16 @@ test("navigation buttons have real section targets", () => {
   for (const target of targets) assert.ok(views.has(target), "missing view: " + target);
 });
 
+test("all static DOM IDs used by the application exist in the HTML", () => {
+  const htmlIds = new Set([...html.matchAll(/\\bid="([^"]+)"/g)].map(match => match[1]));
+  const referencedIds = [...app.matchAll(/\\$\\("#([A-Za-z][A-Za-z0-9_-]*)"/g)].map(match => match[1]);
+  for (const id of referencedIds) assert.ok(htmlIds.has(id), "missing DOM element: " + id);
+});
+
+test("module detail dialog exposes its favorite control", () => {
+  assert.match(html, /id="dialogFavorite"/);
+});
+
 test("module registry contains nine unique module identifiers", () => {
   const ids = [...app.matchAll(/\{ id: "([^"]+)", category:/g)].map(match => match[1]);
   assert.equal(ids.length, 9);
