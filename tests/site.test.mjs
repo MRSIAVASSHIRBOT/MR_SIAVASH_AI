@@ -284,6 +284,7 @@ function createModuleLoaderHarness(fetchImpl, timer = callback => {
   const source = app.slice(start, end).trim();
   const context = {
     modules: [],
+    MAX_REGISTRY_BYTES: 64 * 1024,
     fetch: fetchImpl,
     AbortController,
     TextDecoder,
