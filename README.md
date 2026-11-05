@@ -13,7 +13,7 @@ The repository provides a static web application with:
 - Searchable module catalog with category filters and saved modules.
 - Accessible module detail dialogs and keyboard shortcuts (Ctrl/Cmd + K, /).
 - Browser-local workspace task manager with search, status filters, progress counts and confirmed bulk cleanup.
-- JSON export and validated, bounded JSON import for local workspace data.
+- JSON export and validated, bounded JSON import for local workspace data, defined by schemas/workspace-backup.schema.json.
 - PWA manifest and versioned service-worker cache for the static app shell, including the module registry.
 - GitHub Actions workflow with syntax and repository-structure tests before GitHub Pages deployment.
 
@@ -29,6 +29,7 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 - modules.json — versioned, validated module catalog (public static metadata)
 - Workspace tasks and favorites synchronize between same-origin tabs through validated browser storage events (last-write-wins; no cloud sync)
 - schemas/module-registry.schema.json — formal JSON Schema 2020-12 contract for module metadata
+- schemas/workspace-backup.schema.json — formal JSON Schema 2020-12 contract for local workspace backups
 - manifest.webmanifest — installable web-app metadata
 - sw.js — static-shell offline cache
 - tests/site.test.mjs — dependency-free Node.js structure and safety checks
