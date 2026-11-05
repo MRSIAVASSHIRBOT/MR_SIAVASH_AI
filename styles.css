@@ -291,3 +291,53 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* Version 0.2 — saved modules, data portability, installability and offline state */
+.network-chip {
+  display: inline-flex; align-items: center; gap: 7px; color: #a9b8ae;
+  font-size: 9px; border: 1px solid var(--line); border-radius: 50px;
+  padding: 6px 9px; white-space: nowrap;
+}
+.network-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); box-shadow: 0 0 8px rgba(116,214,154,.5); }
+.network-chip.is-offline { color: var(--amber); border-color: rgba(216,189,130,.22); }
+.network-chip.is-offline .network-dot { background: var(--amber); box-shadow: 0 0 8px rgba(216,189,130,.45); }
+.install-button {
+  cursor: pointer; border: 1px solid rgba(116,214,154,.25); border-radius: 50px;
+  background: rgba(116,214,154,.08); color: var(--green-bright);
+  padding: 6px 10px; font-size: 9px; white-space: nowrap;
+}
+.install-button:hover { background: rgba(116,214,154,.15); }
+.install-button[hidden] { display: none; }
+.card-actions { display: flex; align-items: center; gap: 8px; }
+.card-save, .card-details {
+  border: 1px solid var(--line); border-radius: 8px; background: rgba(255,255,255,.025);
+  color: var(--muted); cursor: pointer; padding: 5px 9px; font-size: 10px; transition: .18s ease;
+}
+.card-save { font-size: 15px; line-height: 1; color: var(--dim); }
+.card-save:hover, .card-save.is-saved { color: var(--green); border-color: rgba(116,214,154,.25); background: rgba(116,214,154,.08); }
+.card-details:hover { color: var(--green); border-color: rgba(116,214,154,.28); }
+.filter-chip [id="savedCount"] { display: inline-block; min-width: 14px; padding: 0 3px; margin-right: 3px; color: var(--green); }
+.task-tools { display: flex; align-items: center; gap: 7px; margin-top: 15px; }
+.tool-button {
+  cursor: pointer; display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(255,255,255,.025); border: 1px solid var(--line);
+  border-radius: 8px; padding: 6px 10px; color: var(--muted); font-size: 9px;
+}
+.tool-button:hover { border-color: rgba(116,214,154,.25); color: var(--green-bright); }
+.footer-version { color: var(--green); margin-right: 5px; }
+.noscript-note { margin: 0 auto 25px; padding: 12px 16px; border: 1px solid rgba(216,189,130,.3); border-radius: 10px; color: var(--amber); font-size: 12px; }
+.module-dialog .dialog-actions { align-items: center; }
+.module-dialog .dialog-actions .button { min-height: 40px; }
+#dialogFavorite[aria-pressed="true"] { color: var(--green); border-color: rgba(116,214,154,.3); }
+@media (max-width: 980px) {
+  .topbar-actions { gap: 7px; }
+  .network-chip { padding: 6px 7px; }
+}
+@media (max-width: 680px) {
+  .topbar-actions { gap: 6px; }
+  .network-chip { width: 34px; height: 34px; justify-content: center; padding: 0; }
+  .network-chip > span:last-child { display: none; }
+  .install-button { padding: 6px 8px; }
+  .task-tools { flex-wrap: wrap; }
+  .card-bottom { align-items: center; }
+}
