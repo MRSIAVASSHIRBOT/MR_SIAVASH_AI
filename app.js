@@ -398,15 +398,15 @@
     }
     const seenIds = new Set();
     return parsed.tasks.map(task => {
-      if (!task || typeof task !== "object" || typeof task.id !== "string" ||
-          !task.id.trim() || task.id.length > 128 || seenIds.has(task.id) ||
+      const id = typeof task?.id === "string" ? task.id.trim() : "";
+      if (!task || typeof task !== "object" || !id || id.length > 128 || seenIds.has(id) ||
           typeof task.text !== "string" || typeof task.done !== "boolean") {
         throw new Error("یکی از کارهای ذخیره‌شده معتبر نیست.");
       }
-      seenIds.add(task.id);
+      seenIds.add(id);
       const text = task.text.trim().replace(/\s+/g, " ");
       if (!text || text.length > 120) throw new Error("متن یکی از کارها خارج از محدوده است.");
-      return { id: task.id, text, done: task.done };
+      return { id, text, done: task.done };
     });
   }
 
