@@ -27,6 +27,7 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 - styles.css — visual system and responsive layouts
 - app.js — navigation, registry validation, favorites, local workspace and data portability
 - modules.json — versioned, validated module catalog (public static metadata)
+- schemas/module-registry.schema.json — formal JSON Schema 2020-12 contract for module metadata
 - manifest.webmanifest — installable web-app metadata
 - sw.js — static-shell offline cache
 - tests/site.test.mjs — dependency-free Node.js structure and safety checks
