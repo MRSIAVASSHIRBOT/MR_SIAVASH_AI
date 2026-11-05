@@ -11,7 +11,7 @@ The workstreams progress together behind shared release gates. A module is not p
 | AI and agents | Provider adapter interface and bounded tool permissions | Secrets stay server-side; human approval for consequential actions |
 | Learning and security | Defensive learning paths and authorized-lab boundaries | Content review and safe lab framing |
 | Creator and knowledge | Reusable content/resource metadata contracts | Search, export and ownership rules documented |
-| Operations | CI, deployment, monitoring, backup and rollback | Reproducible deployment and tested restoration |
+| Operations | Main-only CI deployment gate, monitoring, backup and rollback | Only successful main-branch runs can deploy; deployment URL is surfaced; restoration is tested |
 
 ## Release stages
 
