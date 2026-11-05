@@ -140,6 +140,7 @@
     setRegistryStatus("در حال دریافت و اعتبارسنجی فهرست ماژول‌ها...", true, true);
     try {
       await loadModuleRegistry();
+      reconcileFavorites();
       renderFeatured();
       renderCatalog();
       setRegistryStatus("", false);
@@ -303,7 +304,8 @@
     filtered.forEach(item => container.append(makeCard(item)));
     $("#catalogEmpty").hidden = filtered.length !== 0;
     const count = $("#savedCount");
-    if (count) count.textContent = new Intl.NumberFormat("fa-IR").format(favorites.size);
+    const knownFavoriteCount = modules.filter(module => favorites.has(module.id)).length;
+    if (count) count.textContent = new Intl.NumberFormat("fa-IR").format(knownFavoriteCount);
   }
 
   function setFilter(filter) {
@@ -370,6 +372,24 @@
     if (dialog.open) dialog.close();
   }
 
+  function normalizeFavoriteIds(ids, knownModules = modules, preserveUnknown = false) {
+    if (!Array.isArray(ids)) return [];
+    const knownIds = new Set(knownModules.map(module => module.id));
+    return Array.from(new Set(ids.filter(id =>
+      typeof id === "string" &&
+      /^[a-z0-9-]{2,64}$/.test(id) &&
+      (preserveUnknown || knownIds.has(id))
+    )));
+  }
+
+  function reconcileFavorites() {
+    const nextFavorites = new Set(normalizeFavoriteIds(Array.from(favorites), modules));
+    if (nextFavorites.size === favorites.size) return true;
+    if (!persist(FAVORITES_KEY, Array.from(nextFavorites))) return false;
+    favorites = nextFavorites;
+    return true;
+  }
+
   function loadWorkspace() {
     let parsed = null;
     try {
@@ -401,7 +421,7 @@
     try {
       const rawFavorites = localStorage.getItem(FAVORITES_KEY);
       const parsedFavorites = rawFavorites ? JSON.parse(rawFavorites) : [];
-      favorites = new Set(Array.isArray(parsedFavorites) ? parsedFavorites.filter(id => modules.some(module => module.id === id)) : []);
+      favorites = new Set(normalizeFavoriteIds(parsedFavorites, modules, modules.length === 0));
     } catch (error) {
       favorites = new Set();
       storageAvailable = false;
@@ -548,7 +568,7 @@
       const nextFavorites = new Set(favorites);
       const importsFavorites = Array.isArray(data.favorites);
       if (importsFavorites) {
-        data.favorites.filter(id => modules.some(module => module.id === id)).forEach(id => nextFavorites.add(id));
+        normalizeFavoriteIds(data.favorites, modules, modules.length === 0).forEach(id => nextFavorites.add(id));
         if (!persist(FAVORITES_KEY, Array.from(nextFavorites))) return;
       }
       if (!saveWorkspace(nextTasks)) {

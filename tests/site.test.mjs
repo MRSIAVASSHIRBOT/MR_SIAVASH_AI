@@ -414,3 +414,23 @@ test("module registry loader decodes a bounded streamed JSON response", async ()
   await context.runLoadModuleRegistry();
   assert.equal(context.modules.length, 1);
 });
+
+
+test("favorite identifiers survive temporary module registry outages and reconcile after recovery", () => {
+  const start = app.indexOf("  function normalizeFavoriteIds(");
+  const end = app.indexOf("\n  function reconcileFavorites()", start);
+  assert.ok(start >= 0 && end > start);
+  const context = { modules: [] };
+  vm.runInNewContext(app.slice(start, end).trim() + "\nglobalThis.normalizeFavoriteIds = normalizeFavoriteIds;", context);
+  const offline = context.normalizeFavoriteIds(["ai-hub", "future-module", "not valid!"], [], true);
+  assert.deepEqual(Array.from(offline), ["ai-hub", "future-module"]);
+  const recovered = context.normalizeFavoriteIds(offline, [{ id: "ai-hub" }, { id: "workspace" }], false);
+  assert.deepEqual(Array.from(recovered), ["ai-hub"]);
+  assert.match(app, /normalizeFavoriteIds\(parsedFavorites, modules, modules\.length === 0\)/);
+  assert.match(app, /normalizeFavoriteIds\(data\.favorites, modules, modules\.length === 0\)/);
+  assert.match(app, /await loadModuleRegistry\(\);\s*reconcileFavorites\(\);/);
+});
+
+test("saved module count excludes unresolved favorite IDs", () => {
+  assert.match(app, /const knownFavoriteCount = modules\.filter\(module => favorites\.has\(module\.id\)\)\.length/);
+});
