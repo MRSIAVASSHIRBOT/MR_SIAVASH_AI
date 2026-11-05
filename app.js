@@ -73,7 +73,7 @@
       const response = await fetch("./modules.json", options);
       if (!response.ok) throw new Error("دریافت فهرست ماژول‌ها ناموفق بود.");
       const contentType = response.headers && response.headers.get("content-type") || "";
-      if (!/^application\\/(?:json|[a-z0-9.+-]+\\+json)(?:\\s*;|$)/i.test(contentType)) {
+      if (!/^application\/(?:json|[a-z0-9.+-]+\+json)(?:\s*;|$)/i.test(contentType)) {
         throw new Error("نوع محتوای فهرست ماژول‌ها معتبر نیست.");
       }
       const registry = await response.json();
