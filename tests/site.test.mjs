@@ -166,3 +166,22 @@ test("workspace import reports accepted and skipped tasks at capacity", () => {
   assert.match(app, /const skipped = unique\.length - accepted\.length/);
   assert.match(app, /هیچ کاری از پشتیبان اضافه نشد/);
 });
+
+
+test("workspace mutations persist before committing in-memory task state", () => {
+  assert.match(app, /function saveWorkspace\(nextTasks = tasks\)/);
+  assert.match(app, /if \(!saveWorkspace\(nextTasks\)\) return false;[\s\S]{0,100}tasks = nextTasks/);
+  assert.match(app, /if \(saveWorkspace\(nextTasks\)\) tasks = nextTasks/);
+  assert.match(app, /if \(saveWorkspace\(nextTasks\)\) \{[\s\S]{0,100}tasks = nextTasks/);
+});
+
+test("workspace import commits task and favorite state only after persistence succeeds", () => {
+  assert.match(app, /const nextTasks = \[\.\.\.accepted, \.\.\.tasks\]/);
+  assert.match(app, /const nextFavorites = new Set\(favorites\)/);
+  assert.match(app, /if \(!saveWorkspace\(nextTasks\)\) \{[\s\S]*?persist\(FAVORITES_KEY, Array\.from\(favorites\)\);[\s\S]*?return;/);
+  assert.match(app, /tasks = nextTasks;\s*favorites = nextFavorites;/);
+});
+
+test("favorite changes are persisted before replacing the in-memory set", () => {
+  assert.match(app, /const nextFavorites = new Set\(favorites\);[\s\S]*?if \(!persist\(FAVORITES_KEY, Array\.from\(nextFavorites\)\)\) return false;\s*favorites = nextFavorites;/);
+});
