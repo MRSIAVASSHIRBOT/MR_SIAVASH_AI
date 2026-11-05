@@ -14,7 +14,7 @@ This document defines shared rules for the parallel product workstreams so that 
 
 ## 2. Module manifest contract
 
-The runtime catalog is stored in `modules.json` using the `mr-siavash-ai-module-registry` schema at version 1. Its machine-readable JSON Schema is maintained at `schemas/module-registry.schema.json`; changes to the runtime validator and schema must remain in parity. The browser validates the complete registry, rejects unknown or malformed fields and duplicate IDs, then freezes the accepted records before rendering. The loader requests this public static manifest without credentials, enforces an application/json media type, and aborts a stalled request after five seconds where AbortController is available. The service worker caches this public static manifest as part of the application shell.
+The runtime catalog is stored in `modules.json` using the `mr-siavash-ai-module-registry` schema at version 1. Its machine-readable JSON Schema is maintained at `schemas/module-registry.schema.json`; changes to the runtime validator and schema must remain in parity. The browser validates the complete registry, rejects unknown or malformed fields and duplicate IDs, caps the response at 64 KiB (checking both declared length and streamed bytes), then freezes the accepted records before rendering. The loader requests this public static manifest without credentials, enforces an application/json media type, and aborts a stalled request after five seconds where AbortController is available. The service worker caches this public static manifest as part of the application shell.
 
 Each module specification must declare:
 
