@@ -27,8 +27,8 @@ test("navigation buttons have real section targets", () => {
 });
 
 test("all static DOM IDs used by the application exist in the HTML", () => {
-  const htmlIds = new Set([...html.matchAll(/\\bid="([^"]+)"/g)].map(match => match[1]));
-  const referencedIds = [...app.matchAll(/\\$\\("#([A-Za-z][A-Za-z0-9_-]*)"/g)].map(match => match[1]);
+  const htmlIds = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]));
+  const referencedIds = [...app.matchAll(/\$\("#([A-Za-z][A-Za-z0-9_-]*)"/g)].map(match => match[1]).filter(id => !id.endsWith("-"));
   for (const id of referencedIds) assert.ok(htmlIds.has(id), "missing DOM element: " + id);
 });
 
