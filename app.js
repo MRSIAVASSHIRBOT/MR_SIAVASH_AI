@@ -83,6 +83,33 @@
     }
   }
 
+  function setRegistryStatus(message, visible, loading = false) {
+    const panel = $("#registryStatus");
+    const detail = $("#registryStatusMessage");
+    const button = $("#retryRegistryButton");
+    if (!panel || !detail || !button) return;
+    detail.textContent = message;
+    panel.hidden = !visible;
+    button.disabled = loading;
+    button.textContent = loading ? "در حال بررسی..." : "تلاش دوباره";
+  }
+
+  async function retryModuleRegistry() {
+    const button = $("#retryRegistryButton");
+    if (!button || button.disabled) return;
+    setRegistryStatus("در حال دریافت و اعتبارسنجی فهرست ماژول‌ها...", true, true);
+    try {
+      await loadModuleRegistry();
+      renderFeatured();
+      renderCatalog();
+      setRegistryStatus("", false);
+      showToast("فهرست ماژول‌ها با موفقیت بارگذاری شد.");
+    } catch (error) {
+      console.error("Module registry retry failed:", error);
+      setRegistryStatus("بارگذاری ناموفق بود. اتصال را بررسی کن و دوباره تلاش کن.", true, false);
+    }
+  }
+
   function createId() {
     if (window.crypto && typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID();
     return String(Date.now()) + "-" + Math.random().toString(36).slice(2, 10);
@@ -677,6 +704,8 @@
   }
 
   function init() {
+    const retryButton = $("#retryRegistryButton");
+    if (retryButton) retryButton.addEventListener("click", retryModuleRegistry);
     renderFeatured();
     initNavigation();
     initCatalog();
@@ -700,7 +729,9 @@
       console.error("Module registry could not be loaded:", error);
     }
     init();
-    if (!registryReady) showToast("فهرست ماژول‌ها بارگذاری نشد؛ بخش‌های محلی همچنان در دسترس هستند.");
+    if (!registryReady) {
+      setRegistryStatus("فهرست ماژول‌ها بارگذاری نشد. بخش‌های محلی همچنان در دسترس هستند؛ پس از بررسی اتصال می‌توانی دوباره تلاش کنی.", true);
+    }
   }
 
   start();
