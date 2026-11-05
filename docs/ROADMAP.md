@@ -4,7 +4,7 @@ The workstreams progress together behind shared release gates. A module is not p
 
 | Workstream | Near-term deliverable | Acceptance gate |
 | --- | --- | --- |
-| Product and identity | Versioned external module registry with runtime validation, public/private information boundary | Registry schema, IDs, categories and capability states validate before rendering; UI never implies unimplemented capabilities |
+| Product and identity | Versioned external module registry with runtime validation, public/private information boundary | JSON Schema and runtime validator remain in parity; IDs, categories and capability states validate before rendering; UI never implies unimplemented capabilities |
 | Front-end platform | Accessible navigation, robust local state, isolated offline shell | Keyboard, mobile-navigation accessibility, shortcut focus-safety, import/export, full-capacity and failed-storage rollback tests, plus runtime tests proving API/private responses bypass the service-worker cache |
 | Backend/API | Versioned OpenAPI contract and health/public metadata boundary | Contract validation and server integration tests |
 | Identity and privacy | Authentication lifecycle and authorization matrix | Negative tests prove cross-account access is denied |

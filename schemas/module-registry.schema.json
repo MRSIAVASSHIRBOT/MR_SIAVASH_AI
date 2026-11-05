@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/main/schemas/module-registry.schema.json",
+  "title": "MR_SIAVASH_AI Module Registry",
+  "description": "Public presentation metadata contract. It does not define permissions or runtime integrations.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema",
+    "version",
+    "modules"
+  ],
+  "properties": {
+    "schema": {
+      "const": "mr-siavash-ai-module-registry"
+    },
+    "version": {
+      "const": 1
+    },
+    "modules": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 50,
+      "items": {
+        "$ref": "#/$defs/module"
+      }
+    }
+  },
+  "$defs": {
+    "module": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "category",
+        "categoryLabel",
+        "symbol",
+        "title",
+        "description",
+        "status",
+        "type",
+        "features",
+        "featured"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9-]{2,64}$"
+        },
+        "category": {
+          "type": "string",
+          "enum": [
+            "ai",
+            "dev",
+            "learn",
+            "create",
+            "workspace"
+          ]
+        },
+        "categoryLabel": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 40
+        },
+        "symbol": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 8
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 80
+        },
+        "description": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 280
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "در نقشه راه",
+            "فعال در همین مرورگر"
+          ]
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "ROADMAP",
+            "LOCAL"
+          ]
+        },
+        "features": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 8,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          }
+        },
+        "featured": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "LOCAL"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "فعال در همین مرورگر"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "ROADMAP"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "status": {
+                "const": "در نقشه راه"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

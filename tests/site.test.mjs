@@ -9,6 +9,8 @@ const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const manifestText = await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8");
 const moduleRegistryText = await readFile(new URL("../modules.json", import.meta.url), "utf8");
 const moduleRegistry = JSON.parse(moduleRegistryText);
+const moduleSchemaText = await readFile(new URL("../schemas/module-registry.schema.json", import.meta.url), "utf8");
+const moduleSchema = JSON.parse(moduleSchemaText);
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
 test("HTML references app assets and install manifest", () => {
@@ -59,7 +61,8 @@ test("versioned module registry contains nine unique, categorized modules", () =
 test("application validates and freezes the external module registry before initialization", () => {
   assert.match(app, /function validateModuleRegistry\(registry\)/);
   assert.match(app, /function loadModuleRegistry\(\)/);
-  assert.match(app, /modules = Object\.freeze\(validateModuleRegistry\(registry\)\)/);
+  assert.match(app, /return Object\.freeze\(registry\.modules\.map\(module =>/);
+  assert.match(app, /modules = validateModuleRegistry\(registry\)/);
   assert.match(app, /await loadModuleRegistry\(\);[\s\S]*?init\(\);/);
 });
 
@@ -247,4 +250,25 @@ test("module registry validator rejects malformed and ambiguous metadata at runt
   const oversized = structuredClone(moduleRegistry);
   oversized.modules[0].title = "x".repeat(81);
   assert.throws(() => validate(oversized), /فراداده/);
+});
+
+
+test("formal JSON Schema matches the runtime module registry contract", () => {
+  assert.equal(moduleSchema.$schema, "https://json-schema.org/draft/2020-12/schema");
+  assert.equal(moduleSchema.additionalProperties, false);
+  assert.deepEqual(moduleSchema.required, ["schema", "version", "modules"]);
+  assert.equal(moduleSchema.properties.schema.const, moduleRegistry.schema);
+  assert.equal(moduleSchema.properties.version.const, moduleRegistry.version);
+  const moduleContract = moduleSchema.$defs.module;
+  assert.equal(moduleContract.additionalProperties, false);
+  assert.deepEqual([...moduleContract.required].sort(), Object.keys(moduleRegistry.modules[0]).sort());
+  assert.deepEqual(Object.keys(moduleContract.properties).sort(), Object.keys(moduleRegistry.modules[0]).sort());
+  assert.equal(moduleContract.properties.id.pattern, "^[a-z0-9-]{2,64}$");
+  assert.equal(moduleSchema.properties.modules.maxItems, 50);
+  assert.equal(moduleContract.properties.features.maxItems, 8);
+  assert.equal(moduleContract.properties.features.items.maxLength, 120);
+  assert.equal(moduleContract.allOf[0].if.properties.type.const, "LOCAL");
+  assert.equal(moduleContract.allOf[0].then.properties.status.const, "فعال در همین مرورگر");
+  assert.equal(moduleContract.allOf[1].if.properties.type.const, "ROADMAP");
+  assert.equal(moduleContract.allOf[1].then.properties.status.const, "در نقشه راه");
 });

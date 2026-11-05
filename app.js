@@ -37,7 +37,7 @@
     const allowedCategories = new Set(["ai", "dev", "learn", "create", "workspace"]);
     const seenIds = new Set();
 
-    return registry.modules.map(module => {
+    return Object.freeze(registry.modules.map(module => {
       if (!module || typeof module !== "object" || Array.isArray(module) ||
           Object.keys(module).some(key => !allowedFields.has(key)) ||
           Object.keys(module).length !== allowedFields.size) {
@@ -61,14 +61,14 @@
       const validLocal = module.type === "LOCAL" && module.status === "فعال در همین مرورگر";
       if (!validRoadmap && !validLocal) throw new Error("وضعیت پیاده‌سازی ماژول معتبر نیست.");
       return Object.freeze({ ...module, features: Object.freeze([...module.features]) });
-    });
+    }));
   }
 
   async function loadModuleRegistry() {
     const response = await fetch("./modules.json", { credentials: "same-origin", cache: "no-cache" });
     if (!response.ok) throw new Error("دریافت فهرست ماژول‌ها ناموفق بود.");
     const registry = await response.json();
-    modules = Object.freeze(validateModuleRegistry(registry));
+    modules = validateModuleRegistry(registry);
   }
 
   function createId() {
