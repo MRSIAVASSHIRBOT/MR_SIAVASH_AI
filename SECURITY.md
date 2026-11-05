@@ -19,3 +19,10 @@ Do not publish credentials, private user data, exploit details against third-par
 ## Supported security posture
 
 The current app only stores user-created workspace tasks and favorite module IDs in the local browser profile. The service worker caches static same-origin application files and does not intercept non-GET requests or remote API traffic.
+
+
+## CI supply-chain controls
+
+- Third-party GitHub Actions in the deployment workflow are pinned to full commit SHAs rather than mutable version tags.
+- Dependabot checks GitHub Actions references weekly so pinned revisions can be reviewed and updated deliberately.
+- Workflow permissions remain scoped to read-only repository access for quality checks; Pages write and OIDC permissions are limited to the deployment job.
