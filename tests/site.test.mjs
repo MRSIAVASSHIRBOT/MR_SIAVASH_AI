@@ -272,3 +272,73 @@ test("formal JSON Schema matches the runtime module registry contract", () => {
   assert.equal(moduleContract.allOf[1].if.properties.type.const, "ROADMAP");
   assert.equal(moduleContract.allOf[1].then.properties.status.const, "در نقشه راه");
 });
+
+
+function createModuleLoaderHarness(fetchImpl, timer = callback => {
+  callback();
+  return 1;
+}) {
+  const start = app.indexOf("  async function loadModuleRegistry()");
+  const end = app.indexOf("\n  function createId()", start);
+  assert.ok(start >= 0 && end > start, "loader source boundaries must exist");
+  const source = app.slice(start, end).trim();
+  const context = {
+    modules: [],
+    fetch: fetchImpl,
+    AbortController,
+    validateModuleRegistry: registry => Object.freeze(registry.modules),
+    window: { setTimeout: timer, clearTimeout() {} }
+  };
+  vm.runInNewContext(source + "\nglobalThis.runLoadModuleRegistry = loadModuleRegistry;", context);
+  return context;
+}
+
+test("module registry loader omits credentials, validates JSON media type and clears its timeout", async () => {
+  let requestOptions;
+  let timeoutMs = 0;
+  let timerCleared = false;
+  const context = createModuleLoaderHarness(async (url, options) => {
+    requestOptions = options;
+    return {
+      ok: true,
+      headers: { get: () => "application/json; charset=utf-8" },
+      async json() { return { modules: [{ id: "test-module" }] }; }
+    };
+  }, (callback, delay) => {
+    timeoutMs = delay;
+    return 42;
+  });
+  context.window.clearTimeout = id => { timerCleared = id === 42; };
+  await context.runLoadModuleRegistry();
+  assert.equal(requestOptions.credentials, "omit");
+  assert.equal(requestOptions.cache, "no-cache");
+  assert.ok(requestOptions.signal instanceof AbortSignal);
+  assert.equal(timeoutMs, 5000);
+  assert.equal(timerCleared, true);
+  assert.equal(context.modules.length, 1);
+});
+
+test("module registry loader rejects HTML fallback responses before parsing", async () => {
+  let parsed = false;
+  const context = createModuleLoaderHarness(async () => ({
+    ok: true,
+    headers: { get: () => "text/html; charset=utf-8" },
+    async json() { parsed = true; return { modules: [] }; }
+  }), () => 1);
+  await assert.rejects(context.runLoadModuleRegistry(), /نوع محتوای فهرست/);
+  assert.equal(parsed, false);
+});
+
+test("module registry loader aborts a stalled request after its bounded timeout", async () => {
+  let observedAbort = false;
+  const context = createModuleLoaderHarness(async (url, options) => {
+    observedAbort = options.signal.aborted;
+    if (observedAbort) throw new Error("request aborted");
+    return new Promise(() => {});
+  }, callback => {
+    callback();
+    return 1;
+  });
+  await assert.rejects(context.runLoadModuleRegistry(), /aborted/);
+  assert.equal(observedAbort, true);
+});
