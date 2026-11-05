@@ -54,3 +54,10 @@ A feature touching private data, credentials, billing, external tools or consequ
 - Storage events are treated as untrusted input and validated before state replacement.
 - The browser's local storage remains user-controlled and same-origin; it is not an authentication or authorization boundary.
 - Concurrent edits from multiple tabs are last-write-wins. The prototype does not promise conflict-free merging, durable multi-device synchronization, or recovery from every browser storage failure.
+
+
+## Static browser security policy
+
+- The HTML entry document declares a restrictive meta-delivered Content Security Policy: scripts, styles, connections, manifests and workers are same-origin; objects and frames are denied; inline script/style and eval are not permitted.
+- The policy is compatible with the current static asset inventory and is covered by repository regression tests.
+- GitHub Pages does not let this repository configure arbitrary HTTP response headers. A meta CSP cannot enforce frame-ancestors, X-Frame-Options, HSTS, or other response-header-only controls. Those require hosting/CDN response-header configuration and must not be claimed as enforced by this HTML policy.
