@@ -219,8 +219,9 @@
       if (window.location.hash !== nextHash) window.history.pushState({ module: module.id }, "", nextHash);
     }
     const dialog = $("#moduleDialog");
-    if (typeof dialog.showModal === "function") dialog.showModal();
-    else showToast("جزئیات ماژول: " + module.title);
+    if (typeof dialog.showModal === "function") {
+      if (!dialog.open) dialog.showModal();
+    } else showToast("جزئیات ماژول: " + module.title);
   }
 
   function toggleFavorite(id) {
