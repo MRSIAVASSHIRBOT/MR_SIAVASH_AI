@@ -70,3 +70,26 @@ test("service worker caches the static shell and ignores non-GET requests", () =
   assert.match(sw, /request\.mode === "navigate"/);
   assert.match(sw, /request\.method !== "GET"/);
 });
+
+
+test("proposed backend contract is explicitly design-only and versioned", async () => {
+  const api = await readFile(new URL("../docs/backend/openapi.yaml", import.meta.url), "utf8");
+  const backendGuide = await readFile(new URL("../docs/backend/README.md", import.meta.url), "utf8");
+  assert.match(api, /openapi: 3\.1\.0/);
+  assert.match(api, /version: 0\.1\.0/);
+  assert.match(api, /DESIGN CONTRACT ONLY/);
+  assert.match(api, /bearerAuth/);
+  assert.match(api, /Idempotency-Key/);
+  assert.match(api, /additionalProperties: false/);
+  assert.match(backendGuide, /does not contain a running backend/);
+});
+
+test("security and roadmap docs define production gates", async () => {
+  const threat = await readFile(new URL("../docs/THREAT_MODEL.md", import.meta.url), "utf8");
+  const roadmap = await readFile(new URL("../docs/ROADMAP.md", import.meta.url), "utf8");
+  assert.match(threat, /STRIDE review/);
+  assert.match(threat, /cross-user isolation tests/);
+  assert.match(threat, /secrets stay server-side/i);
+  assert.match(roadmap, /parallel workstreams/);
+  assert.match(roadmap, /No backend endpoints are live/);
+});
