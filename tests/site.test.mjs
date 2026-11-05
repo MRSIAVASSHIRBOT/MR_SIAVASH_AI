@@ -329,16 +329,14 @@ test("module registry loader rejects HTML fallback responses before parsing", as
   assert.equal(parsed, false);
 });
 
-test("module registry loader aborts a stalled request after its bounded timeout", async () => {
+test("module registry loader aborts an in-flight stalled request after its bounded timeout", async () => {
   let observedAbort = false;
-  const context = createModuleLoaderHarness(async (url, options) => {
-    observedAbort = options.signal.aborted;
-    if (observedAbort) throw new Error("request aborted");
-    return new Promise(() => {});
-  }, callback => {
-    callback();
-    return 1;
-  });
+  const context = createModuleLoaderHarness(async (url, options) => new Promise((resolve, reject) => {
+    options.signal.addEventListener("abort", () => {
+      observedAbort = true;
+      reject(new Error("request aborted"));
+    }, { once: true });
+  }), callback => setTimeout(callback, 0));
   await assert.rejects(context.runLoadModuleRegistry(), /aborted/);
   assert.equal(observedAbort, true);
 });
