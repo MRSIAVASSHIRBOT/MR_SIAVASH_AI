@@ -104,6 +104,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
   assert.match(html, /id="taskDoneCount"/);
   assert.match(html, /id="clearCompletedTasks"/);
   assert.match(app, /function setTaskFilter/);
+  assert.match(app, /\$\$\("#taskFilters \\[data-task-filter\\]"\)\.forEach/);
   assert.match(app, /toLocaleLowerCase\("fa"\)/);
   assert.match(app, /window\.confirm/);
 });
