@@ -340,3 +340,18 @@ test("module registry loader aborts an in-flight stalled request after its bound
   await assert.rejects(context.runLoadModuleRegistry(), /aborted/);
   assert.equal(observedAbort, true);
 });
+
+
+test("module registry failure has a persistent accessible recovery path", () => {
+  assert.match(html, /id="registryStatus"[^>]*role="status"[^>]*aria-live="polite"/);
+  assert.match(html, /id="retryRegistryButton"/);
+  assert.match(app, /async function retryModuleRegistry\(\)/);
+  assert.match(app, /await loadModuleRegistry\(\);[\s\S]*?renderFeatured\(\);[\s\S]*?renderCatalog\(\);[\s\S]*?setRegistryStatus\("", false\)/);
+  assert.match(app, /retryButton\.addEventListener\("click", retryModuleRegistry\)/);
+  assert.match(css, /\.registry-status\[hidden\] \{ display: none; \}/);
+});
+
+test("registry recovery reports failure without replacing the local workspace", () => {
+  assert.match(app, /setRegistryStatus\("بارگذاری ناموفق بود\. اتصال را بررسی کن و دوباره تلاش کن\.", true, false\)/);
+  assert.match(app, /بخش‌های محلی همچنان در دسترس هستند/);
+});
