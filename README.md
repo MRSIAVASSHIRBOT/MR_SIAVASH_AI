@@ -29,6 +29,7 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 - manifest.webmanifest — installable web-app metadata
 - sw.js — static-shell offline cache
 - tests/site.test.mjs — dependency-free Node.js structure and safety checks
+- tests/service-worker.test.mjs — runtime regression tests for static-cache isolation and navigation boundaries
 - .github/workflows/deploy.yml — quality checks and GitHub Pages deployment
 - docs/ARCHITECTURE.md — current boundaries and future integration plan
 - SECURITY.md — security reporting and client-side security boundaries
