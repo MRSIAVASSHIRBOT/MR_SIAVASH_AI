@@ -30,9 +30,12 @@ self.addEventListener("fetch", event => {
 
   const requestUrl = new URL(request.url);
   const scopeUrl = new URL(self.registration.scope);
-  if (requestUrl.origin !== scopeUrl.origin || !requestUrl.pathname.startsWith(scopeUrl.pathname)) return;
+  if (requestUrl.origin !== scopeUrl.origin || !requestUrl.pathname.startsWith(scopeUrl.pathname) || requestUrl.search) return;
 
   if (request.mode === "navigate") {
+    const appRootUrl = new URL("./", scopeUrl);
+    const indexUrl = new URL("./index.html", scopeUrl);
+    if (requestUrl.pathname !== appRootUrl.pathname && requestUrl.href !== indexUrl.href) return;
     event.respondWith((async () => {
       try {
         const response = await fetch(request);
