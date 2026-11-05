@@ -50,3 +50,8 @@ GitHub Actions runs JavaScript syntax checks and dependency-free structure tests
 The proposed API is documented in docs/backend/openapi.yaml. It separates public module metadata and health checks from authenticated user workspace operations. The API contract is not a running service.
 
 Before implementation, use docs/THREAT_MODEL.md and enforce user ownership in server-side repository queries. The authenticated principal must come from a verified session, never from a client-supplied user identifier.
+
+
+## Shared integration contracts
+
+See docs/PLATFORM_CONTRACTS.md for module manifests, identity and authorization boundaries, AI provider adapters, constrained agent execution, observability, and production release gates. These are design requirements until implemented and tested end to end.
