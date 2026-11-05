@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import vm from "node:vm";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
@@ -217,4 +218,33 @@ test("mobile navigation exposes an accurate accessible control relationship", ()
 
 test("global module search shortcut does not steal keystrokes from editors or dialogs", () => {
   assert.match(app, /event\.key\.toLowerCase\(\) === "k" &&\s*!typing && !\$\("#moduleDialog"\)\.open/);
+});
+
+
+test("module registry validator rejects malformed and ambiguous metadata at runtime", () => {
+  const start = app.indexOf("  function validateModuleRegistry(registry) {");
+  const end = app.indexOf("\n  async function loadModuleRegistry()", start);
+  assert.ok(start >= 0 && end > start, "validator source boundaries must exist");
+  const validate = vm.runInNewContext("(" + app.slice(start, end).trim() + ")");
+  const accepted = validate(structuredClone(moduleRegistry));
+  assert.equal(accepted.length, 9);
+  assert.ok(Object.isFrozen(accepted));
+  assert.ok(Object.isFrozen(accepted[0]));
+  assert.ok(Object.isFrozen(accepted[0].features));
+
+  const duplicate = structuredClone(moduleRegistry);
+  duplicate.modules[1].id = duplicate.modules[0].id;
+  assert.throws(() => validate(duplicate), /شناسه ماژول/);
+
+  const unknownField = structuredClone(moduleRegistry);
+  unknownField.modules[0].permissions = ["admin"];
+  assert.throws(() => validate(unknownField), /فیلدهای مورد انتظار/);
+
+  const invalidState = structuredClone(moduleRegistry);
+  invalidState.modules[0].type = "LOCAL";
+  assert.throws(() => validate(invalidState), /وضعیت پیاده‌سازی/);
+
+  const oversized = structuredClone(moduleRegistry);
+  oversized.modules[0].title = "x".repeat(81);
+  assert.throws(() => validate(oversized), /فراداده/);
 });
