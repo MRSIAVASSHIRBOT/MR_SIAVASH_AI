@@ -65,10 +65,22 @@
   }
 
   async function loadModuleRegistry() {
-    const response = await fetch("./modules.json", { credentials: "same-origin", cache: "no-cache" });
-    if (!response.ok) throw new Error("دریافت فهرست ماژول‌ها ناموفق بود.");
-    const registry = await response.json();
-    modules = validateModuleRegistry(registry);
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    const timeoutId = controller ? window.setTimeout(() => controller.abort(), 5000) : null;
+    try {
+      const options = { credentials: "omit", cache: "no-cache" };
+      if (controller) options.signal = controller.signal;
+      const response = await fetch("./modules.json", options);
+      if (!response.ok) throw new Error("دریافت فهرست ماژول‌ها ناموفق بود.");
+      const contentType = response.headers && response.headers.get("content-type") || "";
+      if (!/^application\\/(?:json|[a-z0-9.+-]+\\+json)(?:\\s*;|$)/i.test(contentType)) {
+        throw new Error("نوع محتوای فهرست ماژول‌ها معتبر نیست.");
+      }
+      const registry = await response.json();
+      modules = validateModuleRegistry(registry);
+    } finally {
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    }
   }
 
   function createId() {
