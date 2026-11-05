@@ -9,17 +9,7 @@
   const MAX_TASKS = 100;
   const MAX_IMPORT_BYTES = 256 * 1024;
 
-  const modules = [
-    { id: "ai-hub", category: "ai", categoryLabel: "هوش مصنوعی", symbol: "✳", title: "AI Hub", description: "مرکز سامان‌دهی ابزارها و سرویس‌های هوش مصنوعی، مدل‌ها و جریان‌های کاری مختلف.", status: "در نقشه راه", type: "ROADMAP", features: ["فهرست و مقایسه مدل‌ها و سرویس‌ها", "مدیریت تنظیمات اتصال‌ها از سمت امن سرور", "آزمون و ارزیابی خروجی‌ها با معیارهای روشن"], featured: true },
-    { id: "agents", category: "ai", categoryLabel: "هوش مصنوعی", symbol: "◈", title: "Agents Lab", description: "محیط طراحی و هماهنگی عامل‌های هوشمند با وظایف، ابزارها و محدوده دسترسی مشخص.", status: "در نقشه راه", type: "ROADMAP", features: ["تعریف مأموریت و گردش کار", "هماهنگی چند عامل با قرارداد مشخص", "ثبت رویدادها، محدودیت اجرا و تأیید انسانی"], featured: true },
-    { id: "developer", category: "dev", categoryLabel: "توسعه", symbol: "</>", title: "Developer Studio", description: "فضایی برای برنامه‌نویسی، مستندسازی، Git، طراحی نرم‌افزار و مدیریت پروژه‌های فنی.", status: "در نقشه راه", type: "ROADMAP", features: ["مدیریت پروژه و مستندات فنی", "تحلیل کد و کنترل کیفیت", "اتصال امن به مخزن‌ها و ابزارهای توسعه"], featured: true },
-    { id: "secure", category: "learn", categoryLabel: "امنیت دفاعی", symbol: "⌘", title: "Secure Lab", description: "مسیر یادگیری امنیت سایبری با تمرکز بر دفاع، تحلیل، حریم خصوصی و آزمایشگاه‌های مجاز.", status: "در نقشه راه", type: "ROADMAP", features: ["تحلیل لاگ و پایش دفاعی", "مبانی امنیت وب و سخت‌سازی سیستم‌ها", "تمرین‌های ایمن در محیط‌های آزمایشگاهی مجاز"], featured: true },
-    { id: "network-linux", category: "learn", categoryLabel: "شبکه و لینوکس", symbol: "⌁", title: "Network & Linux Lab", description: "مسیر یادگیری شبکه، لینوکس، مدیریت سیستم و عیب‌یابی مرحله‌به‌مرحله.", status: "در نقشه راه", type: "ROADMAP", features: ["مفاهیم شبکه و عیب‌یابی اتصال", "خط فرمان و مدیریت لینوکس", "تمرین‌های آزمایشگاهی و مستندسازی"], featured: true },
-    { id: "knowledge", category: "learn", categoryLabel: "یادگیری", symbol: "▤", title: "Knowledge Library", description: "کتابخانه‌ای ساختاریافته برای یادداشت‌ها، منابع آموزشی و دانش قابل جست‌وجو.", status: "در نقشه راه", type: "ROADMAP", features: ["دسته‌بندی و برچسب‌گذاری منابع", "جست‌وجوی دانش و یادداشت‌ها", "مسیر یادگیری و مرور دوره‌ای"], featured: true },
-    { id: "creator", category: "create", categoryLabel: "تولید محتوا", symbol: "✧", title: "Creator Studio", description: "محیط برنامه‌ریزی و تولید محتوای آموزشی و رسانه‌ای در قالب‌های مختلف.", status: "در نقشه راه", type: "ROADMAP", features: ["ایده‌پردازی و سناریونویسی", "تقویم و گردش انتشار محتوا", "مدیریت خروجی‌های تصویری و ویدیویی"], featured: true },
-    { id: "identity", category: "workspace", categoryLabel: "هویت دیجیتال", symbol: "◎", title: "Digital Identity", description: "نمایه دیجیتال و هویت حرفه‌ای یکپارچه با کنترل روشن بر اطلاعات عمومی و خصوصی.", status: "در نقشه راه", type: "ROADMAP", features: ["نمایه حرفه‌ای و قابل مدیریت", "تفکیک اطلاعات عمومی از خصوصی", "تنظیمات حریم خصوصی و سطح دسترسی"], featured: false },
-    { id: "workspace", category: "workspace", categoryLabel: "فضای کار", symbol: "▣", title: "Personal Workspace", description: "فضای شخصی سبک برای مدیریت کارها؛ نسخه فعلی این ماژول در مرورگر فعال است.", status: "فعال در همین مرورگر", type: "LOCAL", features: ["افزودن، تکمیل و حذف کارها", "ذخیره محلی در همین مرورگر", "خروجی و بازیابی پشتیبان JSON"], featured: false }
-  ];
+  let modules = [];
 
   let activeFilter = "all";
   let activeTaskFilter = "all";
@@ -29,6 +19,57 @@
   let storageAvailable = true;
   let tasks = [];
   let favorites = new Set();
+
+  function validateModuleRegistry(registry) {
+    const rootKeys = new Set(["schema", "version", "modules"]);
+    if (!registry || typeof registry !== "object" || Array.isArray(registry) ||
+        Object.keys(registry).some(key => !rootKeys.has(key)) ||
+        Object.keys(registry).length !== rootKeys.size ||
+        registry.schema !== "mr-siavash-ai-module-registry" || registry.version !== 1 ||
+        !Array.isArray(registry.modules) || registry.modules.length < 1 || registry.modules.length > 50) {
+      throw new Error("ساختار فهرست ماژول‌ها معتبر نیست.");
+    }
+
+    const allowedFields = new Set([
+      "id", "category", "categoryLabel", "symbol", "title", "description",
+      "status", "type", "features", "featured"
+    ]);
+    const allowedCategories = new Set(["ai", "dev", "learn", "create", "workspace"]);
+    const seenIds = new Set();
+
+    return registry.modules.map(module => {
+      if (!module || typeof module !== "object" || Array.isArray(module) ||
+          Object.keys(module).some(key => !allowedFields.has(key)) ||
+          Object.keys(module).length !== allowedFields.size) {
+        throw new Error("یکی از ماژول‌ها فیلدهای مورد انتظار را ندارد.");
+      }
+      if (typeof module.id !== "string" || !/^[a-z0-9-]{2,64}$/.test(module.id) || seenIds.has(module.id)) {
+        throw new Error("شناسه ماژول نامعتبر یا تکراری است.");
+      }
+      seenIds.add(module.id);
+      if (!allowedCategories.has(module.category) ||
+          typeof module.categoryLabel !== "string" || !module.categoryLabel.trim() || module.categoryLabel.length > 40 ||
+          typeof module.symbol !== "string" || !module.symbol.trim() || module.symbol.length > 8 ||
+          typeof module.title !== "string" || !module.title.trim() || module.title.length > 80 ||
+          typeof module.description !== "string" || !module.description.trim() || module.description.length > 280 ||
+          typeof module.featured !== "boolean" || !Array.isArray(module.features) ||
+          module.features.length < 1 || module.features.length > 8 ||
+          module.features.some(feature => typeof feature !== "string" || !feature.trim() || feature.length > 120)) {
+        throw new Error("فراداده یکی از ماژول‌ها خارج از محدوده مجاز است.");
+      }
+      const validRoadmap = module.type === "ROADMAP" && module.status === "در نقشه راه";
+      const validLocal = module.type === "LOCAL" && module.status === "فعال در همین مرورگر";
+      if (!validRoadmap && !validLocal) throw new Error("وضعیت پیاده‌سازی ماژول معتبر نیست.");
+      return Object.freeze({ ...module, features: Object.freeze([...module.features]) });
+    });
+  }
+
+  async function loadModuleRegistry() {
+    const response = await fetch("./modules.json", { credentials: "same-origin", cache: "no-cache" });
+    if (!response.ok) throw new Error("دریافت فهرست ماژول‌ها ناموفق بود.");
+    const registry = await response.json();
+    modules = Object.freeze(validateModuleRegistry(registry));
+  }
 
   function createId() {
     if (window.crypto && typeof window.crypto.randomUUID === "function") return window.crypto.randomUUID();
@@ -638,5 +679,17 @@
     else showView("home", { updateHistory: false, scroll: false });
   }
 
-  init();
+  async function start() {
+    let registryReady = false;
+    try {
+      await loadModuleRegistry();
+      registryReady = true;
+    } catch (error) {
+      console.error("Module registry could not be loaded:", error);
+    }
+    init();
+    if (!registryReady) showToast("فهرست ماژول‌ها بارگذاری نشد؛ بخش‌های محلی همچنان در دسترس هستند.");
+  }
+
+  start();
 })();
