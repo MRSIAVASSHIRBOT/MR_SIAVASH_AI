@@ -543,6 +543,7 @@ test("formal workspace backup JSON Schema matches the versioned import contract"
   assert.equal(workspaceSchema.$defs.task.additionalProperties, false);
   assert.deepEqual([...workspaceSchema.$defs.task.required].sort(), ["done", "text"]);
   assert.equal(workspaceSchema.$defs.task.properties.text.maxLength, 120);
+  assert.equal(workspaceSchema.$defs.task.properties.text.pattern, "\\S");
   assert.equal(workspaceSchema.$defs.task.properties.done.type, "boolean");
 });
 
