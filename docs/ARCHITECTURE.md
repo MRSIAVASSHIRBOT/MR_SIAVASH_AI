@@ -42,7 +42,7 @@ The workspace backup format is JSON with schema identifier mr-siavash-ai-workspa
 
 ## Deployment
 
-GitHub Actions runs JavaScript syntax checks and dependency-free structure tests before publishing the static root to GitHub Pages. The repository owner must enable GitHub Pages with the GitHub Actions source in repository settings.
+GitHub Actions runs JavaScript syntax checks, OpenAPI contract validation and repository tests before publishing the static root to GitHub Pages. Third-party Actions are pinned to full commit SHAs and Dependabot monitors those pins weekly. The repository owner must enable GitHub Pages with the GitHub Actions source in repository settings.
 
 
 ## API contract boundary
