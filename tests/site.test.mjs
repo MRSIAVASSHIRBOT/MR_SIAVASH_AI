@@ -11,6 +11,7 @@ const moduleRegistryText = await readFile(new URL("../modules.json", import.meta
 const moduleRegistry = JSON.parse(moduleRegistryText);
 const moduleSchemaText = await readFile(new URL("../schemas/module-registry.schema.json", import.meta.url), "utf8");
 const moduleSchema = JSON.parse(moduleSchemaText);
+const platformText = await readFile(new URL("../docs/PLATFORM_CONTRACTS.md", import.meta.url), "utf8");
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
 test("HTML references app assets and install manifest", () => {
@@ -47,6 +48,10 @@ test("versioned module registry contains nine unique, categorized modules", () =
   assert.equal(moduleRegistry.modules.length, 9);
   const ids = moduleRegistry.modules.map(module => module.id);
   assert.equal(new Set(ids).size, ids.length);
+  assert.deepEqual([...ids].sort(), [
+    "agents", "ai-hub", "creator", "developer", "identity",
+    "knowledge", "network-linux", "secure", "workspace"
+  ]);
   for (const module of moduleRegistry.modules) {
     assert.match(module.id, /^[a-z0-9-]{2,64}$/);
     assert.ok(["ai", "dev", "learn", "create", "workspace"].includes(module.category));
@@ -433,4 +438,13 @@ test("favorite identifiers survive temporary module registry outages and reconci
 
 test("saved module count excludes unresolved favorite IDs", () => {
   assert.match(app, /const knownFavoriteCount = modules\.filter\(module => favorites\.has\(module\.id\)\)\.length/);
+});
+
+
+test("module IDs remain stable to protect favorites and cross-module references", () => {
+  const ids = moduleRegistry.modules.map(module => module.id);
+  assert.equal(ids.includes("workspace"), true);
+  assert.equal(ids.includes("ai-hub"), true);
+  assert.equal(ids.includes("network-linux"), true);
+  assert.match(platformText, /Stable lowercase identifier; immutable after release/);
 });
