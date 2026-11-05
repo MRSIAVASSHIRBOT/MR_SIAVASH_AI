@@ -12,7 +12,7 @@ The repository provides a static web application with:
 - Responsive Persian / RTL interface and hash-based navigation.
 - Searchable module catalog with category filters and saved modules.
 - Accessible module detail dialogs and keyboard shortcuts (Ctrl/Cmd + K, /).
-- Browser-local workspace task manager.
+- Browser-local workspace task manager with search, status filters, progress counts and confirmed bulk cleanup.
 - JSON export and validated, bounded JSON import for local workspace data.
 - PWA manifest and versioned service-worker cache for the static app shell.
 - GitHub Actions workflow with syntax and repository-structure tests before GitHub Pages deployment.
