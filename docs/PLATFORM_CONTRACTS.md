@@ -99,3 +99,8 @@ A module cannot move to production until all applicable gates pass:
 ## 9. Current implementation boundary
 
 The current site remains a static browser application. The workspace is local to the browser profile. This document, the OpenAPI file, and the threat model are design artifacts. They do not create a backend, accounts, cloud sync, AI provider integration, or agent runtime.
+
+
+### Browser-local cross-tab synchronization
+
+The static workspace listens for same-origin browser storage events for its task and favorites keys. Incoming snapshots are parsed and bounded before replacing in-memory state; malformed updates are ignored and the current view is preserved. A browser storage clear event resets both local views. This is best-effort, same-origin synchronization only: localStorage provides last-write-wins behavior and does not provide transactions, conflict resolution, cross-device sync, or account isolation.

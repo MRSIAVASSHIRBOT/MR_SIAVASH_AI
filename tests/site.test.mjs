@@ -98,7 +98,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v6"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v7"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /request\.mode === "navigate"/);
@@ -144,7 +144,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v6"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v7"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -173,7 +173,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v6"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v7"/);
 });
 
 
@@ -471,4 +471,60 @@ test("GitHub Actions are pinned to immutable commits and monitored by Dependabot
   for (const reference of actionRefs) assert.match(reference, /^[^@]+@[a-f0-9]{40}$/);
   assert.match(dependabotText, /package-ecosystem: github-actions/);
   assert.match(dependabotText, /interval: weekly/);
+});
+
+
+test("cross-tab task synchronization strictly validates stored snapshots", () => {
+  const start = app.indexOf("  function parseStoredTasks(raw) {");
+  const end = app.indexOf("\n  function parseStoredFavorites(raw)", start);
+  assert.ok(start >= 0 && end > start, "stored task parser boundaries must exist");
+  const parse = vm.runInNewContext("(function() { const MAX_TASKS = 100; return (" +
+    app.slice(start, end).trim() + "); })()");
+
+  const valid = parse(JSON.stringify({
+    version: 2,
+    tasks: [{ id: "task-1", text: "  Learn   Linux  ", done: false }]
+  }));
+  assert.deepEqual(JSON.parse(JSON.stringify(valid)), [
+    { id: "task-1", text: "Learn Linux", done: false }
+  ]);
+  assert.throws(() => parse(JSON.stringify({ version: 1, tasks: [] })));
+  assert.throws(() => parse(JSON.stringify({ version: 2, tasks: [{ id: "x", text: "ok", done: "false" }] })));
+  assert.throws(() => parse(JSON.stringify({ version: 2, tasks: [
+    { id: "same", text: "first", done: false },
+    { id: "same", text: "second", done: true }
+  ] })));
+  assert.throws(() => parse(JSON.stringify({ version: 2, tasks: [
+    { id: " task-1 ", text: "first", done: false },
+    { id: "task-1", text: "second", done: true }
+  ] })));
+  assert.throws(() => parse(JSON.stringify({ version: 2, tasks: [
+    { id: "long", text: "x".repeat(121), done: false }
+  ] })));
+  assert.throws(() => parse(JSON.stringify({
+    version: 2, tasks: Array.from({ length: 101 }, (_, i) => ({
+      id: "task-" + i, text: "Task", done: false
+    }))
+  })));
+});
+
+test("workspace listens for same-origin storage changes and refreshes affected views", () => {
+  assert.match(app, /function handleStorageChange\(event\)/);
+  assert.match(app, /window\.addEventListener\("storage", handleStorageChange\)/);
+  assert.match(app, /event\.key === STORAGE_KEY/);
+  assert.match(app, /event\.key === FAVORITES_KEY/);
+  assert.match(app, /event\.key === null/);
+  assert.match(app, /دادهٔ کارها در تب دیگر نامعتبر بود؛ وضعیت فعلی حفظ شد/);
+  assert.match(app, /دادهٔ نشان‌شده‌ها در تب دیگر نامعتبر بود؛ وضعیت فعلی حفظ شد/);
+});
+
+test("cross-tab favorites snapshots reject malformed or oversized values", () => {
+  const start = app.indexOf("  function parseStoredFavorites(raw) {");
+  const end = app.indexOf("\n  function handleStorageChange(event)", start);
+  assert.ok(start >= 0 && end > start, "stored favorites parser boundaries must exist");
+  const parse = vm.runInNewContext("(function() { const modules = []; const normalizeFavoriteIds = ids => Array.from(new Set(ids)); return (" +
+    app.slice(start, end).trim() + "); })()");
+  assert.deepEqual(Array.from(parse(JSON.stringify(["ai-hub", "agents", "ai-hub"]))), ["ai-hub", "agents"]);
+  assert.throws(() => parse(JSON.stringify(["invalid id"])));
+  assert.throws(() => parse(JSON.stringify(Array.from({ length: 51 }, (_, i) => "module-" + i))));
 });
