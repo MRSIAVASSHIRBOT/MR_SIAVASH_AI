@@ -6,6 +6,8 @@ const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const manifestText = await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8");
+const moduleRegistryText = await readFile(new URL("../modules.json", import.meta.url), "utf8");
+const moduleRegistry = JSON.parse(moduleRegistryText);
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
 test("HTML references app assets and install manifest", () => {
@@ -36,10 +38,28 @@ test("module detail dialog exposes its favorite control", () => {
   assert.match(html, /id="dialogFavorite"/);
 });
 
-test("module registry contains nine unique module identifiers", () => {
-  const ids = [...app.matchAll(/\{ id: "([^"]+)", category:/g)].map(match => match[1]);
-  assert.equal(ids.length, 9);
+test("versioned module registry contains nine unique, categorized modules", () => {
+  assert.equal(moduleRegistry.schema, "mr-siavash-ai-module-registry");
+  assert.equal(moduleRegistry.version, 1);
+  assert.equal(moduleRegistry.modules.length, 9);
+  const ids = moduleRegistry.modules.map(module => module.id);
   assert.equal(new Set(ids).size, ids.length);
+  for (const module of moduleRegistry.modules) {
+    assert.match(module.id, /^[a-z0-9-]{2,64}$/);
+    assert.ok(["ai", "dev", "learn", "create", "workspace"].includes(module.category));
+    assert.ok(["ROADMAP", "LOCAL"].includes(module.type));
+    assert.ok(Array.isArray(module.features) && module.features.length > 0);
+    assert.equal(typeof module.featured, "boolean");
+  }
+  assert.equal(moduleRegistry.modules.filter(module => module.type === "LOCAL").length, 1);
+  assert.equal(moduleRegistry.modules.find(module => module.id === "workspace").type, "LOCAL");
+});
+
+test("application validates and freezes the external module registry before initialization", () => {
+  assert.match(app, /function validateModuleRegistry\(registry\)/);
+  assert.match(app, /function loadModuleRegistry\(\)/);
+  assert.match(app, /modules = Object\.freeze\(validateModuleRegistry\(registry\)\)/);
+  assert.match(app, /await loadModuleRegistry\(\);[\s\S]*?init\(\);/);
 });
 
 test("workspace import is bounded and schema-checked", () => {
@@ -65,8 +85,9 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v4"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v5"/);
   assert.match(sw, /SHELL_FILES/);
+  assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /request\.mode === "navigate"/);
   assert.match(sw, /request\.method !== "GET"/);
 });
@@ -110,7 +131,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v4"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v5"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -139,7 +160,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v4"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v5"/);
 });
 
 
