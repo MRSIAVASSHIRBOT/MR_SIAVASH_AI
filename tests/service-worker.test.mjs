@@ -14,7 +14,7 @@ function createHarness(fetchImpl = async () => new Response("asset", {
   let skipWaitingCalls = 0;
   const cache = {
     async match() { return cachedResponse; },
-    async put(key, value) { writes.push({ key: String(key), value }); },
+    async put(key, value) { writes.push({ key: key.url || String(key), value }); },
     async add() {},
     async addAll(urls) { writes.push({ precache: urls }); }
   };
@@ -166,7 +166,7 @@ test("module registry uses network-first refresh and replaces its cached JSON", 
   assert.equal(response.status, 200);
   assert.equal(await response.json().then(value => value.version), 2);
   assert.equal(writes.length, 1);
-  assert.equal(writes[0].key, "[object Request]");
+  assert.equal(writes[0].key, "https://example.test/app/modules.json");
 });
 
 test("module registry serves its last valid cached response when the network is unavailable", async () => {
