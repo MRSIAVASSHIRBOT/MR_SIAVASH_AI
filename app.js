@@ -324,7 +324,7 @@
 
   function setTaskFilter(filter) {
     activeTaskFilter = filter;
-    $("#taskFilters [data-task-filter]").forEach(button => {
+    $$("#taskFilters [data-task-filter]").forEach(button => {
       const selected = button.dataset.taskFilter === filter;
       button.classList.toggle("is-selected", selected);
       button.setAttribute("aria-pressed", String(selected));
