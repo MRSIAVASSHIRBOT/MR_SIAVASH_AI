@@ -104,3 +104,8 @@ The current site remains a static browser application. The workspace is local to
 ### Browser-local cross-tab synchronization
 
 The static workspace listens for same-origin browser storage events for its task and favorites keys. Incoming snapshots are parsed and bounded before replacing in-memory state; malformed updates are ignored and the current view is preserved. A browser storage clear event resets both local views. This is best-effort, same-origin synchronization only: localStorage provides last-write-wins behavior and does not provide transactions, conflict resolution, cross-device sync, or account isolation.
+
+
+### Workspace backup contract
+
+Workspace backup version 1 is defined in schemas/workspace-backup.schema.json and enforced by the browser importer. The root envelope and task records reject unknown fields; task count, text length, optional task ID, favorites count and favorite identifier format are bounded. Import validates the entire document before preparing any mutation, regenerates local task IDs, and merges unique task text. The browser-only importer remains a local portability feature, not an account or cloud synchronization API.
