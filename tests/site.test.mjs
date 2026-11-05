@@ -114,14 +114,14 @@ test("service worker cache is versioned after front-end asset changes", () => {
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
-  assert.match(app, /data\\.tasks\\.length > MAX_TASKS/);
-  assert.match(app, /ساختار کار شماره/);
-  assert.match(app, /data\\.favorites !== undefined/);
-  assert.match(app, /task\\.text\\.trim\\(\\)\\.replace\\(\\/\\\\s\\+\\/g/);
+  assert.ok(app.includes("data.tasks.length > MAX_TASKS"));
+  assert.ok(app.includes("ساختار کار شماره"));
+  assert.ok(app.includes("data.favorites !== undefined"));
+  assert.ok(app.includes(String.raw`replace(/\\s+/g, " ")`));
 });
 
 test("workspace loading repairs missing and duplicate task IDs", () => {
-  assert.match(app, /const seenTaskIds = new Set\\(\\)/);
-  assert.match(app, /seenTaskIds\\.has\\(id\\)/);
-  assert.match(app, /if \\(!id \\|\\| seenTaskIds\\.has\\(id\\)\\) id = createId\\(\\)/);
+  assert.ok(app.includes("const seenTaskIds = new Set()"));
+  assert.ok(app.includes("seenTaskIds.has(id)"));
+  assert.ok(app.includes("if (!id || seenTaskIds.has(id)) id = createId()"));
 });
