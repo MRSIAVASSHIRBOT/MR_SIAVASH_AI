@@ -495,6 +495,10 @@ test("cross-tab task synchronization strictly validates stored snapshots", () =>
     { id: "same", text: "second", done: true }
   ] })));
   assert.throws(() => parse(JSON.stringify({ version: 2, tasks: [
+    { id: " task-1 ", text: "first", done: false },
+    { id: "task-1", text: "second", done: true }
+  ] })));
+  assert.throws(() => parse(JSON.stringify({ version: 2, tasks: [
     { id: "long", text: "x".repeat(121), done: false }
   ] })));
   assert.throws(() => parse(JSON.stringify({
