@@ -1,0 +1,99 @@
+# Platform integration contracts
+
+Status: architecture specification; not an implementation or deployed service.
+
+This document defines shared rules for the parallel product workstreams so that modules can evolve independently without creating incompatible identity, data, AI, or agent boundaries.
+
+## 1. Shared principles
+
+- The server is authoritative for identity, authorization, secrets, billing, and durable shared data.
+- Browser input, imported files, model output, tool output, and connector payloads are untrusted.
+- Every module declares its owner, data classification, required permissions, failure behavior, and operational owner.
+- No module may claim a capability is connected until an end-to-end integration test proves it.
+- Prefer additive, versioned contracts. Breaking changes require an explicit migration plan.
+
+## 2. Module manifest contract
+
+Each module specification must declare:
+
+| Field | Requirement |
+| --- | --- |
+| id | Stable lowercase identifier; immutable after release |
+| version | Semantic version |
+| status | planned, prototype, beta, or production |
+| audience | public, authenticated, or both |
+| data_classes | public, user, sensitive, or secret |
+| permissions | Explicit capability names; empty by default |
+| dependencies | Versioned module/API dependencies |
+| owner | Maintainer responsible for support |
+| failure_mode | User-visible behavior when unavailable |
+
+The UI must render status from trusted application configuration, not infer production readiness from a visible card.
+
+## 3. Identity and authorization
+
+- Authentication establishes a principal; it does not grant access by itself.
+- Authorization is evaluated server-side for every protected operation.
+- Derive user ownership from the verified session, never from a request body or URL parameter.
+- Deny by default. Use explicit role and resource checks.
+- Session expiry, revocation, account recovery, and logout must have documented lifecycle behavior.
+- Cross-user isolation tests are a release blocker for any shared-data endpoint.
+
+## 4. Data and API conventions
+
+- Keep the OpenAPI document as the source of truth for HTTP request/response schemas.
+- Reject unknown fields for security-sensitive write operations unless a schema explicitly allows them.
+- Bound request sizes, pagination, list lengths, and execution time.
+- Use idempotency keys for retryable create operations.
+- Return stable machine-readable error codes and avoid leaking stack traces or internal identifiers.
+- Define retention, export, deletion, and backup-restore semantics before collecting user data.
+- Treat browser localStorage as device-local convenience storage, never as a secure vault.
+
+## 5. AI provider adapter
+
+A provider adapter should expose a normalized interface with:
+- provider and model identifiers;
+- supported modalities and context limits;
+- request timeout and cancellation;
+- normalized response and usage metadata;
+- typed error categories (authentication, rate limit, timeout, unavailable, invalid request);
+- explicit retry policy and bounded retry count.
+
+Provider credentials stay in server-side secret storage. Never put keys in HTML, JavaScript bundles, localStorage, service-worker caches, or public logs. Provider output is untrusted data and must be rendered as text by default.
+
+## 6. Agent execution boundary
+
+An agent run is a server-side job with:
+- an authenticated owner and immutable run identifier;
+- a declared tool allowlist and per-tool input schema;
+- resource, time, and step budgets;
+- audit events for tool requests and outcomes;
+- cancellation and timeout behavior;
+- human confirmation before external, destructive, financial, or otherwise consequential actions.
+
+Do not expose arbitrary shell, filesystem, network, or repository write access to a model. Each tool should be narrow, scoped, and independently authorized.
+
+## 7. Observability and operations
+
+- Emit structured events with correlation IDs, timestamps, module/version, outcome, and latency.
+- Exclude secrets, access tokens, and unnecessary personal content from logs.
+- Define service-level indicators before service-level objectives.
+- Provide health/readiness checks that distinguish process liveness from dependency readiness.
+- Document deployment rollback, backup restoration, and incident ownership.
+- Alerts must be actionable and have a named response owner.
+
+## 8. Release gates
+
+A module cannot move to production until all applicable gates pass:
+
+1. Contract/schema review and compatibility check.
+2. Unit, integration, and negative authorization tests.
+3. Input validation, rate-limit, and abuse-case review.
+4. Accessibility and responsive UI checks.
+5. Privacy/data-retention and deletion review.
+6. Observability, failure-mode, and rollback checks.
+7. Documentation accurately reflects the shipped capability.
+
+## 9. Current implementation boundary
+
+The current site remains a static browser application. The workspace is local to the browser profile. This document, the OpenAPI file, and the threat model are design artifacts. They do not create a backend, accounts, cloud sync, AI provider integration, or agent runtime.
