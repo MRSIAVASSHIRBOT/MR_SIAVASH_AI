@@ -7,6 +7,7 @@
   const LEGACY_STORAGE_KEY = "mr-siavash-ai.workspace.tasks.v1";
   const FAVORITES_KEY = "mr-siavash-ai.favorites.v1";
   const MAX_TASKS = 100;
+  const MAX_REGISTRY_BYTES = 64 * 1024;
   const MAX_IMPORT_BYTES = 256 * 1024;
 
   let modules = [];
@@ -76,7 +77,46 @@
       if (!/^application\/(?:json|[a-z0-9.+-]+\+json)(?:\s*;|$)/i.test(contentType)) {
         throw new Error("نوع محتوای فهرست ماژول‌ها معتبر نیست.");
       }
-      const registry = await response.json();
+
+      const declaredLength = Number(response.headers && response.headers.get("content-length"));
+      if (Number.isFinite(declaredLength) && declaredLength > MAX_REGISTRY_BYTES) {
+        throw new Error("حجم فهرست ماژول‌ها از حد مجاز بیشتر است.");
+      }
+
+      let payload;
+      if (response.body && typeof response.body.getReader === "function") {
+        const reader = response.body.getReader();
+        const chunks = [];
+        let totalBytes = 0;
+        try {
+          while (true) {
+            const result = await reader.read();
+            if (result.done) break;
+            totalBytes += result.value.byteLength;
+            if (totalBytes > MAX_REGISTRY_BYTES) {
+              await reader.cancel();
+              throw new Error("حجم فهرست ماژول‌ها از حد مجاز بیشتر است.");
+            }
+            chunks.push(result.value);
+          }
+        } finally {
+          if (typeof reader.releaseLock === "function") reader.releaseLock();
+        }
+        const bytes = new Uint8Array(totalBytes);
+        let offset = 0;
+        chunks.forEach(chunk => {
+          bytes.set(chunk, offset);
+          offset += chunk.byteLength;
+        });
+        payload = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      } else {
+        payload = await response.text();
+        if (new TextEncoder().encode(payload).byteLength > MAX_REGISTRY_BYTES) {
+          throw new Error("حجم فهرست ماژول‌ها از حد مجاز بیشتر است.");
+        }
+      }
+
+      const registry = JSON.parse(payload);
       modules = validateModuleRegistry(registry);
     } finally {
       if (timeoutId !== null) window.clearTimeout(timeoutId);
