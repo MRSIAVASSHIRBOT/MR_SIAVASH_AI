@@ -75,5 +75,6 @@ No license has been granted yet. All rights are reserved by the repository owner
 - docs/THREAT_MODEL.md records the initial security threat model.
 - docs/backend/README.md explains the implementation gates.
 - docs/ROADMAP.md coordinates the workstreams and release stages.
+- docs/PLATFORM_CONTRACTS.md defines shared integration and production-readiness requirements.
 
 These are design artifacts only. No backend API, real authentication, account system or cloud synchronization is deployed by the static site.

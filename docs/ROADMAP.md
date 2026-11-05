@@ -1,6 +1,6 @@
 # Product roadmap — parallel workstreams
 
-The workstreams progress together behind shared release gates. A module is not production-ready merely because its card or UI exists.
+The workstreams progress together behind shared release gates. A module is not production-ready merely because its card or UI exists. Shared integration rules are defined in docs/PLATFORM_CONTRACTS.md.
 
 | Workstream | Near-term deliverable | Acceptance gate |
 | --- | --- | --- |

@@ -124,3 +124,11 @@ test("workspace loading repairs missing and duplicate task IDs", () => {
   assert.ok(app.includes("seenTaskIds.has(id)"));
   assert.ok(app.includes("if (!id || seenTaskIds.has(id)) id = createId()"));
 });
+
+test("platform contracts define identity, AI, agent and production boundaries", async () => {
+  const contracts = await readFile(new URL("../docs/PLATFORM_CONTRACTS.md", import.meta.url), "utf8");
+  assert.match(contracts, /server-side for every protected operation/);
+  assert.match(contracts, /Provider credentials stay in server-side secret storage/);
+  assert.match(contracts, /human confirmation before external, destructive/);
+  assert.match(contracts, /current site remains a static browser application/i);
+});
