@@ -92,7 +92,10 @@
     const nav = $("#mainNav");
     const button = $("#mobileMenuButton");
     if (nav) nav.classList.remove("is-open");
-    if (button) button.setAttribute("aria-expanded", "false");
+    if (button) {
+      button.setAttribute("aria-expanded", "false");
+      button.setAttribute("aria-label", "باز کردن ناوبری");
+    }
   }
 
   function parseRoute() {
@@ -496,15 +499,18 @@
     }));
     $("#mobileMenuButton").addEventListener("click", () => {
       const nav = $("#mainNav");
+      const button = $("#mobileMenuButton");
       const open = nav.classList.toggle("is-open");
-      $("#mobileMenuButton").setAttribute("aria-expanded", String(open));
+      button.setAttribute("aria-expanded", String(open));
+      button.setAttribute("aria-label", open ? "بستن ناوبری" : "باز کردن ناوبری");
     });
     window.addEventListener("popstate", parseRoute);
     window.addEventListener("hashchange", parseRoute);
     document.addEventListener("keydown", event => {
       const target = event.target;
       const typing = target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k" &&
+          !typing && !$("#moduleDialog").open) {
         event.preventDefault();
         showView("modules");
         $("#moduleSearch").focus();
