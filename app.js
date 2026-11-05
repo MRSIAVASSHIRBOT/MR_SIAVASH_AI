@@ -226,9 +226,11 @@
   }
 
   function toggleFavorite(id) {
-    if (favorites.has(id)) favorites.delete(id);
-    else favorites.add(id);
-    persist(FAVORITES_KEY, Array.from(favorites));
+    const nextFavorites = new Set(favorites);
+    if (nextFavorites.has(id)) nextFavorites.delete(id);
+    else nextFavorites.add(id);
+    if (!persist(FAVORITES_KEY, Array.from(nextFavorites))) return false;
+    favorites = nextFavorites;
     renderFeatured();
     renderCatalog();
     if (selectedModule && selectedModule.id === id) {
@@ -237,6 +239,7 @@
       button.setAttribute("aria-pressed", String(favorites.has(id)));
     }
     showToast(favorites.has(id) ? "ماژول به نشان‌شده‌ها اضافه شد." : "ماژول از نشان‌شده‌ها حذف شد.");
+    return true;
   }
 
   function closeDialog() {
@@ -283,9 +286,10 @@
     updateStorageNote();
   }
 
-  function saveWorkspace() {
-    persist(STORAGE_KEY, { version: 2, updatedAt: new Date().toISOString(), tasks });
+  function saveWorkspace(nextTasks = tasks) {
+    const saved = persist(STORAGE_KEY, { version: 2, updatedAt: new Date().toISOString(), tasks: nextTasks });
     updateStorageNote();
+    return saved;
   }
 
   function renderTasks() {
@@ -350,10 +354,12 @@
       showToast("فضای کار به سقف ۱۰۰ کار رسیده است؛ ابتدا یک کار را حذف یا تکمیل کن.");
       return;
     }
-    tasks.unshift({ id: createId(), text: clean, done: false });
-    saveWorkspace();
+    const nextTasks = [{ id: createId(), text: clean, done: false }, ...tasks];
+    if (!saveWorkspace(nextTasks)) return false;
+    tasks = nextTasks;
     renderTasks();
     showToast("به فضای کار اضافه شد.");
+    return true;
   }
 
   function exportWorkspace() {
@@ -415,12 +421,19 @@
       const availableSlots = Math.max(0, MAX_TASKS - tasks.length);
       const accepted = unique.slice(0, availableSlots);
       const skipped = unique.length - accepted.length;
-      tasks = [...accepted, ...tasks];
-      if (Array.isArray(data.favorites)) {
-        data.favorites.filter(id => modules.some(module => module.id === id)).forEach(id => favorites.add(id));
-        persist(FAVORITES_KEY, Array.from(favorites));
+      const nextTasks = [...accepted, ...tasks];
+      const nextFavorites = new Set(favorites);
+      const importsFavorites = Array.isArray(data.favorites);
+      if (importsFavorites) {
+        data.favorites.filter(id => modules.some(module => module.id === id)).forEach(id => nextFavorites.add(id));
+        if (!persist(FAVORITES_KEY, Array.from(nextFavorites))) return;
       }
-      saveWorkspace();
+      if (!saveWorkspace(nextTasks)) {
+        if (importsFavorites) persist(FAVORITES_KEY, Array.from(favorites));
+        return;
+      }
+      tasks = nextTasks;
+      favorites = nextFavorites;
       renderTasks();
       renderCatalog();
       if (accepted.length) {
@@ -524,9 +537,10 @@
     });
     $("#addModuleTask").addEventListener("click", () => {
       if (!selectedModule) return;
-      addTask("بررسی و برنامه‌ریزی ماژول " + selectedModule.title);
-      closeDialog();
-      showView("workspace");
+      if (addTask("بررسی و برنامه‌ریزی ماژول " + selectedModule.title)) {
+        closeDialog();
+        showView("workspace");
+      }
     });
     $("#dialogFavorite").addEventListener("click", () => {
       if (selectedModule) toggleFavorite(selectedModule.id);
@@ -549,8 +563,7 @@
     $("#taskForm").addEventListener("submit", event => {
       event.preventDefault();
       const input = $("#taskInput");
-      addTask(input.value);
-      input.value = "";
+      if (addTask(input.value)) input.value = "";
       input.focus();
     });
     $("#taskList").addEventListener("change", event => {
@@ -558,8 +571,10 @@
       const item = event.target.closest("[data-task-id]");
       const task = tasks.find(entry => entry.id === item?.dataset.taskId);
       if (task) {
-        task.done = event.target.checked;
-        saveWorkspace();
+        const nextTasks = tasks.map(entry => entry.id === task.id
+          ? { ...entry, done: event.target.checked }
+          : entry);
+        if (saveWorkspace(nextTasks)) tasks = nextTasks;
         renderTasks();
       }
     });
@@ -567,10 +582,15 @@
       const remove = event.target.closest(".task-remove");
       if (!remove) return;
       const item = remove.closest("[data-task-id]");
-      tasks = tasks.filter(task => task.id !== item?.dataset.taskId);
-      saveWorkspace();
-      renderTasks();
-      showToast("کار حذف شد.");
+      const nextTasks = tasks.filter(task => task.id !== item?.dataset.taskId);
+      if (nextTasks.length === tasks.length) return;
+      if (saveWorkspace(nextTasks)) {
+        tasks = nextTasks;
+        renderTasks();
+        showToast("کار حذف شد.");
+      } else {
+        renderTasks();
+      }
     });
     $("#taskSearch").addEventListener("input", renderTasks);
     $("#taskFilters").addEventListener("click", event => {
@@ -580,10 +600,14 @@
     $("#clearCompletedTasks").addEventListener("click", () => {
       const completed = tasks.filter(task => task.done).length;
       if (!completed || !window.confirm("آیا از حذف " + completed + " کار انجام‌شده مطمئنی؟")) return;
-      tasks = tasks.filter(task => !task.done);
-      saveWorkspace();
-      renderTasks();
-      showToast("کارهای انجام‌شده پاک شدند.");
+      const nextTasks = tasks.filter(task => !task.done);
+      if (saveWorkspace(nextTasks)) {
+        tasks = nextTasks;
+        renderTasks();
+        showToast("کارهای انجام‌شده پاک شدند.");
+      } else {
+        renderTasks();
+      }
     });
     $("#exportWorkspace").addEventListener("click", exportWorkspace);
     $("#importWorkspace").addEventListener("click", () => $("#importWorkspaceFile").click());
