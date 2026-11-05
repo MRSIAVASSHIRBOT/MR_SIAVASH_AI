@@ -346,8 +346,11 @@
       showToast("این کار از قبل در فهرست کارهای باز وجود دارد.");
       return;
     }
+    if (tasks.length >= MAX_TASKS) {
+      showToast("فضای کار به سقف ۱۰۰ کار رسیده است؛ ابتدا یک کار را حذف یا تکمیل کن.");
+      return;
+    }
     tasks.unshift({ id: createId(), text: clean, done: false });
-    tasks = tasks.slice(0, MAX_TASKS);
     saveWorkspace();
     renderTasks();
     showToast("به فضای کار اضافه شد.");
@@ -409,7 +412,10 @@
         existing.add(key);
         return true;
       });
-      tasks = [...unique, ...tasks].slice(0, MAX_TASKS);
+      const availableSlots = Math.max(0, MAX_TASKS - tasks.length);
+      const accepted = unique.slice(0, availableSlots);
+      const skipped = unique.length - accepted.length;
+      tasks = [...accepted, ...tasks];
       if (Array.isArray(data.favorites)) {
         data.favorites.filter(id => modules.some(module => module.id === id)).forEach(id => favorites.add(id));
         persist(FAVORITES_KEY, Array.from(favorites));
@@ -417,7 +423,14 @@
       saveWorkspace();
       renderTasks();
       renderCatalog();
-      showToast(unique.length ? unique.length + " کار بازیابی شد." : "اطلاعات جدیدی برای افزودن وجود نداشت.");
+      if (accepted.length) {
+        const suffix = skipped ? "؛ " + skipped + " کار به‌دلیل تکمیل ظرفیت وارد نشد." : "";
+        showToast(accepted.length + " کار بازیابی شد" + suffix);
+      } else if (skipped) {
+        showToast("فضای کار ظرفیت خالی ندارد؛ هیچ کاری از پشتیبان اضافه نشد.");
+      } else {
+        showToast("اطلاعات جدیدی برای افزودن وجود نداشت.");
+      }
     } catch (error) {
       showToast(error instanceof Error ? error.message : "خواندن فایل پشتیبان ناموفق بود.");
     }
