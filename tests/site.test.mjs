@@ -132,3 +132,12 @@ test("platform contracts define identity, AI, agent and production boundaries", 
   assert.match(contracts, /human confirmation before external, destructive/);
   assert.match(contracts, /current site remains a static browser application/i);
 });
+
+
+test("service worker caches only exact allowlisted static shell URLs", () => {
+  assert.match(sw, /const SHELL_URLS|const shellUrls = new Set\(SHELL_FILES\.map/);
+  assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
+  assert.match(sw, /request\.method !== "GET"/);
+  assert.match(sw, /contentType\.includes\("text\/html"\)/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v4"/);
+});
