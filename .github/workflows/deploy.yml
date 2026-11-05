@@ -31,8 +31,11 @@ jobs:
         run: |
           node --check app.js
           node --check sw.js
+          node --check tests/site.test.mjs
       - name: Run repository tests
         run: node --test tests/*.test.mjs
+      - name: Check patch whitespace
+        run: git diff --check
 
   deploy:
     name: Deploy static site
