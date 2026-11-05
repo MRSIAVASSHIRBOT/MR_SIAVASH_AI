@@ -1,8 +1,8 @@
 "use strict";
 
 const CACHE_PREFIX = "mr-siavash-ai-shell-";
-const CACHE_NAME = CACHE_PREFIX + "v4";
-const SHELL_FILES = ["./", "./index.html", "./styles.css", "./app.js", "./favicon.svg", "./manifest.webmanifest"];
+const CACHE_NAME = CACHE_PREFIX + "v5";
+const SHELL_FILES = ["./", "./index.html", "./styles.css", "./app.js", "./favicon.svg", "./manifest.webmanifest", "./modules.json"];
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
