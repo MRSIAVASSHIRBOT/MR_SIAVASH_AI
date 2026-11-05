@@ -265,7 +265,7 @@
     tasks = rawTasks.filter(task => task && typeof task.text === "string" && typeof task.done === "boolean")
       .slice(0, MAX_TASKS)
       .map(task => {
-        const text = task.text.trim().replace(/\\s+/g, " ").slice(0, 120);
+        const text = task.text.trim().replace(/\s+/g, " ").slice(0, 120);
         let id = typeof task.id === "string" ? task.id.trim() : "";
         if (!id || seenTaskIds.has(id)) id = createId();
         seenTaskIds.add(id);
@@ -398,7 +398,7 @@
         }
         return {
           id: createId(),
-          text: task.text.trim().replace(/\\s+/g, " ").slice(0, 120),
+          text: task.text.trim().replace(/\s+/g, " ").slice(0, 120),
           done: task.done
         };
       });
