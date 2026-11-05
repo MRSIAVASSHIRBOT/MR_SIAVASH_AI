@@ -16,6 +16,7 @@ const openapiText = await readFile(new URL("../docs/backend/openapi.yaml", impor
 const openapiValidatorText = await readFile(new URL("../scripts/validate-openapi.rb", import.meta.url), "utf8");
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 const workflowText = await readFile(new URL("../.github/workflows/deploy.yml", import.meta.url), "utf8");
+const dependabotText = await readFile(new URL("../.github/dependabot.yml", import.meta.url), "utf8");
 
 test("HTML references app assets and install manifest", () => {
   assert.match(html, /href="\.\/*styles\.css"/);
@@ -461,4 +462,13 @@ test("proposed backend contract has an executable CI validation gate", () => {
   assert.match(openapiValidatorText, /must require bearerAuth/);
   assert.match(openapiValidatorText, /Idempotency-Key/);
   assert.match(openapiValidatorText, /TaskUpdate must reject empty patches/);
+});
+
+
+test("GitHub Actions are pinned to immutable commits and monitored by Dependabot", () => {
+  const actionRefs = [...workflowText.matchAll(/^\s+uses:\s+([^\s]+)/gm)].map(match => match[1]);
+  assert.ok(actionRefs.length >= 5);
+  for (const reference of actionRefs) assert.match(reference, /^[^@]+@[a-f0-9]{40}$/);
+  assert.match(dependabotText, /package-ecosystem: github-actions/);
+  assert.match(dependabotText, /interval: weekly/);
 });
