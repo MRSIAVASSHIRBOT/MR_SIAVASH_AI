@@ -24,7 +24,7 @@ function createHarness(fetchImpl = async () => new Response("asset", {
   };
   const caches = {
     async open() { return cache; },
-    async keys() { return ["mr-siavash-ai-shell-v4"]; },
+    async keys() { return ["mr-siavash-ai-shell-v5"]; },
     async delete() { return true; }
   };
   vm.runInNewContext(source, { self, caches, URL, Set, Response, fetch: fetchImpl, console });
