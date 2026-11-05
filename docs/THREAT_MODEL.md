@@ -61,3 +61,10 @@ A feature touching private data, credentials, billing, external tools or consequ
 - The HTML entry document declares a restrictive meta-delivered Content Security Policy: scripts, styles, connections, manifests and workers are same-origin; objects and frames are denied; inline script/style and eval are not permitted.
 - The policy is compatible with the current static asset inventory and is covered by repository regression tests.
 - GitHub Pages does not let this repository configure arbitrary HTTP response headers. A meta CSP cannot enforce frame-ancestors, X-Frame-Options, HSTS, or other response-header-only controls. Those require hosting/CDN response-header configuration and must not be claimed as enforced by this HTML policy.
+
+
+## Deployment workflow boundary
+
+- The quality job runs with read-only repository permissions; pull-request events never receive Pages deployment permissions.
+- The deploy job runs only after quality succeeds and only when the ref is refs/heads/main for non-pull-request events, including manual dispatch.
+- Pages write and OIDC token permissions are scoped to the deploy job; both jobs have bounded execution time.
