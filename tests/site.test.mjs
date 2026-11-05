@@ -93,3 +93,21 @@ test("security and roadmap docs define production gates", async () => {
   assert.match(roadmap, /parallel workstreams/);
   assert.match(roadmap, /No backend endpoints are live/);
 });
+
+test("workspace task controls are wired to accessible UI elements", () => {
+  assert.match(html, /id="taskSearch"/);
+  assert.match(html, /id="taskFilters"/);
+  assert.match(html, /data-task-filter="all"/);
+  assert.match(html, /data-task-filter="open"/);
+  assert.match(html, /data-task-filter="done"/);
+  assert.match(html, /id="taskOpenCount"/);
+  assert.match(html, /id="taskDoneCount"/);
+  assert.match(html, /id="clearCompletedTasks"/);
+  assert.match(app, /function setTaskFilter/);
+  assert.match(app, /toLocaleLowerCase\("fa"\)/);
+  assert.match(app, /window\.confirm/);
+});
+
+test("service worker cache is versioned after front-end asset changes", () => {
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v3"/);
+});
