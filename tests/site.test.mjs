@@ -89,7 +89,7 @@ test("security and roadmap docs define production gates", async () => {
   const roadmap = await readFile(new URL("../docs/ROADMAP.md", import.meta.url), "utf8");
   assert.match(threat, /STRIDE review/);
   assert.match(threat, /cross-user isolation tests/);
-  assert.match(threat, /secrets stay server-side/i);
+  assert.match(threat, /secrets and tool permissions remain server-side/i);
   assert.match(roadmap, /parallel workstreams/);
   assert.match(roadmap, /No backend endpoints are live/);
 });
