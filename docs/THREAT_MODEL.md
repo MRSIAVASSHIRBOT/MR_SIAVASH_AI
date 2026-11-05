@@ -31,7 +31,8 @@
 - No provider API key or server credential is embedded in client JavaScript.
 - Imported workspace files are size-limited and schema-checked.
 - Task text is rendered as text, not interpreted as HTML.
-- Service worker handles same-origin GET resources only and does not intercept writes.
+- Service worker uses an exact-URL allowlist for public static shell assets; it bypasses API-like, authenticated, query-string, unknown-route, cross-origin and non-GET requests.
+- Navigation caching is limited to the app document and stores only successful HTML responses; it is not a general response cache.
 - Static prototype does not claim account authentication or cloud persistence.
 
 ## Production release blockers
