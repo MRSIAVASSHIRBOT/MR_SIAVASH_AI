@@ -20,7 +20,7 @@ Each module specification must declare:
 
 | Field | Requirement |
 | --- | --- |
-| id | Stable lowercase identifier; immutable after release |
+| id | Stable lowercase identifier; immutable after release; changing an ID requires a compatibility migration for favorites, bookmarks, and references |
 | version | Semantic version |
 | status | planned, prototype, beta, or production |
 | audience | public, authenticated, or both |
