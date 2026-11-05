@@ -109,3 +109,8 @@ The static workspace listens for same-origin browser storage events for its task
 ### Workspace backup contract
 
 Workspace backup version 1 is defined in schemas/workspace-backup.schema.json and enforced by the browser importer. The root envelope and task records reject unknown fields; task count, text length, optional task ID, favorites count and favorite identifier format are bounded. Import validates the entire document before preparing any mutation, regenerates local task IDs, and merges unique task text. The browser-only importer remains a local portability feature, not an account or cloud synchronization API.
+
+
+### Static delivery security headers
+
+The static HTML entry point supplies a restrictive meta CSP and Referrer-Policy. The CSP permits only same-origin executable code, styles, connections, manifests and workers; it blocks objects, frames, inline script/style, and eval. Because the deployment uses GitHub Pages, response-header-only controls (including frame-ancestors, HSTS and X-Frame-Options) remain an infrastructure-level release gate and are not replaced by the meta policy.
