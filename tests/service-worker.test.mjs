@@ -11,24 +11,26 @@ function createHarness(fetchImpl = async () => new Response("asset", {
 })) {
   const listeners = new Map();
   const writes = [];
+  let skipWaitingCalls = 0;
   const cache = {
     async match() { return null; },
     async put(key, value) { writes.push({ key: String(key), value }); },
-    async add() {}
+    async add() {},
+    async addAll(urls) { writes.push({ precache: urls }); }
   };
   const self = {
     registration: { scope: "https://example.test/app/" },
     clients: { async claim() {} },
     addEventListener(type, callback) { listeners.set(type, callback); },
-    async skipWaiting() {}
+    async skipWaiting() { skipWaitingCalls += 1; }
   };
   const caches = {
     async open() { return cache; },
-    async keys() { return ["mr-siavash-ai-shell-v5"]; },
+    async keys() { return ["mr-siavash-ai-shell-v6"]; },
     async delete() { return true; }
   };
   vm.runInNewContext(source, { self, caches, URL, Set, Response, fetch: fetchImpl, console });
-  return { listeners, writes };
+  return { listeners, writes, get skipWaitingCalls() { return skipWaitingCalls; } };
 }
 
 function dispatchFetch(listeners, request) {
@@ -110,4 +112,39 @@ test("navigation does not cache non-HTML responses", async () => {
     method: "GET", mode: "navigate", url: "https://example.test/app/"
   });
   assert.equal(writes.length, 0);
+});
+
+
+test("install precaches the complete shell before activating the worker", async () => {
+  const harness = createHarness();
+  let installPromise;
+  harness.listeners.get("install")({ waitUntil(value) { installPromise = value; } });
+  await installPromise;
+  assert.equal(harness.skipWaitingCalls, 1);
+  const precache = harness.writes.find(entry => Array.isArray(entry.precache));
+  assert.ok(precache);
+  assert.ok(precache.precache.includes("https://example.test/app/modules.json"));
+  assert.equal(precache.precache.length, 7);
+});
+
+test("install does not activate a worker when atomic shell precache fails", async () => {
+  const listeners = new Map();
+  let skipWaitingCalls = 0;
+  const cache = { async addAll() { throw new Error("precache failed"); } };
+  const self = {
+    registration: { scope: "https://example.test/app/" },
+    clients: { async claim() {} },
+    addEventListener(type, callback) { listeners.set(type, callback); },
+    async skipWaiting() { skipWaitingCalls += 1; }
+  };
+  const caches = {
+    async open() { return cache; },
+    async keys() { return ["mr-siavash-ai-shell-v6"]; },
+    async delete() { return true; }
+  };
+  vm.runInNewContext(source, { self, caches, URL, Set, Response, fetch, console });
+  let installPromise;
+  listeners.get("install")({ waitUntil(value) { installPromise = value; } });
+  await assert.rejects(installPromise, /precache failed/);
+  assert.equal(skipWaitingCalls, 0);
 });
