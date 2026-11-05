@@ -4,12 +4,18 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b100e">
+  <meta name="color-scheme" content="dark">
+  <meta name="application-name" content="MR_SIAVASH_AI">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="MR_SIAVASH_AI؛ اکوسیستمی ماژولار برای هوش مصنوعی، توسعه نرم‌افزار، امنیت دفاعی، یادگیری و خلق محتوا.">
   <meta property="og:title" content="MR_SIAVASH_AI — یک اکوسیستم، چند مسیر مستقل">
   <meta property="og:description" content="فضایی یکپارچه برای ساختن، یادگرفتن و کار هوشمندانه‌تر.">
   <meta property="og:type" content="website">
   <title>MR_SIAVASH_AI — یک اکوسیستم، چند مسیر مستقل</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css">
   <script src="./app.js" defer></script>
 </head>
@@ -36,7 +42,9 @@
       </nav>
 
       <div class="topbar-actions">
-        <span class="release-chip"><span class="live-dot"></span> نسخه آغازین</span>
+        <span class="network-chip" id="networkStatus" role="status" aria-live="polite"><span class="network-dot"></span><span>در حال بررسی اتصال</span></span>
+        <button class="install-button" id="installButton" type="button" hidden>نصب اپ <span aria-hidden="true">↓</span></button>
+        <span class="release-chip"><span class="live-dot"></span> نسخه توسعه</span>
         <button class="mobile-menu-button" id="mobileMenuButton" type="button" aria-label="باز کردن ناوبری" aria-expanded="false">
           <span></span><span></span>
         </button>
@@ -58,7 +66,7 @@
           </div>
 
           <div class="hero-visual" aria-label="نمای مفهومی معماری اکوسیستم">
-            <div class="visual-topline"><span>ECOSYSTEM MAP</span><span class="visual-index">01 — 08</span></div>
+            <div class="visual-topline"><span>ECOSYSTEM MAP</span><span class="visual-index">01 — 09</span></div>
             <div class="orbit orbit-outer"></div>
             <div class="orbit orbit-inner"></div>
             <div class="orbit-node node-top"><b>AI</b><small>هوش مصنوعی</small></div>
@@ -71,7 +79,7 @@
         </div>
 
         <div class="metrics-row">
-          <div class="metric"><strong>۰۸</strong><span>ماژول مستقل در نقشه راه</span></div>
+          <div class="metric"><strong>۰۹</strong><span>ماژول مستقل در نقشه راه</span></div>
           <div class="metric-divider"></div>
           <div class="metric"><strong>۰۱</strong><span>هسته مرکزی محصول</span></div>
           <div class="metric-divider"></div>
@@ -95,7 +103,7 @@
       <section class="view" id="view-modules" aria-labelledby="modules-title" hidden>
         <div class="page-heading">
           <div><div class="eyebrow"><span class="eyebrow-line"></span> EXPLORE THE ECOSYSTEM</div><h1 id="modules-title">ماژول‌ها</h1><p>هر بخش برای یک مسئله مشخص طراحی شده؛ مستقل استفاده کن یا در جریان کاری مشترک به هم متصلشان کن.</p></div>
-          <div class="page-heading-aside"><span class="aside-number">07</span><span>MODULES<br>IN THE BLUEPRINT</span></div>
+          <div class="page-heading-aside"><span class="aside-number">09</span><span>INDEPENDENT<br>MODULES</span></div>
         </div>
         <div class="catalog-toolbar">
           <label class="search-box"><span aria-hidden="true">⌕</span><input id="moduleSearch" type="search" placeholder="جست‌وجو میان ماژول‌ها..." autocomplete="off"><kbd>⌘ K</kbd></label>
@@ -106,6 +114,7 @@
             <button class="filter-chip" data-filter="learn" type="button">یادگیری</button>
             <button class="filter-chip" data-filter="create" type="button">تولید محتوا</button>
             <button class="filter-chip" data-filter="workspace" type="button">فضای کار</button>
+            <button class="filter-chip" data-filter="saved" type="button">نشان‌شده‌ها <span id="savedCount">۰</span></button>
           </div>
         </div>
         <div class="module-grid catalog-grid" id="catalogGrid"></div>
@@ -120,13 +129,14 @@
         </div>
         <div class="workspace-layout">
           <section class="workspace-panel task-panel">
-            <div class="panel-heading"><div><span class="panel-kicker">TASK MANAGER</span><h2>فهرست کارها</h2></div><span class="panel-counter" id="taskCount">۰ کار</span></div>
+            <div class="panel-heading"><div><span class="panel-kicker">TASK MANAGER</span><h2>فهرست کارها</h2></div><span class="panel-counter" id="taskCount">۰ کار باز</span></div>
+            <div class="task-tools"><button class="tool-button" id="exportWorkspace" type="button">خروجی پشتیبان <span>↓</span></button><button class="tool-button" id="importWorkspace" type="button">بازیابی فایل <span>↑</span></button><input class="visually-hidden" id="importWorkspaceFile" type="file" accept="application/json,.json"></div>
             <form class="task-form" id="taskForm">
               <label class="visually-hidden" for="taskInput">عنوان کار جدید</label>
               <input id="taskInput" name="task" type="text" maxlength="120" placeholder="یک کار یا ایده جدید بنویس..." required>
               <button class="button button-primary" type="submit">افزودن <span>＋</span></button>
             </form>
-            <p class="storage-note" id="storageNote">اطلاعات این فهرست فقط در حافظه مرورگر همین دستگاه ذخیره می‌شود و به حساب ابری ارسال نمی‌شود.</p>
+            <p class="storage-note" id="storageNote">اطلاعات این فهرست فقط در حافظه مرورگر همین دستگاه ذخیره می‌شود. خروجی پشتیبان را در جای امن نگه دار.</p>
             <ul class="task-list" id="taskList" aria-live="polite"></ul>
             <div class="task-empty" id="taskEmpty"><span>✳</span><strong>فضای کار آماده است</strong><p>اولین کار را اضافه کن یا از صفحه ماژول‌ها یک مورد به این فهرست بفرست.</p></div>
           </section>
@@ -160,7 +170,7 @@
 
     <footer class="site-footer">
       <a class="footer-brand" href="#home" data-view="home"><span class="brand-mark small-mark">M<i>/</i></span><strong>MR_SIAVASH_AI</strong></a>
-      <span>یک اکوسیستم؛ مسیرهای مستقل.</span>
+      <span>یک اکوسیستم؛ مسیرهای مستقل. <span class="footer-version">نسخه ۰.۲</span></span>
       <a href="https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI" target="_blank" rel="noreferrer">مخزن پروژه <span>↗</span></a>
     </footer>
   </div>
@@ -177,5 +187,6 @@
     <div class="dialog-actions"><button class="button button-primary" id="addModuleTask" type="button">افزودن به فضای کار <span>＋</span></button><button class="button button-quiet" id="dialogDone" type="button">متوجه شدم</button></div>
   </dialog>
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <noscript><div class="noscript-note">برای استفاده از امکانات تعاملی MR_SIAVASH_AI، اجرای JavaScript را در مرورگر فعال کن.</div></noscript>
 </body>
 </html>
