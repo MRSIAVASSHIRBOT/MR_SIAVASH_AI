@@ -69,6 +69,15 @@ test("service worker handles an exact allowlisted static shell URL", async () =>
   assert.equal((await response).status, 200);
 });
 
+test("service worker includes the versioned module registry in its exact static allowlist", async () => {
+  const { listeners } = createHarness();
+  const response = dispatchFetch(listeners, {
+    method: "GET", mode: "cors", url: "https://example.test/app/modules.json"
+  });
+  assert.ok(response instanceof Promise);
+  assert.equal((await response).status, 200);
+});
+
 test("service worker bypasses unknown and query-string navigation requests", () => {
   const { listeners } = createHarness();
   assert.equal(dispatchFetch(listeners, {
