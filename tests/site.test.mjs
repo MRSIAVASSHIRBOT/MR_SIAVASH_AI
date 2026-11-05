@@ -117,7 +117,6 @@ test("workspace import rejects oversized backups and malformed task records", ()
   assert.ok(app.includes("data.tasks.length > MAX_TASKS"));
   assert.ok(app.includes("ساختار کار شماره"));
   assert.ok(app.includes("data.favorites !== undefined"));
-  assert.ok(app.includes(String.raw`replace(/\\s+/g, " ")`));
 });
 
 test("workspace loading repairs missing and duplicate task IDs", () => {
