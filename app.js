@@ -261,9 +261,16 @@
       parsed = null;
     }
     const rawTasks = parsed && Array.isArray(parsed.tasks) ? parsed.tasks : [];
+    const seenTaskIds = new Set();
     tasks = rawTasks.filter(task => task && typeof task.text === "string" && typeof task.done === "boolean")
       .slice(0, MAX_TASKS)
-      .map(task => ({ id: typeof task.id === "string" ? task.id : createId(), text: task.text.trim().slice(0, 120), done: task.done }))
+      .map(task => {
+        const text = task.text.trim().replace(/\s+/g, " ").slice(0, 120);
+        let id = typeof task.id === "string" ? task.id.trim() : "";
+        if (!id || seenTaskIds.has(id)) id = createId();
+        seenTaskIds.add(id);
+        return { id, text, done: task.done };
+      })
       .filter(task => task.text.length > 0);
     try {
       const rawFavorites = localStorage.getItem(FAVORITES_KEY);
@@ -377,10 +384,24 @@
       if (!data || data.schema !== "mr-siavash-ai-workspace" || data.version !== 1 || !Array.isArray(data.tasks)) {
         throw new Error("فرمت فایل پشتیبان معتبر نیست.");
       }
-      const incoming = data.tasks.slice(0, MAX_TASKS).filter(task =>
-        task && typeof task.text === "string" && typeof task.done === "boolean"
-      ).map(task => ({ id: createId(), text: task.text.trim().slice(0, 120), done: task.done }))
-        .filter(task => task.text.length > 0);
+      if (data.tasks.length > MAX_TASKS) {
+        throw new Error("فایل پشتیبان بیش از ۱۰۰ کار دارد؛ آن را به چند فایل کوچک‌تر تقسیم کن.");
+      }
+      if (data.favorites !== undefined && (!Array.isArray(data.favorites) ||
+          data.favorites.some(id => typeof id !== "string"))) {
+        throw new Error("ساختار نشان‌شده‌ها در فایل پشتیبان معتبر نیست.");
+      }
+      const incoming = data.tasks.map((task, index) => {
+        if (!task || typeof task.text !== "string" || typeof task.done !== "boolean" ||
+            !task.text.trim()) {
+          throw new Error("ساختار کار شماره " + (index + 1) + " معتبر نیست؛ هیچ داده‌ای وارد نشد.");
+        }
+        return {
+          id: createId(),
+          text: task.text.trim().replace(/\s+/g, " ").slice(0, 120),
+          done: task.done
+        };
+      });
       const existing = new Set(tasks.map(task => task.text.toLocaleLowerCase("fa")));
       const unique = incoming.filter(task => {
         const key = task.text.toLocaleLowerCase("fa");
