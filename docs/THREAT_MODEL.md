@@ -47,3 +47,10 @@
 
 ## Security acceptance rule
 A feature touching private data, credentials, billing, external tools or consequential agent actions must not be released based on front-end checks alone. It requires server-side enforcement, negative tests, reviewable audit behavior and a documented rollback path.
+
+
+## Cross-tab local-storage boundary
+
+- Storage events are treated as untrusted input and validated before state replacement.
+- The browser's local storage remains user-controlled and same-origin; it is not an authentication or authorization boundary.
+- Concurrent edits from multiple tabs are last-write-wins. The prototype does not promise conflict-free merging, durable multi-device synchronization, or recovery from every browser storage failure.
