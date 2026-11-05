@@ -136,7 +136,21 @@
               <input id="taskInput" name="task" type="text" maxlength="120" placeholder="یک کار یا ایده جدید بنویس..." required>
               <button class="button button-primary" type="submit">افزودن <span>＋</span></button>
             </form>
+            <div class="task-controls">
+              <label class="search-box task-search"><span aria-hidden="true">⌕</span><input id="taskSearch" type="search" placeholder="جست‌وجو در کارها..." autocomplete="off" aria-label="جست‌وجو در کارها"></label>
+              <div class="task-filter-list" id="taskFilters" role="group" aria-label="فیلتر وضعیت کارها">
+                <button class="filter-chip is-selected" data-task-filter="all" type="button" aria-pressed="true">همه</button>
+                <button class="filter-chip" data-task-filter="open" type="button" aria-pressed="false">باز</button>
+                <button class="filter-chip" data-task-filter="done" type="button" aria-pressed="false">انجام‌شده</button>
+              </div>
+            </div>
+            <div class="task-stats" aria-live="polite">
+              <span>باز: <strong id="taskOpenCount">۰</strong></span>
+              <span>انجام‌شده: <strong id="taskDoneCount">۰</strong></span>
+              <button class="tool-button" id="clearCompletedTasks" type="button" hidden>پاک‌کردن انجام‌شده‌ها</button>
+            </div>
             <p class="storage-note" id="storageNote">اطلاعات این فهرست فقط در حافظه مرورگر همین دستگاه ذخیره می‌شود. خروجی پشتیبان را در جای امن نگه دار.</p>
+            <div class="task-empty task-no-results" id="taskNoResults" hidden><strong>موردی پیدا نشد</strong><p>عبارت جست‌وجو یا فیلتر وضعیت را تغییر بده.</p></div>
             <ul class="task-list" id="taskList" aria-live="polite"></ul>
             <div class="task-empty" id="taskEmpty"><span>✳</span><strong>فضای کار آماده است</strong><p>اولین کار را اضافه کن یا از صفحه ماژول‌ها یک مورد به این فهرست بفرست.</p></div>
           </section>

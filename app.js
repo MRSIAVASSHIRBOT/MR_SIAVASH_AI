@@ -22,6 +22,7 @@
   ];
 
   let activeFilter = "all";
+  let activeTaskFilter = "all";
   let selectedModule = null;
   let toastTimer = null;
   let installPrompt = null;
@@ -283,7 +284,14 @@
   function renderTasks() {
     const list = $("#taskList");
     list.replaceChildren();
-    tasks.forEach(task => {
+    const query = ($("#taskSearch").value || "").trim().toLocaleLowerCase("fa");
+    const visibleTasks = tasks.filter(task => {
+      const matchesStatus = activeTaskFilter === "all" ||
+        (activeTaskFilter === "open" && !task.done) ||
+        (activeTaskFilter === "done" && task.done);
+      return matchesStatus && (!query || task.text.toLocaleLowerCase("fa").includes(query));
+    });
+    visibleTasks.forEach(task => {
       const li = document.createElement("li");
       li.className = "task-item" + (task.done ? " is-done" : "");
       li.dataset.taskId = task.id;
@@ -291,7 +299,7 @@
       checkbox.className = "task-check";
       checkbox.type = "checkbox";
       checkbox.checked = task.done;
-      checkbox.setAttribute("aria-label", "تغییر وضعیت کار");
+      checkbox.setAttribute("aria-label", task.done ? "علامت‌گذاری به‌عنوان باز" : "علامت‌گذاری به‌عنوان انجام‌شده");
       const text = document.createElement("span");
       text.className = "task-text";
       text.textContent = task.text;
@@ -304,8 +312,24 @@
       list.append(li);
     });
     const pending = tasks.filter(task => !task.done).length;
-    $("#taskCount").textContent = new Intl.NumberFormat("fa-IR").format(pending) + " کار باز";
+    const completed = tasks.length - pending;
+    const format = value => new Intl.NumberFormat("fa-IR").format(value);
+    $("#taskCount").textContent = format(pending) + " کار باز";
+    $("#taskOpenCount").textContent = format(pending);
+    $("#taskDoneCount").textContent = format(completed);
     $("#taskEmpty").hidden = tasks.length !== 0;
+    $("#taskNoResults").hidden = tasks.length === 0 || visibleTasks.length !== 0;
+    $("#clearCompletedTasks").hidden = completed === 0;
+  }
+
+  function setTaskFilter(filter) {
+    activeTaskFilter = filter;
+    $$("#taskFilters [data-task-filter]").forEach(button => {
+      const selected = button.dataset.taskFilter === filter;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+    renderTasks();
   }
 
   function addTask(text) {
@@ -513,6 +537,19 @@
       saveWorkspace();
       renderTasks();
       showToast("کار حذف شد.");
+    });
+    $("#taskSearch").addEventListener("input", renderTasks);
+    $("#taskFilters").addEventListener("click", event => {
+      const button = event.target.closest("[data-task-filter]");
+      if (button) setTaskFilter(button.dataset.taskFilter);
+    });
+    $("#clearCompletedTasks").addEventListener("click", () => {
+      const completed = tasks.filter(task => task.done).length;
+      if (!completed || !window.confirm("آیا از حذف " + completed + " کار انجام‌شده مطمئنی؟")) return;
+      tasks = tasks.filter(task => !task.done);
+      saveWorkspace();
+      renderTasks();
+      showToast("کارهای انجام‌شده پاک شدند.");
     });
     $("#exportWorkspace").addEventListener("click", exportWorkspace);
     $("#importWorkspace").addEventListener("click", () => $("#importWorkspaceFile").click());
