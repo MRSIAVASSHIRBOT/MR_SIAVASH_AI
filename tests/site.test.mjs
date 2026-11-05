@@ -65,7 +65,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v2"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v3"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /request\.mode === "navigate"/);
   assert.match(sw, /request\.method !== "GET"/);
