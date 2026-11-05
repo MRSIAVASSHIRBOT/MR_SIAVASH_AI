@@ -1,0 +1,150 @@
+{
+  "schema": "mr-siavash-ai-module-registry",
+  "version": 1,
+  "modules": [
+    {
+      "id": "ai-hub",
+      "category": "ai",
+      "categoryLabel": "هوش مصنوعی",
+      "symbol": "✳",
+      "title": "AI Hub",
+      "description": "مرکز سامان‌دهی ابزارها و سرویس‌های هوش مصنوعی، مدل‌ها و جریان‌های کاری مختلف.",
+      "status": "در نقشه راه",
+      "type": "ROADMAP",
+      "features": [
+        "فهرست و مقایسه مدل‌ها و سرویس‌ها",
+        "مدیریت تنظیمات اتصال‌ها از سمت امن سرور",
+        "آزمون و ارزیابی خروجی‌ها با معیارهای روشن"
+      ],
+      "featured": true
+    },
+    {
+      "id": "agents",
+      "category": "ai",
+      "categoryLabel": "هوش مصنوعی",
+      "symbol": "◈",
+      "title": "Agents Lab",
+      "description": "محیط طراحی و هماهنگی عامل‌های هوشمند با وظایف، ابزارها و محدوده دسترسی مشخص.",
+      "status": "در نقشه راه",
+      "type": "ROADMAP",
+      "features": [
+        "تعریف مأموریت و گردش کار",
+        "هماهنگی چند عامل با قرارداد مشخص",
+        "ثبت رویدادها، محدودیت اجرا و تأیید انسانی"
+      ],
+      "featured": true
+    },
+    {
+      "id": "developer",
+      "category": "dev",
+      "categoryLabel": "توسعه",
+      "symbol": "</>",
+      "title": "Developer Studio",
+      "description": "فضایی برای برنامه‌نویسی، مستندسازی، Git، طراحی نرم‌افزار و مدیریت پروژه‌های فنی.",
+      "status": "در نقشه راه",
+      "type": "ROADMAP",
+      "features": [
+        "مدیریت پروژه و مستندات فنی",
+        "تحلیل کد و کنترل کیفیت",
+        "اتصال امن به مخزن‌ها و ابزارهای توسعه"
+      ],
+      "featured": true
+    },
+    {
+      "id": "secure",
+      "category": "learn",
+      "categoryLabel": "امنیت دفاعی",
+      "symbol": "⌘",
+      "title": "Secure Lab",
+      "description": "مسیر یادگیری امنیت سایبری با تمرکز بر دفاع، تحلیل، حریم خصوصی و آزمایشگاه‌های مجاز.",
+      "status": "در نقشه راه",
+      "type": "ROADMAP",
+      "features": [
+        "تحلیل لاگ و پایش دفاعی",
+        "مبانی امنیت وب و سخت‌سازی سیستم‌ها",
+        "تمرین‌های ایمن در محیط‌های آزمایشگاهی مجاز"
+      ],
+      "featured": true
+    },
+    {
+      "id": "network-linux",
+      "category": "learn",
+      "categoryLabel": "شبکه و لینوکس",
+      "symbol": "⌁",
+      "title": "Network & Linux Lab",
+      "description": "مسیر یادگیری شبکه، لینوکس، مدیریت سیستم و عیب‌یابی مرحله‌به‌مرحله.",
+      "status": "در نقشه راه",
+      "type": "ROADMAP",
+      "features": [
+        "مفاهیم شبکه و عیب‌یابی اتصال",
+        "خط فرمان و مدیریت لینوکس",
+        "تمرین‌های آزمایشگاهی و مستندسازی"
+      ],
+      "featured": true
+    },
+    {
+      "id": "knowledge",
+      "category": "learn",
+      "categoryLabel": "یادگیری",
+      "symbol": "▤",
+      "title": "Knowledge Library",
+      "description": "کتابخانه‌ای ساختاریافته برای یادداشت‌ها، منابع آموزشی و دانش قابل جست‌وجو.",
+      "status": "در نقشه راه",
+      "type": "ROADMAP",
+      "features": [
+        "دسته‌بندی و برچسب‌گذاری منابع",
+        "جست‌وجوی دانش و یادداشت‌ها",
+        "مسیر یادگیری و مرور دوره‌ای"
+      ],
+      "featured": true
+    },
+    {
+      "id": "creator",
+      "category": "create",
+      "categoryLabel": "تولید محتوا",
+      "symbol": "✧",
+      "title": "Creator Studio",
+      "description": "محیط برنامه‌ریزی و تولید محتوای آموزشی و رسانه‌ای در قالب‌های مختلف.",
+      "status": "در نقشه راه",
+      "type": "ROADMAP",
+      "features": [
+        "ایده‌پردازی و سناریونویسی",
+        "تقویم و گردش انتشار محتوا",
+        "مدیریت خروجی‌های تصویری و ویدیویی"
+      ],
+      "featured": true
+    },
+    {
+      "id": "identity",
+      "category": "workspace",
+      "categoryLabel": "هویت دیجیتال",
+      "symbol": "◎",
+      "title": "Digital Identity",
+      "description": "نمایه دیجیتال و هویت حرفه‌ای یکپارچه با کنترل روشن بر اطلاعات عمومی و خصوصی.",
+      "status": "در نقشه راه",
+      "type": "ROADMAP",
+      "features": [
+        "نمایه حرفه‌ای و قابل مدیریت",
+        "تفکیک اطلاعات عمومی از خصوصی",
+        "تنظیمات حریم خصوصی و سطح دسترسی"
+      ],
+      "featured": false
+    },
+    {
+      "id": "workspace",
+      "category": "workspace",
+      "categoryLabel": "فضای کار",
+      "symbol": "▣",
+      "title": "Personal Workspace",
+      "description": "فضای شخصی سبک برای مدیریت کارها؛ نسخه فعلی این ماژول در مرورگر فعال است.",
+      "status": "فعال در همین مرورگر",
+      "type": "LOCAL",
+      "features": [
+        "افزودن، تکمیل و حذف کارها",
+        "ذخیره محلی در همین مرورگر",
+        "خروجی و بازیابی پشتیبان JSON"
+      ],
+      "featured": false
+    }
+  ]
+}

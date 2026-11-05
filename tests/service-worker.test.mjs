@@ -24,7 +24,7 @@ function createHarness(fetchImpl = async () => new Response("asset", {
   };
   const caches = {
     async open() { return cache; },
-    async keys() { return ["mr-siavash-ai-shell-v4"]; },
+    async keys() { return ["mr-siavash-ai-shell-v5"]; },
     async delete() { return true; }
   };
   vm.runInNewContext(source, { self, caches, URL, Set, Response, fetch: fetchImpl, console });
@@ -64,6 +64,15 @@ test("service worker handles an exact allowlisted static shell URL", async () =>
   const { listeners } = createHarness();
   const response = dispatchFetch(listeners, {
     method: "GET", mode: "cors", url: "https://example.test/app/styles.css"
+  });
+  assert.ok(response instanceof Promise);
+  assert.equal((await response).status, 200);
+});
+
+test("service worker includes the versioned module registry in its exact static allowlist", async () => {
+  const { listeners } = createHarness();
+  const response = dispatchFetch(listeners, {
+    method: "GET", mode: "cors", url: "https://example.test/app/modules.json"
   });
   assert.ok(response instanceof Promise);
   assert.equal((await response).status, 200);
