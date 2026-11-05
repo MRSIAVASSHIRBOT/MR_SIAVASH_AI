@@ -1,37 +1,51 @@
 # MR_SIAVASH_AI
 
-A modular Persian-first digital workspace for AI, software development, defensive cybersecurity learning, knowledge, and creative production.
+A Persian-first, modular digital workspace for AI, software development, network and Linux learning, defensive cybersecurity, knowledge, and creative production.
 
-## Product direction
+## Product model
 
-MR_SIAVASH_AI is designed as one coherent ecosystem made from independently usable modules. Each module has a clear responsibility and can later connect to other modules through documented APIs.
+MR_SIAVASH_AI is one ecosystem made of independently usable modules. Modules have explicit boundaries and can collaborate through documented interfaces when integrations are implemented. The product favors transparent capability status: a prototype is not presented as a production service.
 
-## Current release
+## Current front-end release
 
-This repository currently contains the first static front-end release:
-- Responsive Persian / RTL interface.
-- Module directory with search and category filters.
-- Module detail dialogs.
-- Local workspace task list stored in the current browser only.
-- GitHub Pages deployment workflow.
+The repository provides a static web application with:
+- Responsive Persian / RTL interface and hash-based navigation.
+- Searchable module catalog with category filters and saved modules.
+- Accessible module detail dialogs and keyboard shortcuts (Ctrl/Cmd + K, /).
+- Browser-local workspace task manager.
+- JSON export and validated, bounded JSON import for local workspace data.
+- PWA manifest and versioned service-worker cache for the static app shell.
+- GitHub Actions workflow with syntax and repository-structure tests before GitHub Pages deployment.
 
-Important: AI providers, user accounts, cloud sync, agent execution, payment, and server-side storage are not connected yet. The interface does not pretend these services are live. Do not put API keys, passwords, or private credentials in this repository or browser code.
+### What is not connected yet
+
+AI model providers, remote agent execution, user accounts, private profiles, cloud synchronization, backend APIs, billing, and server-side data storage are not implemented. Local favorites and tasks remain in the current browser. Do not enter secrets, passwords, private keys, or sensitive personal data into this static site.
 
 ## Repository structure
 
 - index.html — application shell and page sections
 - styles.css — visual system and responsive layouts
-- app.js — client-side navigation, module directory, dialogs, and local workspace
-- favicon.svg — vector site icon
-- .github/workflows/deploy.yml — GitHub Pages deployment
+- app.js — navigation, module catalog, favorites, local workspace and data portability
+- manifest.webmanifest — installable web-app metadata
+- sw.js — static-shell offline cache
+- tests/site.test.mjs — dependency-free Node.js structure and safety checks
+- .github/workflows/deploy.yml — quality checks and GitHub Pages deployment
+- docs/ARCHITECTURE.md — current boundaries and future integration plan
+- SECURITY.md — security reporting and client-side security boundaries
 
 ## Run locally
 
-Use any static HTTP server from the repository root. For example:
+Use Node.js 22 or a Python static server from the repository root:
 
     python -m http.server 8080
 
-Then open http://localhost:8080.
+Then open http://localhost:8080. Service-worker installation requires HTTPS or localhost.
+
+Run repository checks:
+
+    node --check app.js
+    node --check sw.js
+    node --test tests/*.test.mjs
 
 ## Deploy with GitHub Pages
 
@@ -39,14 +53,15 @@ Then open http://localhost:8080.
 2. Under Build and deployment, set Source to GitHub Actions.
 3. Push to main, or run the workflow manually from Actions.
 
-The workflow uploads the static site and deploys it to GitHub Pages. The first deployment requires Pages to be enabled for this repository.
+The workflow runs syntax and structure tests before uploading the static site. The first deployment still requires GitHub Pages to be enabled for this repository.
 
 ## Engineering principles
 
 - Modular boundaries before feature sprawl.
-- Least privilege and no secrets in client-side code.
-- Accessibility, responsive behavior, and clear loading / empty states.
-- Distinguish implemented behavior from roadmap items.
+- Least privilege and no secrets in browser code.
+- Validate imported data and treat user-generated content as untrusted.
+- Accessibility, responsive behavior, and clear empty / error states.
+- Explicitly distinguish implemented behavior from roadmap items.
 - Prefer small, reviewable changes and automated checks.
 
 ## License
