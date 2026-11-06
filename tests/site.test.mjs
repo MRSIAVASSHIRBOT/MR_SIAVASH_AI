@@ -117,7 +117,21 @@ test("proposed backend contract is explicitly design-only and versioned", async 
   assert.match(api, /bearerAuth/);
   assert.match(api, /Idempotency-Key/);
   assert.match(api, /additionalProperties: false/);
-  assert.match(backendGuide, /does not contain a running backend/);
+  assert.match(backendGuide, /does not turn the static GitHub Pages site into an account service/);
+  assert.match(backendGuide, /production database remains empty/);
+  assert.match(backendGuide, /validate-d1-migrations\\.py/);
+});
+
+test("D1 identity and workspace schema stays provider-neutral and unapplied to production", async () => {
+  const migration = await readFile(new URL("../cloudflare/gateway/migrations/0001_identity_workspace.sql", import.meta.url), "utf8");
+  const decision = await readFile(new URL("../docs/decisions/0002-provider-neutral-identity-schema.md", import.meta.url), "utf8");
+  assert.match(migration, /CREATE TABLE users/);
+  assert.match(migration, /UNIQUE \\(issuer, subject\\)/);
+  assert.match(migration, /CREATE TABLE workspace_tasks/);
+  assert.match(migration, /CREATE TABLE idempotency_records/);
+  assert.match(migration, /json_valid\\(response_json\\)/);
+  assert.match(decision, /authentication provider remains undecided/);
+  assert.match(decision, /not a Cloudflare deployment or a production D1 migration/);
 });
 
 test("security and roadmap docs define production gates", async () => {
