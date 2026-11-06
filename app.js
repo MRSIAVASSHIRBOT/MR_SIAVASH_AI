@@ -489,6 +489,7 @@
 
   function loadWorkspace() {
     let parsed = null;
+    let storageReadError = false;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) parsed = JSON.parse(raw);
@@ -501,9 +502,10 @@
       }
     } catch (error) {
       storageAvailable = false;
+      storageReadError = true;
       parsed = null;
     }
-    const rawTasks = parsed && Array.isArray(parsed.tasks) ? parsed.tasks : [];
+    const rawTasks = parsed === null ? [] : parsed.tasks;
     const normalizedTasks = normalizeLoadedTasks(rawTasks);
     tasks = normalizedTasks.tasks;
     try {
@@ -516,7 +518,9 @@
     }
     updateStorageNote();
     const repairCount = normalizedTasks.repairedIds + normalizedTasks.discardedTasks + normalizedTasks.excessTasks;
-    if (normalizedTasks.invalidContainer) {
+    if (storageReadError) {
+      showToast("داده ذخیره‌شده قابل خواندن نبود؛ نسخه ذخیره‌شده بدون تغییر باقی ماند.");
+    } else if (normalizedTasks.invalidContainer) {
       showToast("ساختار کارهای ذخیره‌شده معتبر نبود؛ فهرست کارها خالی بارگذاری شد.");
     } else if (repairCount) {
       const details = [];
