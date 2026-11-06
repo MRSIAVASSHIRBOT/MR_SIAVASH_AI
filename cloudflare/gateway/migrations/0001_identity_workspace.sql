@@ -41,6 +41,7 @@ CREATE TABLE idempotency_records (
   key_digest TEXT NOT NULL CHECK (length(key_digest) = 64),
   request_digest TEXT NOT NULL CHECK (length(request_digest) = 64),
   response_json TEXT NOT NULL CHECK (length(response_json) BETWEEN 2 AND 16384),
+  CHECK (json_valid(response_json)),
   created_at INTEGER NOT NULL CHECK (created_at > 0),
   expires_at INTEGER NOT NULL CHECK (expires_at > created_at),
   PRIMARY KEY (user_id, key_digest)
