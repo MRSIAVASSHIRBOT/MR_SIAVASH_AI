@@ -1,6 +1,6 @@
 # Backend foundation — implementation gate
 
-This directory contains design artifacts only. It does not contain a running backend and does not turn the static GitHub Pages site into an account service.
+This directory contains backend design artifacts and migration validation. The deployed Cloudflare Worker currently exposes health endpoints only; it does not turn the static GitHub Pages site into an account service.
 
 ## Contract
 - openapi.yaml defines the proposed v1 boundary for health, public module metadata and authenticated per-user workspace tasks.
@@ -10,14 +10,20 @@ This directory contains design artifacts only. It does not contain a running bac
 
 ## Selected deployment boundary
 
-ADR 0001 selects a dedicated Cloudflare Worker for the API while retaining GitHub Pages for the current frontend. The first source-only Worker foundation is in `../../cloudflare/gateway/`; it is not deployed. Provision a separate D1 database for this product. Never reuse GShop's `gahop` Worker or `gshop-db` database.
+ADR 0001 selects a dedicated Cloudflare Worker for the API while retaining GitHub Pages for the current frontend. The dedicated health-only Worker and production D1 database are provisioned under `../../cloudflare/gateway/`. The production database remains empty: no schema migration has been applied. Never reuse GShop's `gahop` Worker or `gshop-db` database.
+
+## Persistence foundation
+
+`cloudflare/gateway/migrations/0001_identity_workspace.sql` defines a provider-neutral internal user record, unique external identity mapping (`issuer` + `subject`), owner-scoped workspace tasks, and per-user idempotency records. It stores no email address, provider credential, raw session token, or user-supplied principal. Timestamps are Unix epoch milliseconds. Task pagination is supported by a composite owner/time/ID index. User deletion cascades to identity mappings, tasks, and idempotency records.
+
+`scripts/validate-d1-migrations.py` executes the migration against an in-memory SQLite database and checks constraints, foreign keys, identity uniqueness, idempotency scoping, deletion behavior, and pagination indexes. CI runs this test locally; it does not connect to Cloudflare or apply the migration to production. Schema constraints are not a substitute for server-side authorization.
 
 ## Implementation sequence
-1. Provision isolated preview and production Worker environments and a dedicated D1 database.
-2. Implement public health and module metadata first; expose no private data.
-3. Select and implement verified authentication with a documented account lifecycle.
-4. Add task persistence with tenant-scoped repository methods and negative cross-user tests.
-5. Add rate limits, request-size limits, audit events, observability and backup/restore.
+1. Provision a separate preview database and environment-specific Worker configuration; keep production isolated.
+2. Validate and review the migration locally, then against a dedicated preview database before any production migration.
+3. Select and implement verified authentication with a documented account lifecycle; map only validated issuer/subject claims to internal user IDs.
+4. Add task persistence with tenant-scoped repository methods and negative cross-user authorization tests.
+5. Implement public module metadata, rate limits, request-size limits, audit events, observability and backup/restore.
 6. Only then connect AI providers through server-side secret storage and explicit tool permissions.
 
 ## Non-goals
