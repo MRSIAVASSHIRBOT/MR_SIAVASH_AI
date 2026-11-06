@@ -18,7 +18,7 @@ The dedicated production D1 database is `mr-siavash-ai-prod` in Cloudflare's WEU
 
 ## Explicitly not implemented
 
-This is a source foundation, not a deployed service. It does not implement user authentication, sessions, authorization, account recovery, workspace persistence, AI provider calls, agent execution, billing, or cloud sync. Do not configure the frontend to treat these health routes as proof that those capabilities exist.
+The Cloudflare account contains the dedicated Worker resource and an initial health-only version was uploaded. The repository's GitHub Pages workflow does not deploy Worker code, so source changes merged after that upload (including the strict CORS preflight implementation) must not be assumed to be live. No independent HTTP runtime smoke test has verified the deployed endpoints. This service still does not implement user authentication, sessions, authorization, account recovery, workspace persistence, AI provider calls, agent execution, billing, or cloud sync. Do not configure the frontend to treat health routes as proof that those capabilities exist.
 
 The dedicated health-only Worker and D1 database now exist. No custom-domain route, DNS record, user-facing product API, or secret was created. The existing `gahop` Worker and GShop resources remain out of scope and unchanged.
 
@@ -33,12 +33,12 @@ node --test cloudflare/gateway/tests/*.test.mjs
 
 The gateway tests use a small D1 mock and do not require Cloudflare credentials or network access.
 
-## Runtime bindings required before deployment
+## Runtime bindings and release configuration
 
 - `DB`: dedicated D1 database for MR_SIAVASH_AI. Do not reuse `gshop-db`.
 - `ALLOWED_ORIGINS`: comma-separated exact origins for the deployed frontend, e.g. `https://<approved-host>`. Do not use `*`.
 
-The deployment manifest and binding IDs must be added only after the target frontend origin and environment separation are confirmed. Production and preview should use separate D1 databases and secrets.
+The repository does not yet contain a reproducible Wrangler manifest or Worker release workflow. Add those only after the target frontend origin and environment separation are confirmed. Production and preview must use separate D1 databases and secrets. Never apply the new migration to the production database as part of this source-only change.
 
 ## Next implementation gates
 
