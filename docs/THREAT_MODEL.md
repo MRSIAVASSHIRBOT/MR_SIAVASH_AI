@@ -84,3 +84,10 @@ A feature touching private data, credentials, billing, external tools or consequ
 - Every repository read, update, and delete must predicate on the authenticated owner ID. A tenant-leading index improves the expected listing path but is not an authorization control by itself.
 - Idempotency keys are unique per owner, not globally. Request hashes prevent a key from being replayed with a different payload; stored responses are size-bounded and carry expiry timestamps for cleanup.
 - Migration tests run against an isolated in-memory SQLite database. They do not access or mutate Cloudflare D1. Production migration remains blocked until preview isolation, backups, rollback and cross-account integration tests are in place.
+
+
+## Principal identity and foreign-key boundary
+
+The D1 schema now separates an opaque internal user ID from external identity claims. The `(issuer, subject)` pair is unique and must be sourced only from a cryptographically verified identity token. Workspace tasks and idempotency records reference the internal user row, and deleting a user cascades to those records and linked identities. Migration 0002 backfills existing owner UUIDs before enforcing the foreign keys.
+
+Residual risks: the schema does not verify tokens, manage sessions, link accounts safely, or authorize HTTP requests. An implementation that trusts request-body owner IDs or omits owner predicates can still disclose another user's data. Issuer/audience/signature/key-rotation validation, account-linking confirmation, per-request authorization, and cross-account API tests remain mandatory. The migration is validated only in local in-memory SQLite; production D1 is unchanged.
