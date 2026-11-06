@@ -426,6 +426,10 @@
 
   function handleStorageChange(event) {
     if (event.storageArea && event.storageArea !== localStorage) return;
+    if (workspaceRecoveryBlocked && (event.key === null || event.key === STORAGE_KEY)) {
+      showToast("بازیابی فضای کار در انتظار تأیید است؛ تغییرات تب‌های دیگر تا بازیابی پشتیبان معتبر اعمال نمی‌شوند.");
+      return;
+    }
     if (event.key === null) {
       tasks = [];
       favorites = new Set();

@@ -220,6 +220,40 @@ test("workspace save guard rejects implicit writes and permits explicit validate
   assert.equal(writes[0].key, "workspace-test-key");
 });
 
+test("recovery lock ignores cross-tab workspace writes and storage-clear events", () => {
+  const start = app.indexOf("  function handleStorageChange(event) {");
+  const end = app.indexOf("\n  function normalizeLoadedTasks(rawTasks)", start);
+  assert.ok(start >= 0 && end > start, "storage event handler boundaries must exist");
+  const initialTasks = [{ id: "kept-task", text: "Preserve this task", done: false }];
+  const initialFavorites = new Set(["kept-module"]);
+  const notices = [];
+  const context = {
+    workspaceRecoveryBlocked: true,
+    STORAGE_KEY: "workspace-test-key",
+    FAVORITES_KEY: "favorites-test-key",
+    localStorage: {},
+    tasks: initialTasks,
+    favorites: initialFavorites,
+    selectedModule: null,
+    showToast(message) { notices.push(message); },
+    renderTasks() { throw new Error("blocked storage events must not render changed tasks"); },
+    renderFeatured() { throw new Error("blocked clear events must not reset favorites"); },
+    renderCatalog() { throw new Error("blocked clear events must not render changed favorites"); },
+    updateStorageNote() {},
+    openModule() {},
+    parseStoredTasks() { throw new Error("blocked workspace payload must not be parsed"); },
+    parseStoredFavorites() { throw new Error("blocked favorite payload must not be parsed"); }
+  };
+  const handleStorageChange = vm.runInNewContext("(" + app.slice(start, end).trim() + ")", context);
+  handleStorageChange({ storageArea: context.localStorage, key: "workspace-test-key", newValue: "{\"version\":2,\"tasks\":[]}" });
+  handleStorageChange({ storageArea: context.localStorage, key: null, newValue: null });
+  assert.equal(context.tasks, initialTasks);
+  assert.equal(context.favorites, initialFavorites);
+  assert.deepEqual(Array.from(context.favorites), ["kept-module"]);
+  assert.equal(notices.length, 2);
+  assert.ok(notices.every(message => message.includes("بازیابی فضای کار")));
+});
+
 test("workspace loading repairs missing and duplicate task IDs", () => {
   assert.ok(app.includes("const seenTaskIds = new Set()"));
   assert.ok(app.includes("seenTaskIds.has(id)"));

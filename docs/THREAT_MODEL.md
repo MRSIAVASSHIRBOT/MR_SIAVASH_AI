@@ -53,7 +53,7 @@ A feature touching private data, credentials, billing, external tools or consequ
 ## Workspace recovery and overwrite protection
 
 - If stored task data is unreadable, has an invalid container, or requires record repair/discard/capacity trimming, ordinary task mutations are blocked.
-- A validated backup import is the explicit recovery path that may replace the damaged snapshot; a normal add, toggle, delete, or bulk cleanup must not silently persist a partially recovered in-memory view.
+- A validated backup import is the explicit recovery path that may replace the damaged snapshot; a normal add, toggle, delete, bulk cleanup, cross-tab workspace update, or cross-tab storage-clear event must not silently replace or discard the protected in-memory view.
 - Export remains available so the user can preserve the normalized view before explicitly restoring it.
 - This is a browser-local data-integrity guard, not a guarantee against browser profile loss, storage eviction, or device failure.
 

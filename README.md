@@ -13,7 +13,7 @@ The repository provides a static web application with:
 - Searchable module catalog with category filters and saved modules.
 - Accessible module detail dialogs and keyboard shortcuts (Ctrl/Cmd + K, /).
 - Browser-local workspace task manager with search, status filters, progress counts and confirmed bulk cleanup.
-- Non-destructive workspace recovery: unreadable or repaired snapshots block implicit overwrites until an explicit validated-backup import.
+- Non-destructive workspace recovery: unreadable or repaired snapshots block implicit overwrites until an explicit validated-backup import; cross-tab writes and storage-clear events cannot bypass the recovery lock.
 - Local workspace recovery repairs missing or duplicate task IDs and explicitly reports discarded invalid or over-capacity records instead of silently truncating task text.
 - JSON export and validated, bounded JSON import for local workspace data, defined by schemas/workspace-backup.schema.json.
 - Restrictive same-origin Content Security Policy and Referrer-Policy on the static entry document.
