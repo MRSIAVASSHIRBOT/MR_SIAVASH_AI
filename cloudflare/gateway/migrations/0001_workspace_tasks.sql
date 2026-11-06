@@ -3,8 +3,8 @@
 -- Never populate owner_id from request JSON, query parameters, or an unverified token claim.
 
 CREATE TABLE workspace_tasks (
-  id TEXT PRIMARY KEY NOT NULL CHECK (length(id) = 36),
-  owner_id TEXT NOT NULL CHECK (length(owner_id) = 36),
+  id TEXT PRIMARY KEY NOT NULL CHECK (length(id) = 36     AND substr(id, 9, 1) = '-'     AND substr(id, 14, 1) = '-'     AND substr(id, 19, 1) = '-'     AND substr(id, 24, 1) = '-'     AND length(replace(id, '-', '')) = 32     AND id NOT GLOB '*[^0-9a-f-]*'),
+  owner_id TEXT NOT NULL CHECK (length(owner_id) = 36     AND substr(owner_id, 9, 1) = '-'     AND substr(owner_id, 14, 1) = '-'     AND substr(owner_id, 19, 1) = '-'     AND substr(owner_id, 24, 1) = '-'     AND length(replace(owner_id, '-', '')) = 32     AND owner_id NOT GLOB '*[^0-9a-f-]*'),
   text TEXT NOT NULL CHECK (
     length(text) BETWEEN 1 AND 120 AND length(trim(text)) > 0
   ),
