@@ -270,7 +270,7 @@ test("workspace import reports accepted and skipped tasks at capacity", () => {
 
 
 test("workspace mutations persist before committing in-memory task state", () => {
-  assert.match(app, /function saveWorkspace\(nextTasks = tasks\)/);
+  assert.match(app, /function saveWorkspace\(nextTasks = tasks, options = \{\}\)/);
   assert.match(app, /if \(!saveWorkspace\(nextTasks\)\) return false;[\s\S]{0,100}tasks = nextTasks/);
   assert.match(app, /if \(saveWorkspace\(nextTasks\)\) tasks = nextTasks/);
   assert.match(app, /if \(saveWorkspace\(nextTasks\)\) \{[\s\S]{0,100}tasks = nextTasks/);
