@@ -36,6 +36,24 @@ test("navigation buttons have real section targets", () => {
   const views = new Set([...html.matchAll(/\bid="view-([^"]+)"/g)].map(match => match[1]));
   const targets = [...html.matchAll(/data-view="([^"]+)"/g)].map(match => match[1]);
   for (const target of targets) assert.ok(views.has(target), "missing view: " + target);
+  assert.ok(views.has("identity"), "digital identity view must be present");
+});
+
+test("digital identity page exposes public social profiles and GitHub tools safely", () => {
+  assert.match(html, /id="view-identity"/);
+  assert.match(html, /data-view="identity"/);
+  for (const href of [
+    "https://www.instagram.com/mr_siavash_ir_bot/",
+    "https://www.instagram.com/l.siavash.l/",
+    "https://www.youtube.com/@Mr-Siavash.L",
+    "https://t.me/MR_SIAVASH_IR_CIA_BOT",
+    "https://github.com/MRSIAVASSHIRBOT",
+    "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions",
+    "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/pulls",
+    "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues"
+  ]) assert.ok(html.includes(href), "missing public profile or GitHub tool link: " + href);
+  assert.match(html, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(html, /مرز حریم خصوصی/);
 });
 
 test("all static DOM IDs used by the application exist in the HTML", () => {
@@ -100,7 +118,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v10"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v11"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /request\.mode === "navigate"/);
@@ -164,7 +182,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v10"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v11"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -337,7 +355,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v10"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v11"/);
 });
 
 
