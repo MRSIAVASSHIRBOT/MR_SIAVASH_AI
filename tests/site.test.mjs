@@ -189,6 +189,14 @@ test("local workspace recovery reports repairs and never silently truncates task
   assert.doesNotMatch(app, /task\.text\.trim\(\)\.replace\(\/\\s\+\/g, " "\)\.slice\(0, 120\)/);
 });
 
+test("workspace recovery blocks implicit overwrite until a validated backup is imported", () => {
+  assert.match(app, /let workspaceRecoveryBlocked = false/);
+  assert.match(app, /workspaceRecoveryBlocked = storageReadError[\\s\\S]*?normalizedTasks\\.excessTasks > 0/);
+  assert.match(app, /if \\(workspaceRecoveryBlocked && options\\.recover !== true\\)/);
+  assert.match(app, /saveWorkspace\\(nextTasks, \\{ recover: true \\}\\)/);
+  assert.match(app, /برای محافظت از داده‌های قبلی/);
+});
+
 test("workspace loading repairs missing and duplicate task IDs", () => {
   assert.ok(app.includes("const seenTaskIds = new Set()"));
   assert.ok(app.includes("seenTaskIds.has(id)"));
