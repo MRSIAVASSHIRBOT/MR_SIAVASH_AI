@@ -100,7 +100,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v8"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v9"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /request\.mode === "navigate"/);
@@ -146,7 +146,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v8"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v9"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -209,7 +209,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v8"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v9"/);
 });
 
 
