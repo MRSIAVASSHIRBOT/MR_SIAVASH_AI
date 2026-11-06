@@ -499,14 +499,24 @@
   function loadWorkspace() {
     let parsed = null;
     let storageReadError = false;
+    let storageSnapshotInvalid = false;
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) parsed = JSON.parse(raw);
-      else {
+      if (raw !== null) {
+        if (raw === "") {
+          storageSnapshotInvalid = true;
+        } else {
+          parsed = JSON.parse(raw);
+          storageSnapshotInvalid = !parsed || typeof parsed !== "object" ||
+            Array.isArray(parsed) || parsed.version !== 2 || !Array.isArray(parsed.tasks);
+        }
+      } else {
         const legacy = localStorage.getItem(LEGACY_STORAGE_KEY);
-        if (legacy) {
+        if (legacy !== null) {
           const oldTasks = JSON.parse(legacy);
-          parsed = { version: 2, tasks: Array.isArray(oldTasks) ? oldTasks : [] };
+          const validLegacyTasks = Array.isArray(oldTasks);
+          storageSnapshotInvalid = !validLegacyTasks;
+          parsed = { version: 2, tasks: validLegacyTasks ? oldTasks : null };
         }
       }
     } catch (error) {
@@ -514,10 +524,13 @@
       storageReadError = true;
       parsed = null;
     }
-    const rawTasks = parsed === null ? [] : parsed.tasks;
+    const rawTasks = parsed === null
+      ? (storageSnapshotInvalid ? null : [])
+      : parsed.tasks;
     const normalizedTasks = normalizeLoadedTasks(rawTasks);
     tasks = normalizedTasks.tasks;
     workspaceRecoveryBlocked = storageReadError ||
+      storageSnapshotInvalid ||
       normalizedTasks.invalidContainer === true ||
       normalizedTasks.repairedIds > 0 ||
       normalizedTasks.discardedTasks > 0 ||
@@ -534,8 +547,8 @@
     const repairCount = normalizedTasks.repairedIds + normalizedTasks.discardedTasks + normalizedTasks.excessTasks;
     if (storageReadError) {
       showToast("داده ذخیره‌شده قابل خواندن نبود؛ نسخه ذخیره‌شده بدون تغییر باقی ماند.");
-    } else if (normalizedTasks.invalidContainer) {
-      showToast("ساختار کارهای ذخیره‌شده معتبر نبود؛ فهرست کارها خالی بارگذاری شد.");
+    } else if (storageSnapshotInvalid || normalizedTasks.invalidContainer) {
+      showToast("ساختار یا نسخه داده‌های فضای کار معتبر نبود؛ پیش از هر تغییری باید پشتیبان معتبر بازیابی شود.");
     } else if (repairCount) {
       const details = [];
       if (normalizedTasks.repairedIds) details.push(normalizedTasks.repairedIds + " شناسه بازسازی شد");
