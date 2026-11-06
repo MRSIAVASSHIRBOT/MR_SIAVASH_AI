@@ -78,12 +78,80 @@ test("wildcard and malformed CORS entries are ignored", async () => {
   assert.equal(response.headers.get("access-control-allow-origin"), null);
 });
 
-test("preflight is answered without enabling arbitrary origins", async () => {
+test("valid CORS preflight permits only configured origins, GET, and approved headers", async () => {
   const response = await worker.fetch(makeRequest("/v1/health/live", {
     method: "OPTIONS",
-    headers: { Origin: "https://attacker.example.test" }
+    headers: {
+      Origin: "https://app.example.test",
+      "Access-Control-Request-Method": "GET",
+      "Access-Control-Request-Headers": "content-type, x-request-id"
+    }
   }), { ALLOWED_ORIGINS: "https://app.example.test" });
   assert.equal(response.status, 204);
+  assert.equal(response.headers.get("access-control-allow-origin"), "https://app.example.test");
+  assert.equal(response.headers.get("access-control-allow-methods"), "GET");
+  assert.equal(response.headers.get("access-control-allow-headers"), "content-type, x-request-id");
+  assert.equal(response.headers.get("access-control-max-age"), "600");
+});
+
+test("CORS preflight rejects missing or untrusted origins", async () => {
+  const env = { ALLOWED_ORIGINS: "https://app.example.test" };
+  const missing = await worker.fetch(makeRequest("/v1/health/live", {
+    method: "OPTIONS",
+    headers: { "Access-Control-Request-Method": "GET" }
+  }), env);
+  assert.equal(missing.status, 403);
+  assert.equal((await missing.json()).error.code, "cors_preflight_rejected");
+
+  const untrusted = await worker.fetch(makeRequest("/v1/health/live", {
+    method: "OPTIONS",
+    headers: { Origin: "https://attacker.example.test", "Access-Control-Request-Method": "GET" }
+  }), env);
+  assert.equal(untrusted.status, 403);
+  assert.equal(untrusted.headers.get("access-control-allow-origin"), null);
+});
+
+test("CORS preflight rejects methods not implemented by the gateway", async () => {
+  const response = await worker.fetch(makeRequest("/v1/health/live", {
+    method: "OPTIONS",
+    headers: { Origin: "https://app.example.test", "Access-Control-Request-Method": "POST" }
+  }), { ALLOWED_ORIGINS: "https://app.example.test" });
+  assert.equal(response.status, 403);
+  assert.equal((await response.json()).error.code, "cors_preflight_rejected");
+});
+
+test("CORS preflight rejects unapproved or malformed requested headers", async () => {
+  const env = { ALLOWED_ORIGINS: "https://app.example.test" };
+  const unapproved = await worker.fetch(makeRequest("/v1/health/live", {
+    method: "OPTIONS",
+    headers: {
+      Origin: "https://app.example.test",
+      "Access-Control-Request-Method": "GET",
+      "Access-Control-Request-Headers": "authorization"
+    }
+  }), env);
+  assert.equal(unapproved.status, 403);
+
+  const malformed = await worker.fetch(makeRequest("/v1/health/live", {
+    method: "OPTIONS",
+    headers: {
+      Origin: "https://app.example.test",
+      "Access-Control-Request-Method": "GET",
+      "Access-Control-Request-Headers": "content-type, invalid header"
+    }
+  }), env);
+  assert.equal(malformed.status, 403);
+});
+
+test("preflight rejection does not grant CORS access to arbitrary origins", async () => {
+  const response = await worker.fetch(makeRequest("/v1/health/live", {
+    method: "OPTIONS",
+    headers: {
+      Origin: "https://attacker.example.test",
+      "Access-Control-Request-Method": "GET"
+    }
+  }), { ALLOWED_ORIGINS: "https://app.example.test" });
+  assert.equal(response.status, 403);
   assert.equal(response.headers.get("access-control-allow-origin"), null);
 });
 
