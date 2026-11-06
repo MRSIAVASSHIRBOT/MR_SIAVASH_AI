@@ -22,7 +22,7 @@ migrations/0001_identity_workspace.sql defines provider-neutral internal users, 
 
 ## Explicitly not implemented
 
-This is a source foundation, not a deployed service. It does not implement user authentication, sessions, authorization, account recovery, workspace persistence, AI provider calls, agent execution, billing, or cloud sync. Do not configure the frontend to treat these health routes as proof that those capabilities exist.
+The health-only Worker is deployed, but this repository's gateway source remains limited to health routes. It does not implement user authentication, sessions, authorization, account recovery, workspace APIs, AI provider calls, agent execution, billing, or cloud sync. Do not configure the frontend to treat these health routes as proof that those capabilities exist.
 
 The dedicated health-only Worker and D1 database now exist. No custom-domain route, DNS record, user-facing product API, or secret was created. The existing `gahop` Worker and GShop resources remain out of scope and unchanged.
 
