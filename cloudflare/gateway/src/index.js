@@ -44,10 +44,9 @@ function responseHeaders(request, env, requestId) {
 }
 
 function jsonResponse(request, env, requestId, status, payload) {
-  return new Response(JSON.stringify(payload), {
-    status,
-    headers: responseHeaders(request, env, requestId)
-  });
+  const headers = responseHeaders(request, env, requestId);
+  if (status === 405) headers.set("Allow", "GET, OPTIONS");
+  return new Response(JSON.stringify(payload), { status, headers });
 }
 
 function requestId() {
