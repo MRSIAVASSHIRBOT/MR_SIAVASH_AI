@@ -35,6 +35,8 @@ jobs:
           node --check cloudflare/gateway/src/index.js
       - name: Validate OpenAPI design contract
         run: ruby scripts/validate-openapi.rb
+      - name: Validate D1 migrations against SQLite
+        run: python3 scripts/validate-d1-migrations.py
       - name: Run repository tests
         run: node --test tests/*.test.mjs cloudflare/gateway/tests/*.test.mjs
 
