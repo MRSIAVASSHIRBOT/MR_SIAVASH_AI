@@ -36,6 +36,24 @@ test("navigation buttons have real section targets", () => {
   const views = new Set([...html.matchAll(/\bid="view-([^"]+)"/g)].map(match => match[1]));
   const targets = [...html.matchAll(/data-view="([^"]+)"/g)].map(match => match[1]);
   for (const target of targets) assert.ok(views.has(target), "missing view: " + target);
+  assert.ok(views.has("identity"), "digital identity view must be present");
+});
+
+test("digital identity page exposes public social profiles and GitHub tools safely", () => {
+  assert.match(html, /id="view-identity"/);
+  assert.match(html, /data-view="identity"/);
+  for (const href of [
+    "https://www.instagram.com/mr_siavash_ir_bot/",
+    "https://www.instagram.com/l.siavash.l/",
+    "https://www.youtube.com/@Mr-Siavash.L",
+    "https://t.me/MR_SIAVASH_IR_CIA_BOT",
+    "https://github.com/MRSIAVASSHIRBOT",
+    "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions",
+    "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/pulls",
+    "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues"
+  ]) assert.ok(html.includes(href), "missing public profile or GitHub tool link: " + href);
+  assert.match(html, /target="_blank" rel="noopener noreferrer"/);
+  assert.match(html, /مرز حریم خصوصی/);
 });
 
 test("all static DOM IDs used by the application exist in the HTML", () => {

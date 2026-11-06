@@ -233,7 +233,7 @@
       return;
     }
     const viewName = hash.slice(1);
-    if (["home", "modules", "workspace", "about"].includes(viewName)) {
+    if (["home", "modules", "workspace", "identity", "about"].includes(viewName) {
       if ($("#moduleDialog").open) $("#moduleDialog").close();
       showView(viewName, { updateHistory: false, scroll: false });
     } else {
