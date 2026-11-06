@@ -14,7 +14,9 @@ ADR 0001 selects a dedicated Cloudflare Worker for the API while retaining GitHu
 
 ## D1 schema foundation
 
-`../../cloudflare/gateway/migrations/0001_workspace_tasks.sql` defines a local-first tenant-scoped task table and owner-scoped idempotency records. `scripts/test-d1-migrations.py` applies all migration files to an isolated in-memory SQLite database and checks constraints, tenant-filter query shape, indexes, and idempotency uniqueness. This is a schema test only: it does not connect to Cloudflare or apply anything to the provisioned production D1 database. The auth adapter must map a verified `(issuer, subject)` identity to an internal owner UUID; clients must never supply `owner_id`.
+`../../cloudflare/gateway/migrations/0001_workspace_tasks.sql` defines tenant-scoped tasks and owner-scoped idempotency records. Migration 0002 adds opaque internal users, unique verified `(issuer, subject)` mappings, and foreign keys from task/idempotency rows to users. It backfills existing owners before rebuilding those tables, preserving their rows and indexes. The schema stores no email address, raw token, session secret, or provider credential.
+
+`scripts/test-d1-migrations.py` applies every migration in order to an isolated in-memory SQLite database. It verifies backfill preservation, identity uniqueness, owner foreign keys, cascade deletion, constraints, query-plan index selection, and database integrity. This is a schema test only: it does not connect to Cloudflare or apply anything to the provisioned production D1 database. The auth adapter must map only a cryptographically verified `(issuer, subject)` identity to the internal owner UUID; clients must never supply `owner_id`. Foreign keys are integrity controls, not API authorization.
 
 ## Implementation sequence
 1. Provision isolated preview and production Worker environments and verify the existing production resource bindings without applying migrations.
