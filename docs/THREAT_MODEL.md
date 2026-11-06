@@ -35,6 +35,12 @@
 - Navigation caching is limited to the app document and stores only successful HTML responses; it is not a general response cache.
 - Static prototype does not claim account authentication or cloud persistence.
 
+## D1 schema foundation and residual risks
+
+The initial migration maps an internal user ID to a unique external `(issuer, subject)` pair and places workspace tasks and idempotency records under that internal user foreign key. The schema stores no email address, raw token, session secret, or provider credential. Foreign-key cascades preserve referential cleanup when a user is deleted; idempotency response bodies are bounded and must be valid JSON. The migration is tested locally with SQLite in CI only. It has not been applied to production D1.
+
+Residual risks remain: schema ownership columns do not enforce request authorization; a future API can still leak data if repository queries omit the verified user scope. Issuer/subject values must come only from cryptographically validated identity claims. Idempotency digests must be computed server-side, and retention cleanup for expired records must be implemented before production use.
+
 ## Production release blockers
 - Authentication and account recovery threat review.
 - Authorization matrix and automated cross-user isolation tests.
