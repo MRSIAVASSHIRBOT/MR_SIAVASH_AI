@@ -128,8 +128,8 @@ test("D1 migrations persist verified identity mappings and enforce owner foreign
   assert.match(first, /CREATE TABLE workspace_tasks/);
   assert.match(second, /CREATE TABLE users/);
   assert.match(second, /CREATE TABLE auth_identities/);
-  assert.match(second, /UNIQUE \\(issuer, subject\\)/);
-  assert.match(second, /REFERENCES users\\(id\\) ON DELETE CASCADE/);
+  assert.ok(second.includes("UNIQUE (issuer, subject)"));
+  assert.ok(second.includes("REFERENCES users(id) ON DELETE CASCADE"));
   assert.match(second, /INSERT INTO users/);
   assert.match(second, /ALTER TABLE workspace_tasks_v2 RENAME TO workspace_tasks/);
   assert.match(validator, /PRAGMA foreign_key_check/);
