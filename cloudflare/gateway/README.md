@@ -16,6 +16,10 @@ The dedicated production D1 database is `mr-siavash-ai-prod` in Cloudflare's WEU
 - Stable JSON errors, per-response request IDs, no-store responses, and baseline browser security headers.
 - Unknown routes and unsupported methods fail closed.
 
+## D1 migration foundation
+
+migrations/0001_identity_workspace.sql defines provider-neutral internal users, verified external identity mappings, owner-scoped workspace tasks, and per-user idempotency records. The migration is validated locally by scripts/validate-d1-migrations.py in CI using an in-memory SQLite database. It has **not** been applied to the Cloudflare production D1 database, which remains empty. Foreign keys do not replace server-side authentication or per-query authorization.
+
 ## Explicitly not implemented
 
 This is a source foundation, not a deployed service. It does not implement user authentication, sessions, authorization, account recovery, workspace persistence, AI provider calls, agent execution, billing, or cloud sync. Do not configure the frontend to treat these health routes as proof that those capabilities exist.
@@ -43,9 +47,9 @@ The deployment manifest and binding IDs must be added only after the target fron
 ## Next implementation gates
 
 1. Provision a separate preview database and environment-specific Worker configuration; production D1 is already provisioned.
-2. Add a verified authentication/session provider and server-side authorization middleware.
-3. Add migrations and tenant-scoped workspace repositories with cross-user negative tests.
-4. Add request limits, rate limiting, audit events, observability, and backup/restore.
+2. Apply and test the reviewed schema migration on preview only, with a documented rollback and backup plan.
+3. Select a verified authentication/session provider and implement server-side principal validation and authorization middleware.
+4. Add tenant-scoped workspace repositories with cross-user negative tests, request limits, rate limiting, audit events, observability, and backup/restore.
 5. Implement public module metadata and authenticated workspace APIs against the OpenAPI contract.
 6. Add AI provider adapters and bounded agent jobs only after identity, secrets, and approval controls pass review.
 
