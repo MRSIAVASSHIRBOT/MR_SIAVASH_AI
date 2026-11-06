@@ -2,6 +2,9 @@
 
 const SERVICE_NAME = "mr-siavash-ai-gateway";
 const API_PREFIX = "/v1";
+const CORS_METHODS = new Set(["GET"]);
+const CORS_HEADERS = new Set(["content-type", "x-request-id"]);
+const HEADER_TOKEN = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
 
 function securityHeaders() {
   return {
@@ -36,9 +39,6 @@ function responseHeaders(request, env, requestId) {
   const origin = request.headers.get("Origin");
   if (origin && allowedOrigins(env).has(origin)) {
     headers.set("Access-Control-Allow-Origin", origin);
-    headers.set("Access-Control-Allow-Methods", "GET, OPTIONS");
-    headers.set("Access-Control-Allow-Headers", "Content-Type, X-Request-ID");
-    headers.set("Access-Control-Max-Age", "600");
   }
   return headers;
 }
@@ -51,6 +51,35 @@ function jsonResponse(request, env, requestId, status, payload) {
 
 function requestId() {
   return globalThis.crypto.randomUUID();
+}
+
+function rejectedPreflight(request, env, id) {
+  return jsonResponse(request, env, id, 403, {
+    error: { code: "cors_preflight_rejected", message: "The CORS preflight request is not permitted." },
+    request_id: id
+  });
+}
+
+function preflightResponse(request, env, id) {
+  const origin = request.headers.get("Origin");
+  if (!origin || !allowedOrigins(env).has(origin)) return rejectedPreflight(request, env, id);
+
+  const method = request.headers.get("Access-Control-Request-Method");
+  if (!method || !CORS_METHODS.has(method)) return rejectedPreflight(request, env, id);
+
+  const requestedHeaders = (request.headers.get("Access-Control-Request-Headers") || "")
+    .split(",")
+    .map(value => value.trim().toLowerCase())
+    .filter(Boolean);
+  if (requestedHeaders.some(header => !HEADER_TOKEN.test(header) || !CORS_HEADERS.has(header))) {
+    return rejectedPreflight(request, env, id);
+  }
+
+  const headers = responseHeaders(request, env, id);
+  headers.set("Access-Control-Allow-Methods", Array.from(CORS_METHODS).join(", "));
+  headers.set("Access-Control-Allow-Headers", Array.from(CORS_HEADERS).join(", "));
+  headers.set("Access-Control-Max-Age", "600");
+  return new Response(null, { status: 204, headers });
 }
 
 async function checkDatabase(env) {
@@ -73,10 +102,7 @@ export default {
     const url = new URL(request.url);
 
     if (request.method === "OPTIONS") {
-      return new Response(null, {
-        status: 204,
-        headers: responseHeaders(request, env, id)
-      });
+      return preflightResponse(request, env, id);
     }
 
     if (request.method !== "GET") {
