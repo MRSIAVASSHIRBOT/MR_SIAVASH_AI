@@ -457,6 +457,36 @@
     }
   }
 
+  function normalizeLoadedTasks(rawTasks) {
+    const result = { tasks: [], repairedIds: 0, discardedTasks: 0, excessTasks: 0 };
+    if (!Array.isArray(rawTasks)) {
+      result.invalidContainer = true;
+      return result;
+    }
+    result.excessTasks = Math.max(0, rawTasks.length - MAX_TASKS);
+    const seenTaskIds = new Set();
+    rawTasks.slice(0, MAX_TASKS).forEach(task => {
+      if (!task || typeof task !== "object" || Array.isArray(task) ||
+          typeof task.text !== "string" || typeof task.done !== "boolean") {
+        result.discardedTasks += 1;
+        return;
+      }
+      const text = task.text.trim().replace(/\s+/g, " ");
+      if (!text || text.length > 120) {
+        result.discardedTasks += 1;
+        return;
+      }
+      let id = typeof task.id === "string" ? task.id.trim() : "";
+      if (!/^[A-Za-z0-9-]{1,128}$/.test(id) || seenTaskIds.has(id)) {
+        id = createId();
+        result.repairedIds += 1;
+      }
+      seenTaskIds.add(id);
+      result.tasks.push({ id, text, done: task.done });
+    });
+    return result;
+  }
+
   function loadWorkspace() {
     let parsed = null;
     try {
@@ -474,17 +504,8 @@
       parsed = null;
     }
     const rawTasks = parsed && Array.isArray(parsed.tasks) ? parsed.tasks : [];
-    const seenTaskIds = new Set();
-    tasks = rawTasks.filter(task => task && typeof task.text === "string" && typeof task.done === "boolean")
-      .slice(0, MAX_TASKS)
-      .map(task => {
-        const text = task.text.trim().replace(/\s+/g, " ").slice(0, 120);
-        let id = typeof task.id === "string" ? task.id.trim() : "";
-        if (!id || seenTaskIds.has(id)) id = createId();
-        seenTaskIds.add(id);
-        return { id, text, done: task.done };
-      })
-      .filter(task => task.text.length > 0);
+    const normalizedTasks = normalizeLoadedTasks(rawTasks);
+    tasks = normalizedTasks.tasks;
     try {
       const rawFavorites = localStorage.getItem(FAVORITES_KEY);
       const parsedFavorites = rawFavorites ? JSON.parse(rawFavorites) : [];
@@ -494,6 +515,16 @@
       storageAvailable = false;
     }
     updateStorageNote();
+    const repairCount = normalizedTasks.repairedIds + normalizedTasks.discardedTasks + normalizedTasks.excessTasks;
+    if (normalizedTasks.invalidContainer) {
+      showToast("ساختار کارهای ذخیره‌شده معتبر نبود؛ فهرست کارها خالی بارگذاری شد.");
+    } else if (repairCount) {
+      const details = [];
+      if (normalizedTasks.repairedIds) details.push(normalizedTasks.repairedIds + " شناسه بازسازی شد");
+      if (normalizedTasks.discardedTasks) details.push(normalizedTasks.discardedTasks + " کار نامعتبر کنار گذاشته شد");
+      if (normalizedTasks.excessTasks) details.push(normalizedTasks.excessTasks + " کار اضافی به‌دلیل سقف ۱۰۰ مورد بارگذاری نشد");
+      showToast("بازیابی داده‌ها با اصلاحات انجام شد: " + details.join("؛ ") + ".");
+    }
   }
 
   function saveWorkspace(nextTasks = tasks) {
