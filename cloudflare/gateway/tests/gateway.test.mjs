@@ -54,7 +54,7 @@ test("unknown routes return a stable JSON 404", async () => {
 test("unsupported methods are rejected", async () => {
   const response = await worker.fetch(makeRequest("/v1/health/live", { method: "POST" }), {});
   assert.equal(response.status, 405);
-  assert.equal(response.headers.get("allow"), null);
+  assert.equal(response.headers.get("allow"), "GET, OPTIONS");
   assert.equal((await response.json()).error.code, "method_not_allowed");
 });
 
