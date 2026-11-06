@@ -192,10 +192,55 @@ test("local workspace recovery reports repairs and never silently truncates task
 test("workspace recovery blocks implicit overwrite until a validated backup is imported", () => {
   assert.ok(app.includes("let workspaceRecoveryBlocked = false"));
   assert.ok(app.includes("workspaceRecoveryBlocked = storageReadError ||"));
+  assert.ok(app.includes("storageSnapshotInvalid = !parsed || typeof parsed !== \"object\""));
   assert.ok(app.includes("normalizedTasks.excessTasks > 0;"));
   assert.ok(app.includes("if (workspaceRecoveryBlocked && options.recover !== true)"));
   assert.ok(app.includes("saveWorkspace(nextTasks, { recover: true })"));
   assert.ok(app.includes("برای محافظت از داده‌های قبلی"));
+});
+
+test("workspace loading blocks malformed and unsupported storage envelopes", () => {
+  const start = app.indexOf("  function loadWorkspace() {");
+  const end = app.indexOf("\n  function saveWorkspace(", start);
+  assert.ok(start >= 0 && end > start, "workspace loader boundaries must exist");
+  const source = app.slice(start, end).trim();
+
+  function load(entries) {
+    const context = {
+      STORAGE_KEY: "workspace",
+      LEGACY_STORAGE_KEY: "legacy-workspace",
+      FAVORITES_KEY: "favorites",
+      localStorage: {
+        getItem(key) {
+          return Object.prototype.hasOwnProperty.call(entries, key) ? entries[key] : null;
+        }
+      },
+      storageAvailable: true,
+      tasks: [],
+      favorites: new Set(),
+      workspaceRecoveryBlocked: false,
+      modules: [],
+      messages: [],
+      normalizeLoadedTasks(rawTasks) {
+        if (!Array.isArray(rawTasks)) {
+          return { tasks: [], invalidContainer: true, repairedIds: 0, discardedTasks: 0, excessTasks: 0 };
+        }
+        return { tasks: rawTasks, repairedIds: 0, discardedTasks: 0, excessTasks: 0 };
+      },
+      normalizeFavoriteIds(ids) { return Array.isArray(ids) ? ids : []; },
+      updateStorageNote() {},
+      showToast(message) { context.messages.push(message); }
+    };
+    vm.runInNewContext("(" + source + ")", context)();
+    return context;
+  }
+
+  assert.equal(load({ workspace: "null", favorites: "[]" }).workspaceRecoveryBlocked, true);
+  assert.equal(load({ workspace: JSON.stringify({ version: 1, tasks: [] }), favorites: "[]" }).workspaceRecoveryBlocked, true);
+  assert.equal(load({ workspace: JSON.stringify({ version: 2, tasks: [] }), favorites: "[]" }).workspaceRecoveryBlocked, false);
+  assert.equal(load({ "legacy-workspace": "[]", favorites: "[]" }).workspaceRecoveryBlocked, false);
+  assert.equal(load({ "legacy-workspace": "null", favorites: "[]" }).workspaceRecoveryBlocked, true);
+  assert.equal(load({ workspace: "", "legacy-workspace": "[]", favorites: "[]" }).workspaceRecoveryBlocked, true);
 });
 
 test("workspace save guard rejects implicit writes and permits explicit validated recovery", () => {
