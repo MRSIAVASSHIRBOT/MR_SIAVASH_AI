@@ -279,7 +279,7 @@ test("workspace mutations persist before committing in-memory task state", () =>
 test("workspace import commits task and favorite state only after persistence succeeds", () => {
   assert.match(app, /const nextTasks = \[\.\.\.accepted, \.\.\.tasks\]/);
   assert.match(app, /const nextFavorites = new Set\(favorites\)/);
-  assert.match(app, /if \(!saveWorkspace\(nextTasks\)\) \{[\s\S]*?persist\(FAVORITES_KEY, Array\.from\(favorites\)\);[\s\S]*?return;/);
+  assert.match(app, /if \(!saveWorkspace\(nextTasks, \{ recover: true \} \)\) \{[\s\S]*?persist\(FAVORITES_KEY, Array\.from\(favorites\)\);[\s\S]*?return;/);
   assert.match(app, /tasks = nextTasks;\s*favorites = nextFavorites;/);
 });
 
