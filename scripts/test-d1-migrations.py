@@ -126,6 +126,11 @@ def main():
     )
     expect_integrity_error(
         db, insert_idempotency,
+        ("not-a-valid-uuid-0000000000000000", key, request_hash, 201, response_a, now, later),
+        "malformed idempotency owner UUID",
+    )
+    expect_integrity_error(
+        db, insert_idempotency,
         (owner_a, "short", request_hash, 201, response_a, now, later),
         "short idempotency key",
     )
