@@ -155,6 +155,40 @@ test("workspace import rejects oversized backups and malformed task records", ()
   assert.ok(app.includes("data.favorites !== undefined"));
 });
 
+test("local workspace recovery reports repairs and never silently truncates task text", () => {
+  const start = app.indexOf("  function normalizeLoadedTasks(rawTasks) {");
+  const end = app.indexOf("\n  function loadWorkspace()", start);
+  assert.ok(start >= 0 && end > start, "loaded task normalizer boundaries must exist");
+  const normalize = vm.runInNewContext("(function() { const MAX_TASKS = 100; let nextId = 0; const createId = () => \"repaired-\" + (++nextId); return (" +
+    app.slice(start, end).trim() + "); })()");
+  const records = [
+    { id: "stable-1", text: "  Learn   Linux  ", done: false },
+    { id: "stable-1", text: "Duplicate ID", done: true },
+    { text: "Missing ID", done: false },
+    { id: "too-long", text: "x".repeat(121), done: false },
+    null,
+    { id: "stable-2", text: "Valid", done: false }
+  ];
+  const result = normalize(records);
+  assert.deepEqual(JSON.parse(JSON.stringify(result.tasks)), [
+    { id: "stable-1", text: "Learn Linux", done: false },
+    { id: "repaired-1", text: "Duplicate ID", done: true },
+    { id: "repaired-2", text: "Missing ID", done: false },
+    { id: "stable-2", text: "Valid", done: false }
+  ]);
+  assert.equal(result.repairedIds, 2);
+  assert.equal(result.discardedTasks, 2);
+  assert.equal(result.excessTasks, 0);
+  const overflow = normalize(Array.from({ length: 103 }, (_, index) => ({
+    id: "task-" + index, text: "Task " + index, done: false
+  })));
+  assert.equal(overflow.tasks.length, 100);
+  assert.equal(overflow.excessTasks, 3);
+  assert.equal(normalize(null).invalidContainer, true);
+  assert.match(app, /بازیابی داده‌ها با اصلاحات انجام شد/);
+  assert.doesNotMatch(app, /task\.text\.trim\(\)\.replace\(/);
+});
+
 test("workspace loading repairs missing and duplicate task IDs", () => {
   assert.ok(app.includes("const seenTaskIds = new Set()"));
   assert.ok(app.includes("seenTaskIds.has(id)"));
