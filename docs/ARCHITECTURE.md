@@ -27,7 +27,7 @@ The current repository is a static, browser-executed front end. It must not clai
 
 ## Future backend boundary
 
-The selected first backend target is a dedicated Cloudflare Worker maintained under `cloudflare/gateway/`. The current GitHub Pages frontend remains in place. The Worker source currently exposes only liveness and D1-backed readiness checks; it is not deployed and does not provide authentication, user APIs, or cloud sync. See [ADR 0001](decisions/0001-cloudflare-backend-boundary.md) and the gateway README for explicit scope and deployment gates. GShop resources are isolated and must not be reused.
+The selected first backend target is a dedicated Cloudflare Worker maintained under `cloudflare/gateway/`. The current GitHub Pages frontend remains in place. The health-only Worker is deployed at `https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev` with a dedicated production D1 binding; it exposes liveness and D1-backed readiness checks only. Authentication, user APIs, and cloud sync are not implemented. Its control-plane configuration has been read back, but an independent HTTP runtime smoke test remains outstanding. See [ADR 0001](decisions/0001-cloudflare-backend-boundary.md) and the gateway README. GShop resources are isolated and must not be reused.
 
 
 Before production integrations, establish:

@@ -1,6 +1,6 @@
 # ADR 0001 — Dedicated Cloudflare backend boundary
 
-- Status: Accepted for implementation in stages
+- Status: Accepted; health-only Worker and dedicated production D1 provisioned
 - Date: 2026-11-06
 - Decision owners: repository owner and maintainers
 
@@ -12,7 +12,7 @@ The Cloudflare account already contains production resources for GShop, includin
 
 ## Decision
 
-Create a dedicated Cloudflare Worker service for MR_SIAVASH_AI, maintained in this repository under `cloudflare/gateway/`. Keep the current GitHub Pages frontend in place during the first backend stages. Do not migrate hosting merely to add an API.
+Create a dedicated Cloudflare Worker service for MR_SIAVASH_AI, maintained in this repository under `cloudflare/gateway/`. Keep the current GitHub Pages frontend in place during the first backend stages. Do not migrate hosting merely to add an API. The health-only Worker and its dedicated production D1 database have now been provisioned; product APIs remain out of scope until their security gates pass.
 
 Use a dedicated D1 database for MR_SIAVASH_AI when persistence is provisioned. Keep GShop's Worker, D1 database, Pages project, DNS records, and secrets isolated and unchanged.
 
