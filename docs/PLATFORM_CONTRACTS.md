@@ -119,3 +119,8 @@ The static HTML entry point supplies a restrictive meta CSP and Referrer-Policy.
 ### Offline module-registry cache boundary
 
 The service worker may cache `modules.json` only when the response is successful JSON, no larger than 64 KiB, and has the exact versioned registry envelope (`schema`, `version`, and a bounded `modules` array). It validates both network and previously cached entries before use. An invalid or oversized network response never replaces the last valid cache; an invalid cached entry is not served as an offline fallback. The application remains responsible for full per-module runtime validation before rendering.
+
+
+### Gateway CORS preflight boundary
+
+The health-only Worker accepts a browser preflight only for an exact configured origin, a method the Worker actually implements (`GET`), and explicitly approved request headers (`Content-Type` and `X-Request-ID`). Missing or untrusted origins, unsupported methods, and unapproved or malformed requested headers are rejected with `403` and do not receive an allow-origin grant. CORS is not an authentication or authorization control; every future protected route must independently validate identity and permissions.
