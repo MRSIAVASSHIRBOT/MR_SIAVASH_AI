@@ -84,6 +84,11 @@ def main():
 
     expect_integrity_error(
         db, insert_task,
+        ("not-a-valid-uuid-0000000000000000", owner_a, "Invalid ID", now, now),
+        "malformed task UUID",
+    )
+    expect_integrity_error(
+        db, insert_task,
         ("cccccccc-cccc-4ccc-8ccc-cccccccccccc", owner_a, "   ", now, now),
         "whitespace-only task text",
     )
