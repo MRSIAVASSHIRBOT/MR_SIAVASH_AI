@@ -114,3 +114,8 @@ Workspace backup version 1 is defined in schemas/workspace-backup.schema.json an
 ### Static delivery security headers
 
 The static HTML entry point supplies a restrictive meta CSP and Referrer-Policy. The CSP permits only same-origin executable code, styles, connections, manifests and workers; it blocks objects, frames, inline script/style, and eval. Because the deployment uses GitHub Pages, response-header-only controls (including frame-ancestors, HSTS and X-Frame-Options) remain an infrastructure-level release gate and are not replaced by the meta policy.
+
+
+### Offline module-registry cache boundary
+
+The service worker may cache `modules.json` only when the response is successful JSON, no larger than 64 KiB, and has the exact versioned registry envelope (`schema`, `version`, and a bounded `modules` array). It validates both network and previously cached entries before use. An invalid or oversized network response never replaces the last valid cache; an invalid cached entry is not served as an offline fallback. The application remains responsible for full per-module runtime validation before rendering.

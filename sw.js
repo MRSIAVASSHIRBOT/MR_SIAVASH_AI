@@ -1,7 +1,8 @@
 "use strict";
 
 const CACHE_PREFIX = "mr-siavash-ai-shell-";
-const CACHE_NAME = CACHE_PREFIX + "v9";
+const CACHE_NAME = CACHE_PREFIX + "v10";
+const MAX_MODULE_REGISTRY_BYTES = 64 * 1024;
 const SHELL_FILES = ["./", "./index.html", "./styles.css", "./app.js", "./favicon.svg", "./manifest.webmanifest", "./modules.json"];
 
 self.addEventListener("install", event => {
@@ -22,6 +23,65 @@ self.addEventListener("activate", event => {
     await self.clients.claim();
   })());
 });
+
+async function isCacheableModuleRegistry(response) {
+  if (!response || !response.ok) return false;
+  const contentType = response.headers && response.headers.get("content-type") || "";
+  if (!/^application\/(?:json|[a-z0-9.+-]+\+json)(?:\s*;|$)/i.test(contentType)) return false;
+
+  const declaredLength = response.headers && response.headers.get("content-length");
+  if (declaredLength !== null && declaredLength !== undefined &&
+      /^\d+$/.test(declaredLength) && Number(declaredLength) > MAX_MODULE_REGISTRY_BYTES) {
+    return false;
+  }
+
+  try {
+    let payload;
+    const body = response.clone().body;
+    if (body && typeof body.getReader === "function") {
+      const reader = body.getReader();
+      const chunks = [];
+      let totalBytes = 0;
+      try {
+        while (true) {
+          const result = await reader.read();
+          if (result.done) break;
+          totalBytes += result.value.byteLength;
+          if (totalBytes > MAX_MODULE_REGISTRY_BYTES) {
+            try { await reader.cancel(); } catch (error) { /* The stream may already be closed. */ }
+            return false;
+          }
+          chunks.push(result.value);
+        }
+      } finally {
+        if (typeof reader.releaseLock === "function") reader.releaseLock();
+      }
+      const bytes = new Uint8Array(totalBytes);
+      let offset = 0;
+      chunks.forEach(chunk => {
+        bytes.set(chunk, offset);
+        offset += chunk.byteLength;
+      });
+      payload = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    } else {
+      payload = await response.clone().text();
+      if (new TextEncoder().encode(payload).byteLength > MAX_MODULE_REGISTRY_BYTES) return false;
+    }
+
+    const registry = JSON.parse(payload);
+    const keys = registry && typeof registry === "object" && !Array.isArray(registry)
+      ? Object.keys(registry).sort()
+      : [];
+    return keys.length === 3 &&
+      keys[0] === "modules" && keys[1] === "schema" && keys[2] === "version" &&
+      registry.schema === "mr-siavash-ai-module-registry" &&
+      registry.version === 1 &&
+      Array.isArray(registry.modules) &&
+      registry.modules.length >= 1 && registry.modules.length <= 50;
+  } catch (error) {
+    return false;
+  }
+}
 
 self.addEventListener("fetch", event => {
   const request = event.request;
@@ -64,18 +124,17 @@ self.addEventListener("fetch", event => {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
       const cached = await cache.match(request);
+      const cachedIsValid = cached ? await isCacheableModuleRegistry(cached) : false;
       try {
         const response = await fetch(request);
-        const contentType = response && response.headers && response.headers.get("content-type") || "";
-        const isJson = /^application\/(?:json|[a-z0-9.+-]+\+json)(?:\s*;|$)/i.test(contentType);
-        if (response && response.ok && isJson) {
+        if (response && response.ok && await isCacheableModuleRegistry(response)) {
           try { await cache.put(request, response.clone()); }
           catch (error) { console.warn("Could not refresh cached module registry."); }
           return response;
         }
-        return cached || response;
+        return cachedIsValid ? cached : (response || new Response("", { status: 504, statusText: "Unavailable" }));
       } catch (error) {
-        return cached || new Response("", { status: 504, statusText: "Offline" });
+        return cachedIsValid ? cached : new Response("", { status: 504, statusText: "Offline" });
       }
     })());
     return;
