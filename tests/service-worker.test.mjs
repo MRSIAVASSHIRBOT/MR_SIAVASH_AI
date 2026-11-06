@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import vm from "node:vm";
 
 const source = await readFile(new URL("../sw.js", import.meta.url), "utf8");
+const validRegistry = JSON.stringify({ schema: "mr-siavash-ai-module-registry", version: 1, modules: [{}] });
 
 function createHarness(fetchImpl = async () => new Response("asset", {
   status: 200,
@@ -29,7 +30,7 @@ function createHarness(fetchImpl = async () => new Response("asset", {
     async keys() { return ["mr-siavash-ai-shell-v8"]; },
     async delete() { return true; }
   };
-  vm.runInNewContext(source, { self, caches, URL, Set, Response, fetch: fetchImpl, console });
+  vm.runInNewContext(source, { self, caches, URL, Set, Response, TextEncoder, TextDecoder, Uint8Array, fetch: fetchImpl, console });
   return { listeners, writes, get skipWaitingCalls() { return skipWaitingCalls; } };
 }
 
@@ -142,7 +143,7 @@ test("install does not activate a worker when atomic shell precache fails", asyn
     async keys() { return ["mr-siavash-ai-shell-v8"]; },
     async delete() { return true; }
   };
-  vm.runInNewContext(source, { self, caches, URL, Set, Response, fetch, console });
+  vm.runInNewContext(source, { self, caches, URL, Set, Response, TextEncoder, TextDecoder, Uint8Array, fetch, console });
   let installPromise;
   listeners.get("install")({ waitUntil(value) { installPromise = value; } });
   await assert.rejects(installPromise, /precache failed/);
@@ -150,11 +151,11 @@ test("install does not activate a worker when atomic shell precache fails", asyn
 });
 
 
-test("module registry uses network-first refresh and replaces its cached JSON", async () => {
+test("module registry caches only a bounded, versioned JSON envelope", async () => {
   let fetchCalls = 0;
   const { listeners, writes } = createHarness(async () => {
     fetchCalls += 1;
-    return new Response(JSON.stringify({ version: 2 }), {
+    return new Response(validRegistry, {
       status: 200,
       headers: { "Content-Type": "application/json" }
     });
@@ -164,13 +165,13 @@ test("module registry uses network-first refresh and replaces its cached JSON", 
   });
   assert.equal(fetchCalls, 1);
   assert.equal(response.status, 200);
-  assert.equal(await response.json().then(value => value.version), 2);
+  assert.equal((await response.json()).schema, "mr-siavash-ai-module-registry");
   assert.equal(writes.length, 1);
   assert.equal(writes[0].key, "https://example.test/app/modules.json");
 });
 
-test("module registry serves its last valid cached response when the network is unavailable", async () => {
-  const cached = new Response(JSON.stringify({ version: 1 }), {
+test("module registry serves its last valid bounded cache when the network is unavailable", async () => {
+  const cached = new Response(validRegistry, {
     status: 200,
     headers: { "Content-Type": "application/json" }
   });
@@ -184,25 +185,52 @@ test("module registry serves its last valid cached response when the network is 
   });
   assert.equal(fetchCalls, 1);
   assert.equal(response.status, 200);
-  assert.equal(await response.json().then(value => value.version), 1);
+  assert.equal((await response.json()).version, 1);
 });
 
-test("module registry does not replace a valid cache with an HTML fallback", async () => {
-  const cached = new Response(JSON.stringify({ version: 1 }), {
+test("module registry preserves a valid cache when the network returns an invalid envelope", async () => {
+  const cached = new Response(validRegistry, {
     status: 200,
     headers: { "Content-Type": "application/json" }
   });
-  const { listeners, writes } = createHarness(async () => new Response("<html></html>", {
+  const { listeners, writes } = createHarness(async () => new Response(JSON.stringify({ version: 2 }), {
     status: 200,
-    headers: { "Content-Type": "text/html" }
+    headers: { "Content-Type": "application/json" }
   }), cached);
   const response = await dispatchFetch(listeners, {
     method: "GET", mode: "cors", url: "https://example.test/app/modules.json"
   });
-  assert.equal(await response.json().then(value => value.version), 1);
+  assert.equal((await response.json()).schema, "mr-siavash-ai-module-registry");
   assert.equal(writes.length, 0);
 });
 
+test("module registry does not cache oversized declared responses", async () => {
+  const cached = new Response(validRegistry, {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
+  const { listeners, writes } = createHarness(async () => new Response(validRegistry, {
+    status: 200,
+    headers: { "Content-Type": "application/json", "Content-Length": String(64 * 1024 + 1) }
+  }), cached);
+  const response = await dispatchFetch(listeners, {
+    method: "GET", mode: "cors", url: "https://example.test/app/modules.json"
+  });
+  assert.equal((await response.json()).schema, "mr-siavash-ai-module-registry");
+  assert.equal(writes.length, 0);
+});
+
+test("module registry rejects an invalid cached entry instead of serving it offline", async () => {
+  const cached = new Response(JSON.stringify({ version: 1 }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" }
+  });
+  const { listeners } = createHarness(async () => { throw new Error("offline"); }, cached);
+  const response = await dispatchFetch(listeners, {
+    method: "GET", mode: "cors", url: "https://example.test/app/modules.json"
+  });
+  assert.equal(response.status, 504);
+});
 
 test("service worker enforces origin and path-segment boundaries before cache handling", () => {
   const { listeners } = createHarness();
