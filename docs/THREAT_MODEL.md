@@ -49,6 +49,14 @@
 A feature touching private data, credentials, billing, external tools or consequential agent actions must not be released based on front-end checks alone. It requires server-side enforcement, negative tests, reviewable audit behavior and a documented rollback path.
 
 
+
+## Workspace recovery and overwrite protection
+
+- If stored task data is unreadable, has an invalid container, or requires record repair/discard/capacity trimming, ordinary task mutations are blocked.
+- A validated backup import is the explicit recovery path that may replace the damaged snapshot; a normal add, toggle, delete, or bulk cleanup must not silently persist a partially recovered in-memory view.
+- Export remains available so the user can preserve the normalized view before explicitly restoring it.
+- This is a browser-local data-integrity guard, not a guarantee against browser profile loss, storage eviction, or device failure.
+
 ## Cross-tab local-storage boundary
 
 - Storage events are treated as untrusted input and validated before state replacement.

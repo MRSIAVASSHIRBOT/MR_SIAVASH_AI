@@ -18,6 +18,7 @@
   let toastTimer = null;
   let installPrompt = null;
   let storageAvailable = true;
+  let workspaceRecoveryBlocked = false;
   let tasks = [];
   let favorites = new Set();
 
@@ -181,6 +182,10 @@
   function updateStorageNote() {
     const note = $("#storageNote");
     if (!note) return;
+    if (workspaceRecoveryBlocked) {
+      note.textContent = "داده‌های ذخیره‌شده نیاز به بررسی دارند؛ برای جلوگیری از بازنویسی ناخواسته، تغییرات کارها موقتاً قفل شده‌اند. ابتدا خروجی پشتیبان بگیر یا یک فایل پشتیبان معتبر بازیابی کن.";
+      return;
+    }
     note.textContent = storageAvailable
       ? "کارها و نشان‌ها فقط در حافظه همین مرورگر ذخیره می‌شوند. برای انتقال، خروجی پشتیبان بگیر."
       : "ذخیره‌سازی محلی در دسترس نیست؛ تغییرات تا زمان بسته‌شدن صفحه ممکن است موقت بمانند.";
@@ -508,6 +513,11 @@
     const rawTasks = parsed === null ? [] : parsed.tasks;
     const normalizedTasks = normalizeLoadedTasks(rawTasks);
     tasks = normalizedTasks.tasks;
+    workspaceRecoveryBlocked = storageReadError ||
+      normalizedTasks.invalidContainer === true ||
+      normalizedTasks.repairedIds > 0 ||
+      normalizedTasks.discardedTasks > 0 ||
+      normalizedTasks.excessTasks > 0;
     try {
       const rawFavorites = localStorage.getItem(FAVORITES_KEY);
       const parsedFavorites = rawFavorites ? JSON.parse(rawFavorites) : [];
@@ -531,8 +541,13 @@
     }
   }
 
-  function saveWorkspace(nextTasks = tasks) {
+  function saveWorkspace(nextTasks = tasks, options = {}) {
+    if (workspaceRecoveryBlocked && options.recover !== true) {
+      showToast("برای محافظت از داده‌های قبلی، ابتدا خروجی پشتیبان بگیر یا یک فایل پشتیبان معتبر بازیابی کن.");
+      return false;
+    }
     const saved = persist(STORAGE_KEY, { version: 2, updatedAt: new Date().toISOString(), tasks: nextTasks });
+    if (saved && options.recover === true) workspaceRecoveryBlocked = false;
     updateStorageNote();
     return saved;
   }
@@ -693,7 +708,7 @@
         normalizeFavoriteIds(data.favorites, modules, modules.length === 0).forEach(id => nextFavorites.add(id));
         if (!persist(FAVORITES_KEY, Array.from(nextFavorites))) return;
       }
-      if (!saveWorkspace(nextTasks)) {
+      if (!saveWorkspace(nextTasks, { recover: true })) {
         if (importsFavorites) persist(FAVORITES_KEY, Array.from(favorites));
         return;
       }

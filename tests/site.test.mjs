@@ -189,6 +189,37 @@ test("local workspace recovery reports repairs and never silently truncates task
   assert.doesNotMatch(app, /task\.text\.trim\(\)\.replace\(\/\\s\+\/g, " "\)\.slice\(0, 120\)/);
 });
 
+test("workspace recovery blocks implicit overwrite until a validated backup is imported", () => {
+  assert.ok(app.includes("let workspaceRecoveryBlocked = false"));
+  assert.ok(app.includes("workspaceRecoveryBlocked = storageReadError ||"));
+  assert.ok(app.includes("normalizedTasks.excessTasks > 0;"));
+  assert.ok(app.includes("if (workspaceRecoveryBlocked && options.recover !== true)"));
+  assert.ok(app.includes("saveWorkspace(nextTasks, { recover: true })"));
+  assert.ok(app.includes("برای محافظت از داده‌های قبلی"));
+});
+
+test("workspace save guard rejects implicit writes and permits explicit validated recovery", () => {
+  const start = app.indexOf("  function saveWorkspace(");
+  const end = app.indexOf("\n  function renderTasks()", start);
+  assert.ok(start >= 0 && end > start, "workspace save function boundaries must exist");
+  const writes = [];
+  const context = {
+    workspaceRecoveryBlocked: true,
+    STORAGE_KEY: "workspace-test-key",
+    tasks: [],
+    persist(key, value) { writes.push({ key, value }); return true; },
+    showToast() {},
+    updateStorageNote() {}
+  };
+  const saveWorkspace = vm.runInNewContext("(" + app.slice(start, end).trim() + ")", context);
+  assert.equal(saveWorkspace([{ id: "task-1", text: "ordinary write", done: false }]), false);
+  assert.equal(writes.length, 0, "ordinary writes must not replace a recovered partial snapshot");
+  assert.equal(saveWorkspace([], { recover: true }), true);
+  assert.equal(writes.length, 1);
+  assert.equal(context.workspaceRecoveryBlocked, false);
+  assert.equal(writes[0].key, "workspace-test-key");
+});
+
 test("workspace loading repairs missing and duplicate task IDs", () => {
   assert.ok(app.includes("const seenTaskIds = new Set()"));
   assert.ok(app.includes("seenTaskIds.has(id)"));
@@ -239,7 +270,7 @@ test("workspace import reports accepted and skipped tasks at capacity", () => {
 
 
 test("workspace mutations persist before committing in-memory task state", () => {
-  assert.match(app, /function saveWorkspace\(nextTasks = tasks\)/);
+  assert.match(app, /function saveWorkspace\(nextTasks = tasks, options = \{\}\)/);
   assert.match(app, /if \(!saveWorkspace\(nextTasks\)\) return false;[\s\S]{0,100}tasks = nextTasks/);
   assert.match(app, /if \(saveWorkspace\(nextTasks\)\) tasks = nextTasks/);
   assert.match(app, /if \(saveWorkspace\(nextTasks\)\) \{[\s\S]{0,100}tasks = nextTasks/);
@@ -248,7 +279,7 @@ test("workspace mutations persist before committing in-memory task state", () =>
 test("workspace import commits task and favorite state only after persistence succeeds", () => {
   assert.match(app, /const nextTasks = \[\.\.\.accepted, \.\.\.tasks\]/);
   assert.match(app, /const nextFavorites = new Set\(favorites\)/);
-  assert.match(app, /if \(!saveWorkspace\(nextTasks\)\) \{[\s\S]*?persist\(FAVORITES_KEY, Array\.from\(favorites\)\);[\s\S]*?return;/);
+  assert.match(app, /if \(!saveWorkspace\(nextTasks, \{ recover: true \}\)\) \{[\s\S]*?persist\(FAVORITES_KEY, Array\.from\(favorites\)\);[\s\S]*?return;/);
   assert.match(app, /tasks = nextTasks;\s*favorites = nextFavorites;/);
 });
 
