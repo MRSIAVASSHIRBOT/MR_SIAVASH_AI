@@ -124,3 +124,10 @@ The service worker may cache `modules.json` only when the response is successful
 ### Gateway CORS preflight boundary
 
 The health-only Worker accepts a browser preflight only for an exact configured origin, a method the Worker actually implements (`GET`), and explicitly approved request headers (`Content-Type` and `X-Request-ID`). Missing or untrusted origins, unsupported methods, and unapproved or malformed requested headers are rejected with `403` and do not receive an allow-origin grant. CORS is not an authentication or authorization control; every future protected route must independently validate identity and permissions.
+
+
+### D1 workspace persistence boundary
+
+The initial local-first migration creates `workspace_tasks` with an internal `owner_id`, bounded task text, boolean completion state, UTC timestamp fields, and a version counter. The owner identifier is an internal UUID resolved by the trusted authentication adapter from a verified identity; it is never accepted from request JSON, query parameters, or unverified token claims. Every task read, update, and delete must include the authenticated owner in its SQL predicate. The owner/update index supports bounded tenant-scoped listing.
+
+`workspace_idempotency` scopes each idempotency key to an owner and stores a bounded JSON response, request hash, and expiry. The application must reject key reuse with a different request hash, replay the original response for a matching unexpired key, and periodically delete expired records. The in-memory SQLite migration test validates schema constraints and representative owner-scoped query/index behavior; it does not prove that future repository methods enforce isolation. Cross-account API integration tests remain a release blocker. No migration is applied to production by this change.
