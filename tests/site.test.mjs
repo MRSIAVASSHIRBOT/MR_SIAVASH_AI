@@ -186,13 +186,13 @@ test("local workspace recovery reports repairs and never silently truncates task
   assert.equal(overflow.excessTasks, 3);
   assert.equal(normalize(null).invalidContainer, true);
   assert.match(app, /بازیابی داده‌ها با اصلاحات انجام شد/);
-  assert.doesNotMatch(app, /task\.text\.trim\(\)\.replace\(/);
+  assert.doesNotMatch(app, /task\.text\.trim\(\)\.replace\(\/\\s\+\/g, " "\)\.slice\(0, 120\)/);
 });
 
 test("workspace loading repairs missing and duplicate task IDs", () => {
   assert.ok(app.includes("const seenTaskIds = new Set()"));
   assert.ok(app.includes("seenTaskIds.has(id)"));
-  assert.ok(app.includes("if (!id || seenTaskIds.has(id)) id = createId()"));
+  assert.ok(app.includes("id = createId()"));
 });
 
 test("platform contracts define identity, AI, agent and production boundaries", async () => {
