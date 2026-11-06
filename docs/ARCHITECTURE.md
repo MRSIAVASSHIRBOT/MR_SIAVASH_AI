@@ -27,7 +27,7 @@ The current repository is a static, browser-executed front end. It must not clai
 
 ## Future backend boundary
 
-The selected first backend target is a dedicated Cloudflare Worker maintained under `cloudflare/gateway/`. The current GitHub Pages frontend remains in place. The health-only Worker is deployed at `https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev` with a dedicated production D1 binding; it exposes liveness and D1-backed readiness checks only. Authentication, user APIs, and cloud sync are not implemented. Its control-plane configuration has been read back, but an independent HTTP runtime smoke test remains outstanding. See [ADR 0001](decisions/0001-cloudflare-backend-boundary.md) and the gateway README. GShop resources are isolated and must not be reused.
+The selected first backend target is a dedicated Cloudflare Worker maintained under `cloudflare/gateway/`. The current GitHub Pages frontend remains in place. The health-only Worker is deployed at `https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev` with a dedicated production D1 binding; it exposes liveness and D1-backed readiness checks only. Authentication, user APIs, and cloud sync are not implemented. Its control-plane configuration has been read back, but an independent HTTP runtime smoke test remains outstanding. A provider-neutral D1 schema migration now defines internal users, external issuer/subject mappings, workspace tasks, and per-user idempotency records; CI validates it against local SQLite only. No production migration has been applied. See [ADR 0001](decisions/0001-cloudflare-backend-boundary.md) and the gateway README. GShop resources are isolated and must not be reused.
 
 
 Before production integrations, establish:
@@ -47,6 +47,10 @@ The workspace backup format is JSON with schema identifier mr-siavash-ai-workspa
 
 GitHub Actions runs JavaScript syntax checks, OpenAPI contract validation and repository tests before publishing the static root to GitHub Pages. Third-party Actions are pinned to full commit SHAs and Dependabot monitors those pins weekly. The repository owner must enable GitHub Pages with the GitHub Actions source in repository settings.
 
+
+## Identity and persistence foundation
+
+The first D1 migration is provider-neutral: an internal user ID is linked to a verified external identity by the exact issuer and subject pair. It intentionally does not choose an identity provider or create sessions. Workspace tasks and idempotency records carry an internal user foreign key; runtime authorization must still derive that user from a verified server-side principal and scope every query. Migration tests use an in-memory SQLite database and never contact production D1.
 
 ## API contract boundary
 
