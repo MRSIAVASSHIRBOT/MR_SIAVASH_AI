@@ -202,3 +202,57 @@ test("module registry does not replace a valid cache with an HTML fallback", asy
   assert.equal(await response.json().then(value => value.version), 1);
   assert.equal(writes.length, 0);
 });
+
+
+test("service worker enforces origin and path-segment boundaries before cache handling", () => {
+  const { listeners } = createHarness();
+  assert.equal(dispatchFetch(listeners, {
+    method: "GET", mode: "cors", url: "https://evil.example/app/styles.css"
+  }), null);
+  assert.equal(dispatchFetch(listeners, {
+    method: "GET", mode: "cors", url: "https://example.test/application/styles.css"
+  }), null);
+  assert.equal(dispatchFetch(listeners, {
+    method: "GET", mode: "cors", url: "https://example.test/app-extra/styles.css"
+  }), null);
+});
+
+test("offline app navigation restores the cached document without caching an error", async () => {
+  const cached = new Response("<html>cached app</html>", {
+    status: 200,
+    headers: { "Content-Type": "text/html; charset=utf-8" }
+  });
+  const { listeners, writes } = createHarness(async () => {
+    throw new Error("offline");
+  }, cached);
+  const response = await dispatchFetch(listeners, {
+    method: "GET", mode: "navigate", url: "https://example.test/app/"
+  });
+  assert.equal(response.status, 200);
+  assert.match(await response.text(), /cached app/);
+  assert.equal(writes.length, 0);
+});
+
+test("offline app navigation returns a bounded 503 when no cached document exists", async () => {
+  const { listeners } = createHarness(async () => {
+    throw new Error("offline");
+  });
+  const response = await dispatchFetch(listeners, {
+    method: "GET", mode: "navigate", url: "https://example.test/app/"
+  });
+  assert.equal(response.status, 503);
+  assert.match(response.headers.get("content-type"), /^text\/plain; charset=utf-8$/);
+  assert.match(await response.text(), /نسخه آفلاین صفحه در دسترس نیست/);
+});
+
+test("navigation does not cache unsuccessful HTTP responses", async () => {
+  const { listeners, writes } = createHarness(async () => new Response("temporary failure", {
+    status: 503,
+    headers: { "Content-Type": "text/html; charset=utf-8" }
+  }));
+  const response = await dispatchFetch(listeners, {
+    method: "GET", mode: "navigate", url: "https://example.test/app/"
+  });
+  assert.equal(response.status, 503);
+  assert.equal(writes.length, 0);
+});
