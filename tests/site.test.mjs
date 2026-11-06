@@ -619,6 +619,50 @@ test("workspace listens for same-origin storage changes and refreshes affected v
   assert.match(app, /دادهٔ نشان‌شده‌ها در تب دیگر نامعتبر بود؛ وضعیت فعلی حفظ شد/);
 });
 
+test("cross-tab synchronization remains active when workspace recovery is not blocked", () => {
+  const start = app.indexOf("  function handleStorageChange(event) {");
+  const end = app.indexOf("\n  function normalizeLoadedTasks(rawTasks)", start);
+  assert.ok(start >= 0 && end > start, "storage event handler boundaries must exist");
+  const nextTasks = [{ id: "remote-task", text: "Updated in another tab", done: true }];
+  let taskRenders = 0;
+  let favoriteRenders = 0;
+  const context = {
+    workspaceRecoveryBlocked: false,
+    STORAGE_KEY: "workspace-test-key",
+    FAVORITES_KEY: "favorites-test-key",
+    localStorage: {},
+    tasks: [{ id: "old-task", text: "Old", done: false }],
+    favorites: new Set(["old-favorite"]),
+    selectedModule: null,
+    showToast() {},
+    renderTasks() { taskRenders += 1; },
+    renderFeatured() { favoriteRenders += 1; },
+    renderCatalog() { favoriteRenders += 1; },
+    updateStorageNote() {},
+    openModule() {},
+    parseStoredTasks() { return nextTasks; },
+    parseStoredFavorites() { return []; }
+  };
+  const handleStorageChange = vm.runInNewContext("(" + app.slice(start, end).trim() + ")", context);
+  handleStorageChange({ storageArea: context.localStorage, key: "workspace-test-key", newValue: "{}" });
+  assert.equal(context.tasks, nextTasks);
+  assert.equal(taskRenders, 1);
+  handleStorageChange({ storageArea: context.localStorage, key: null, newValue: null });
+  assert.equal(context.tasks.length, 0);
+  assert.equal(Array.from(context.favorites).length, 0);
+  assert.equal(taskRenders, 2);
+  assert.equal(favoriteRenders, 2);
+});
+
+test("architecture and platform contracts describe browser-local cross-tab recovery semantics", async () => {
+  const architecture = await readFile(new URL("../docs/ARCHITECTURE.md", import.meta.url), "utf8");
+  const contracts = await readFile(new URL("../docs/PLATFORM_CONTRACTS.md", import.meta.url), "utf8");
+  assert.match(architecture, /synchronize across same-origin tabs/);
+  assert.match(architecture, /incoming task writes and storage-clear events are ignored/);
+  assert.match(contracts, /storage-clear event resets both local views/);
+  assert.match(contracts, /incoming task writes and storage-clear events are ignored/);
+});
+
 test("cross-tab favorites snapshots reject malformed or oversized values", () => {
   const start = app.indexOf("  function parseStoredFavorites(raw) {");
   const end = app.indexOf("\n  function handleStorageChange(event)", start);
