@@ -648,8 +648,8 @@ test("cross-tab synchronization remains active when workspace recovery is not bl
   assert.equal(context.tasks, nextTasks);
   assert.equal(taskRenders, 1);
   handleStorageChange({ storageArea: context.localStorage, key: null, newValue: null });
-  assert.deepEqual(context.tasks, []);
-  assert.deepEqual(Array.from(context.favorites), []);
+  assert.equal(context.tasks.length, 0);
+  assert.equal(Array.from(context.favorites).length, 0);
   assert.equal(taskRenders, 2);
   assert.equal(favoriteRenders, 2);
 });
