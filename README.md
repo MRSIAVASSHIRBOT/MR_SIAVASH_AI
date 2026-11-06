@@ -37,6 +37,8 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 - tests/service-worker.test.mjs — runtime regression tests for static-cache isolation and navigation boundaries
 - .github/workflows/deploy.yml — quality checks and GitHub Pages deployment
 - docs/ARCHITECTURE.md — current boundaries and future integration plan
+- cloudflare/gateway/ — isolated Worker API foundation; not yet deployed
+- docs/decisions/0001-cloudflare-backend-boundary.md — Cloudflare backend decision record
 - SECURITY.md — security reporting and client-side security boundaries
 
 ## Run locally
