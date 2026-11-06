@@ -137,6 +137,11 @@ class D1MigrationTests(unittest.TestCase):
                 "INSERT INTO idempotency_records VALUES (?, ?, ?, ?, ?, ?)",
                 ("user-a", "c" * 64, "d" * 64, "{}", 100, 100),
             )
+        with self.assertRaises(sqlite3.IntegrityError):
+            self.db.execute(
+                "INSERT INTO idempotency_records VALUES (?, ?, ?, ?, ?, ?)",
+                ("user-a", "e" * 64, "f" * 64, "not-json", 1_800_000_000_000, 1_800_000_060_000),
+            )
 
     def test_task_owner_pagination_index_is_composite(self):
         columns = [
