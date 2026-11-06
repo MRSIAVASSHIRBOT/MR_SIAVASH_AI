@@ -58,3 +58,8 @@ Before implementation, use docs/THREAT_MODEL.md and enforce user ownership in se
 ## Shared integration contracts
 
 See docs/PLATFORM_CONTRACTS.md for module manifests, identity and authorization boundaries, AI provider adapters, constrained agent execution, observability, and production release gates. These are design requirements until implemented and tested end to end.
+
+
+## D1 principal and workspace persistence
+
+The versioned D1 migrations establish tenant-scoped workspace tasks and idempotency records, then add opaque internal users and unique external identity mappings. Migration 0002 backfills existing owner UUIDs and rebuilds task/idempotency tables with foreign keys and deletion cascades. The migration validator exercises both migrations in order against in-memory SQLite, including data preservation. This is schema groundwork only: the Worker still has no authentication/session middleware, account APIs, or cloud workspace endpoints, and no production migration has been applied.

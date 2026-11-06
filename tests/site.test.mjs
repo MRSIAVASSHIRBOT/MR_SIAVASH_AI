@@ -120,6 +120,24 @@ test("proposed backend contract is explicitly design-only and versioned", async 
   assert.match(backendGuide, /does not contain a running backend/);
 });
 
+test("D1 migrations persist verified identity mappings and enforce owner foreign keys", async () => {
+  const first = await readFile(new URL("../cloudflare/gateway/migrations/0001_workspace_tasks.sql", import.meta.url), "utf8");
+  const second = await readFile(new URL("../cloudflare/gateway/migrations/0002_principal_identity_foreign_keys.sql", import.meta.url), "utf8");
+  const validator = await readFile(new URL("../scripts/test-d1-migrations.py", import.meta.url), "utf8");
+  const decision = await readFile(new URL("../docs/decisions/0003-internal-principal-identity-mapping.md", import.meta.url), "utf8");
+  assert.match(first, /CREATE TABLE workspace_tasks/);
+  assert.match(second, /CREATE TABLE users/);
+  assert.match(second, /CREATE TABLE auth_identities/);
+  assert.ok(second.includes("UNIQUE (issuer, subject)"));
+  assert.ok(second.includes("REFERENCES users(id) ON DELETE CASCADE"));
+  assert.match(second, /INSERT INTO users/);
+  assert.match(second, /ALTER TABLE workspace_tasks_v2 RENAME TO workspace_tasks/);
+  assert.match(validator, /PRAGMA foreign_key_check/);
+  assert.match(validator, /backfilled correctly/);
+  assert.match(decision, /authentication provider remains undecided/);
+  assert.match(decision, /does not authenticate requests/);
+});
+
 test("security and roadmap docs define production gates", async () => {
   const threat = await readFile(new URL("../docs/THREAT_MODEL.md", import.meta.url), "utf8");
   const roadmap = await readFile(new URL("../docs/ROADMAP.md", import.meta.url), "utf8");
