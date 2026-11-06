@@ -51,6 +51,12 @@ The UI must render status from trusted application configuration, not infer prod
 - Define retention, export, deletion, and backup-restore semantics before collecting user data.
 - Treat browser localStorage as device-local convenience storage, never as a secure vault.
 
+### Identity and persistence schema boundary
+
+The initial D1 migration is provider-neutral. `users.id` is an opaque internal principal; `auth_identities` maps a verified `(issuer, subject)` pair uniquely to that principal. It stores no email address, raw access token, session secret, or provider credential. `workspace_tasks` and `idempotency_records` are owner-scoped through foreign keys, with a composite owner/time/ID index for task pagination. Idempotency keys are stored only as application-computed digests and are unique per user. Timestamps are Unix epoch milliseconds. User deletion cascades to identity mappings, tasks, and idempotency records.
+
+These constraints provide referential integrity, not authorization. Every protected request must authenticate independently and every repository query must include the verified principal's internal user ID. CI validates the migration in an in-memory SQLite database; this does not apply schema to Cloudflare D1 or prove runtime isolation. A preview database and verified auth provider are still required before protected endpoints can be implemented.
+
 ## 5. AI provider adapter
 
 A provider adapter should expose a normalized interface with:
