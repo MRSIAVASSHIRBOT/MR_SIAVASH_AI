@@ -76,3 +76,11 @@ A feature touching private data, credentials, billing, external tools or consequ
 - The quality job runs with read-only repository permissions; pull-request events never receive Pages deployment permissions.
 - The deploy job runs only after quality succeeds and only when the ref is refs/heads/main for non-pull-request events, including manual dispatch.
 - Pages write and OIDC token permissions are scoped to the deploy job; both jobs have bounded execution time.
+
+
+## D1 tenant persistence design boundary
+
+- Workspace task rows carry an internal owner UUID. The trusted auth adapter must resolve that value from a verified identity-provider issuer/subject pair; client-supplied owner IDs are never authorization inputs.
+- Every repository read, update, and delete must predicate on the authenticated owner ID. A tenant-leading index improves the expected listing path but is not an authorization control by itself.
+- Idempotency keys are unique per owner, not globally. Request hashes prevent a key from being replayed with a different payload; stored responses are size-bounded and carry expiry timestamps for cleanup.
+- Migration tests run against an isolated in-memory SQLite database. They do not access or mutate Cloudflare D1. Production migration remains blocked until preview isolation, backups, rollback and cross-account integration tests are in place.
