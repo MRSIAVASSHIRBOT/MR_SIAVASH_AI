@@ -1,6 +1,6 @@
 # Backend foundation — implementation gate
 
-This directory contains design artifacts only. It does not contain a running backend and does not turn the static GitHub Pages site into an account service.
+This directory contains API design artifacts and validation tooling; it is not a user-facing backend implementation and does not turn the static GitHub Pages site into an account service. A separate health-only Cloudflare Worker resource has been uploaded, but its HTTP runtime has not yet been independently verified.
 
 ## Contract
 - openapi.yaml defines the proposed v1 boundary for health, public module metadata and authenticated per-user workspace tasks.
