@@ -24,12 +24,16 @@ const dependabotText = await readFile(new URL("../.github/dependabot.yml", impor
 test("Cloudflare gateway runtime smoke checks live health and exact-origin CORS", () => {
   assert.match(gatewaySmokeWorkflowText, /workflow_dispatch/);
   assert.match(gatewaySmokeWorkflowText, /GATEWAY_BASE_URL: https:\/\/mr-siavash-ai-gateway\.mrsiavashirbot\.workers\.dev/);
+  assert.match(gatewaySmokeWorkflowText, /ALLOWED_ORIGIN: https:\/\/mrsiavasshirbot\.github\.io/);
   assert.match(gatewaySmokeWorkflowText, /\/v1\/health\/live/);
   assert.match(gatewaySmokeWorkflowText, /\/v1\/health\/ready/);
   assert.match(gatewaySmokeWorkflowText, /dependencies\?\.database!==\"ready\"/);
   assert.match(gatewaySmokeWorkflowText, /Access-Control-Request-Method: GET/);
   assert.match(gatewaySmokeWorkflowText, /https:\/\/untrusted\.invalid/);
-  assert.match(gatewaySmokeWorkflowText, /test \"\$status\" = \"403\"/);
+  assert.match(gatewaySmokeWorkflowText, /case "\$status" in/);
+  assert.match(gatewaySmokeWorkflowText, /204\|403/);
+  assert.match(gatewaySmokeWorkflowText, /--dump-header "\$headers_file"/);
+  assert.match(gatewaySmokeWorkflowText, /access-control-allow-origin:/);
   assert.doesNotMatch(gatewaySmokeWorkflowText, /(?:CF_API_TOKEN|CLOUDFLARE_API_TOKEN|Authorization: Bearer)/i);
 });
 
@@ -155,8 +159,8 @@ test("proposed backend contract is explicitly design-only and versioned", async 
   assert.match(api, /Idempotency-Key/);
   assert.match(api, /additionalProperties: false/);
   assert.match(backendGuide, /not a user-facing backend implementation/);
-  assert.match(backendGuide, /health-only Cloudflare Worker resource has been uploaded/);
-  assert.match(backendGuide, /HTTP runtime has not yet been independently verified/);
+  assert.match(backendGuide, /deployed health-only Cloudflare Worker has passed independent liveness and D1-readiness HTTP checks/);
+  assert.match(backendGuide, /independent liveness and D1-readiness HTTP checks/);
 });
 
 test("D1 migrations persist verified identity mappings and enforce owner foreign keys", async () => {
@@ -185,7 +189,7 @@ test("security and roadmap docs define production gates", async () => {
   assert.match(threat, /secrets and tool permissions remain server-side/i);
   assert.match(roadmap, /parallel workstreams/);
   assert.match(roadmap, /No user-facing product API, authentication, or cloud workspace endpoint is live/);
-  assert.match(roadmap, /independent HTTP runtime verification is still outstanding/);
+  assert.match(roadmap, /Aligning the production Worker source remains pending/);
 });
 
 test("workspace task controls are wired to accessible UI elements", () => {
