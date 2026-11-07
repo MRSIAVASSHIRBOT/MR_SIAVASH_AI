@@ -61,7 +61,7 @@
       </div>
       <section class="view is-active" id="view-home" aria-labelledby="hero-title">
         <div class="hero-grid">
-          <div class="hero-copy">
+          <div class="hero-copy" data-reveal="up">
             <div class="eyebrow"><span class="eyebrow-line"></span> فراتر از یک ابزار؛ یک اکوسیستم</div>
             <h1 id="hero-title">هوشمندتر بساز.<br><span>مستقل‌تر</span> پیش برو.</h1>
             <p class="hero-description">یک فضای یکپارچه برای کار با هوش مصنوعی، توسعه نرم‌افزار، یادگیری امنیت دفاعی و خلق ایده‌ها؛ با ماژول‌هایی مستقل که در صورت نیاز با یکدیگر همکاری می‌کنند.</p>
@@ -72,7 +72,7 @@
             <div class="hero-footnote"><span class="tiny-check">✓</span> ماژولار از ابتدا <span class="footnote-separator">/</span> فارسی و راست‌چین <span class="footnote-separator">/</span> توسعه‌پذیر</div>
           </div>
 
-          <div class="hero-visual" role="group" aria-label="نمای مفهومی معماری اکوسیستم" data-motion-paused="false">
+          <div class="hero-visual" data-reveal="up" role="group" aria-label="نمای مفهومی معماری اکوسیستم" data-motion-paused="false">
             <div class="visual-topline"><span>ECOSYSTEM MAP</span><span class="visual-index">01 — 09</span></div>
             <button class="motion-toggle" id="motionToggle" type="button" aria-label="توقف حرکت‌های تزئینی" aria-pressed="false">توقف حرکت</button>
             <div class="orbit orbit-outer" aria-hidden="true"></div>
@@ -86,22 +86,22 @@
           </div>
         </div>
 
-        <div class="metrics-row">
+        <div class="metrics-row" data-reveal="up">
           <div class="metric"><strong>۰۹</strong><span>ماژول مستقل در نقشه راه</span></div>
           <div class="metric-divider"></div>
           <div class="metric"><strong>۰۱</strong><span>هسته مرکزی محصول</span></div>
           <div class="metric-divider"></div>
-          <div class="metric"><strong>۰</strong><span>سرویس ابری متصل در این نسخه</span></div>
+          <div class="metric"><strong>۰</strong><span>سرویس محصولی ابری متصل در این نسخه</span></div>
           <div class="metrics-note">شفافیت وضعیت، بخشی از طراحی محصول است.</div>
         </div>
 
-        <div class="section-heading">
+        <div class="section-heading" data-reveal="up">
           <div><div class="eyebrow"><span class="eyebrow-line"></span> THE BUILDING BLOCKS</div><h2>بخش‌های اصلی اکوسیستم</h2></div>
           <button class="text-link" type="button" data-view="modules">مشاهده همه ماژول‌ها <span>←</span></button>
         </div>
-        <div class="module-grid featured-grid" id="featuredGrid"></div>
+        <div class="module-grid featured-grid" id="featuredGrid" data-reveal="up"></div>
 
-        <section class="principles-band">
+        <section class="principles-band" data-reveal="up">
           <div class="principles-intro"><span class="principle-mark">✳</span><div><div class="eyebrow">OUR PRINCIPLE</div><h2>یکپارچگی بدون وابستگی اجباری</h2></div></div>
           <p>هر ماژول باید به‌تنهایی ارزشمند باشد؛ اتصال به سایر بخش‌ها باید یک قابلیت اضافه باشد، نه شرط استفاده.</p>
           <button class="button button-outline" type="button" data-view="about">اصول معماری <span>←</span></button>
@@ -109,11 +109,11 @@
       </section>
 
       <section class="view" id="view-modules" aria-labelledby="modules-title" hidden>
-        <div class="page-heading">
+        <div class="page-heading" data-reveal="up">
           <div><div class="eyebrow"><span class="eyebrow-line"></span> EXPLORE THE ECOSYSTEM</div><h1 id="modules-title">ماژول‌ها</h1><p>هر بخش برای یک مسئله مشخص طراحی شده؛ مستقل استفاده کن یا در جریان کاری مشترک به هم متصلشان کن.</p></div>
           <div class="page-heading-aside"><span class="aside-number">09</span><span>INDEPENDENT<br>MODULES</span></div>
         </div>
-        <div class="catalog-toolbar">
+        <div class="catalog-toolbar" data-reveal="up">
           <label class="search-box"><span aria-hidden="true">⌕</span><input id="moduleSearch" type="search" placeholder="جست‌وجو میان ماژول‌ها..." autocomplete="off"><kbd>⌘ K</kbd></label>
           <div class="filter-list" id="filterList" aria-label="فیلتر دسته‌بندی">
             <button class="filter-chip is-selected" data-filter="all" type="button">همه</button>
@@ -125,17 +125,17 @@
             <button class="filter-chip" data-filter="saved" type="button">نشان‌شده‌ها <span id="savedCount">۰</span></button>
           </div>
         </div>
-        <div class="module-grid catalog-grid" id="catalogGrid"></div>
+        <div class="module-grid catalog-grid" id="catalogGrid" data-reveal="up"></div>
         <div class="catalog-empty" id="catalogEmpty" hidden><span>⌕</span><strong>ماژولی پیدا نشد</strong><p>عبارت جست‌وجو یا فیلتر انتخاب‌شده را تغییر بده.</p></div>
         <div class="status-legend"><span class="status-dot status-local"></span> فعال در همین مرورگر <span class="status-dot status-roadmap"></span> در نقشه راه محصول</div>
       </section>
 
       <section class="view" id="view-workspace" aria-labelledby="workspace-title" hidden>
-        <div class="page-heading">
+        <div class="page-heading" data-reveal="up">
           <div><div class="eyebrow"><span class="eyebrow-line"></span> YOUR PERSONAL SPACE</div><h1 id="workspace-title">فضای کار</h1><p>یادداشت‌های کوتاه و کارهای بعدی پروژه را در همین مرورگر نگه دار.</p></div>
           <div class="local-badge"><span class="live-dot"></span> ذخیره‌سازی محلی</div>
         </div>
-        <div class="workspace-layout">
+        <div class="workspace-layout" data-reveal="up">
           <section class="workspace-panel task-panel">
             <div class="panel-heading"><div><span class="panel-kicker">TASK MANAGER</span><h2>فهرست کارها</h2></div><span class="panel-counter" id="taskCount">۰ کار باز</span></div>
             <div class="task-tools"><button class="tool-button" id="exportWorkspace" type="button">خروجی پشتیبان <span>↓</span></button><button class="tool-button" id="importWorkspace" type="button">بازیابی فایل <span>↑</span></button><input class="visually-hidden" id="importWorkspaceFile" type="file" accept="application/json,.json"></div>
@@ -174,13 +174,13 @@
           <div><div class="eyebrow"><span class="eyebrow-line"></span> DIGITAL IDENTITY / PUBLIC PROFILE</div><h1 id="identity-title">هویت دیجیتال <span class="identity-accent">سیاوش</span></h1><p>یک نقطه دسترسی منظم به حضور عمومی، حساب‌های اجتماعی و ابزارهای توسعه من در GitHub.</p></div>
           <div class="identity-status"><span class="live-dot"></span><span>پروفایل عمومی</span></div>
         </div>
-        <section class="identity-profile-card" aria-label="معرفی هویت دیجیتال">
+        <section class="identity-profile-card" data-reveal="up" aria-label="معرفی هویت دیجیتال">
           <div class="identity-monogram" aria-hidden="true">M<span>/</span></div>
           <div class="identity-profile-copy"><span class="panel-kicker">PERSONAL DIGITAL PRESENCE</span><h2>MR_SIAVASH_AI</h2><p>Siavash · یادگیری، ساخت نرم‌افزار، هوش مصنوعی و امنیت دفاعی</p><div class="identity-tags"><span>AI &amp; Engineering</span><span>Software Development</span><span>Defensive Security</span></div></div>
           <a class="identity-primary-link" href="https://github.com/MRSIAVASSHIRBOT" target="_blank" rel="noopener noreferrer">پروفایل اصلی GitHub <span aria-hidden="true">↗</span></a>
         </section>
         <section class="identity-directory" aria-labelledby="identity-directory-title">
-          <div class="identity-directory-intro">
+          <div class="identity-directory-intro" data-reveal="up">
             <div><div class="eyebrow"><span class="eyebrow-line"></span> OFFICIAL SOCIAL DIRECTORY</div><h2 id="identity-directory-title">راه‌های ارتباطی و حساب‌های رسمی</h2><p>حساب‌های شخصی و پروژه‌ای در یک نمای یکپارچه؛ هر شناسه مستقیماً به صفحه عمومی همان حساب متصل است.</p></div>
             <div class="identity-directory-count"><strong>06</strong><span>PUBLIC LINKS</span></div>
           </div>
@@ -214,7 +214,7 @@
       </section>
 
       <section class="view" id="view-about" aria-labelledby="about-title" hidden>
-        <div class="page-heading">
+        <div class="page-heading" data-reveal="up">
           <div><div class="eyebrow"><span class="eyebrow-line"></span> PRODUCT ARCHITECTURE</div><h1 id="about-title">چطور به هم متصل می‌شویم؟</h1><p>هسته مرکزی، قراردادهای ارتباطی و ماژول‌های مستقل؛ سه لایه برای رشد کنترل‌شده محصول.</p></div>
           <div class="page-heading-aside"><span class="aside-number">∞</span><span>BUILT TO<br>EVOLVE</span></div>
         </div>
@@ -236,7 +236,7 @@
 
     <footer class="site-footer">
       <a class="footer-brand" href="#home" data-view="home"><span class="brand-mark small-mark">M<i>/</i></span><strong>MR_SIAVASH_AI</strong></a>
-      <span>یک اکوسیستم؛ مسیرهای مستقل. <span class="footer-version">نسخه ۰.۳</span></span>
+      <span>یک اکوسیستم؛ مسیرهای مستقل. <span class="footer-version">نسخه ۰.۴</span></span>
       <a href="https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI" target="_blank" rel="noreferrer">مخزن پروژه <span>↗</span></a>
     </footer>
   </div>
