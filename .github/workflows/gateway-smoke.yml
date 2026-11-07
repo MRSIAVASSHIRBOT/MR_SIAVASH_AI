@@ -22,7 +22,7 @@ jobs:
       - name: Verify liveness and readiness endpoints
         env:
           GATEWAY_BASE_URL: https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev
-          ALLOWED_ORIGIN: https://mr-siavasshirbot.github.io
+          ALLOWED_ORIGIN: https://mrsiavasshirbot.github.io
         shell: bash
         run: |
           set -euo pipefail
@@ -36,7 +36,7 @@ jobs:
       - name: Verify exact-origin CORS preflight
         env:
           GATEWAY_BASE_URL: https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev
-          ALLOWED_ORIGIN: https://mr-siavasshirbot.github.io
+          ALLOWED_ORIGIN: https://mrsiavasshirbot.github.io
         shell: bash
         run: |
           set -euo pipefail
@@ -51,22 +51,26 @@ jobs:
           grep -Fqi "access-control-allow-origin: $ALLOWED_ORIGIN" <<< "$headers"
           grep -Eiq '^access-control-allow-methods:.*GET' <<< "$headers"
 
-      - name: Verify untrusted origins are rejected
+      - name: Verify untrusted origins receive no CORS grant
         env:
           GATEWAY_BASE_URL: https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev
         shell: bash
         run: |
           set -euo pipefail
 
-          response_file="$(mktemp)"
-          trap 'rm -f "$response_file"' EXIT
-          status="$(curl --silent --show-error --max-time 15 --output "$response_file" --write-out '%{http_code}' \
+          headers_file="$(mktemp)"
+          body_file="$(mktemp)"
+          trap 'rm -f "$headers_file" "$body_file"' EXIT
+          status="$(curl --silent --show-error --max-time 15 --dump-header "$headers_file" --output "$body_file" --write-out '%{http_code}' \
             --request OPTIONS "$GATEWAY_BASE_URL/v1/health/live" \
             --header "Origin: https://untrusted.invalid" \
             --header "Access-Control-Request-Method: GET")"
 
-          test "$status" = "403"
-          if grep -Eiq '^access-control-allow-origin:' "$response_file"; then
-            echo "Gateway reflected an untrusted origin." >&2
+          case "$status" in
+            204|403) ;;
+            *) echo "Unexpected untrusted preflight status: $status" >&2; exit 1 ;;
+          esac
+          if grep -Eiq '^access-control-allow-origin:' "$headers_file"; then
+            echo "Gateway granted CORS access to an untrusted origin." >&2
             exit 1
           fi
