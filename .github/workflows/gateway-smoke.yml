@@ -1,0 +1,72 @@
+name: Cloudflare Gateway Runtime Smoke
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gateway-runtime-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Verify deployed gateway health and CORS
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify liveness and readiness endpoints
+        env:
+          GATEWAY_BASE_URL: https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev
+          ALLOWED_ORIGIN: https://mr-siavasshirbot.github.io
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          live="$(curl --fail --silent --show-error --retry 2 --retry-all-errors --retry-delay 2 --max-time 15 "$GATEWAY_BASE_URL/v1/health/live")"
+          node -e 'const body=JSON.parse(process.argv[1]); if(body.status!=="ok" || body.service!=="mr-siavash-ai-gateway" || typeof body.request_id!=="string") process.exit(1);' "$live"
+
+          ready="$(curl --fail --silent --show-error --retry 2 --retry-all-errors --retry-delay 2 --max-time 15 "$GATEWAY_BASE_URL/v1/health/ready")"
+          node -e 'const body=JSON.parse(process.argv[1]); if(body.status!=="ready" || body.dependencies?.database!=="ready" || typeof body.request_id!=="string") process.exit(1);' "$ready"
+
+      - name: Verify exact-origin CORS preflight
+        env:
+          GATEWAY_BASE_URL: https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev
+          ALLOWED_ORIGIN: https://mr-siavasshirbot.github.io
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          headers="$(curl --silent --show-error --retry 2 --retry-all-errors --retry-delay 2 --max-time 15 --dump-header - --output /dev/null \
+            --request OPTIONS "$GATEWAY_BASE_URL/v1/health/live" \
+            --header "Origin: $ALLOWED_ORIGIN" \
+            --header "Access-Control-Request-Method: GET" \
+            --header "Access-Control-Request-Headers: content-type,x-request-id")"
+
+          grep -Eiq '^HTTP/[^ ]+ 204([[:space:]]|$)' <<< "$headers"
+          grep -Fqi "access-control-allow-origin: $ALLOWED_ORIGIN" <<< "$headers"
+          grep -Eiq '^access-control-allow-methods:.*GET' <<< "$headers"
+
+      - name: Verify untrusted origins are rejected
+        env:
+          GATEWAY_BASE_URL: https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          response_file="$(mktemp)"
+          trap 'rm -f "$response_file"' EXIT
+          status="$(curl --silent --show-error --max-time 15 --output "$response_file" --write-out '%{http_code}' \
+            --request OPTIONS "$GATEWAY_BASE_URL/v1/health/live" \
+            --header "Origin: https://untrusted.invalid" \
+            --header "Access-Control-Request-Method: GET")"
+
+          test "$status" = "403"
+          if grep -Eiq '^access-control-allow-origin:' "$response_file"; then
+            echo "Gateway reflected an untrusted origin." >&2
+            exit 1
+          fi
