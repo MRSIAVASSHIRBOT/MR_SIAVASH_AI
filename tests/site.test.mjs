@@ -159,7 +159,7 @@ test("proposed backend contract is explicitly design-only and versioned", async 
   assert.match(api, /Idempotency-Key/);
   assert.match(api, /additionalProperties: false/);
   assert.match(backendGuide, /not a user-facing backend implementation/);
-  assert.match(backendGuide, /deployed health-only Cloudflare Worker has passed independent liveness and D1-readiness HTTP checks/);
+  assert.match(backendGuide, /deployed health-only Cloudflare Worker has passed independent liveness, D1-readiness, and CORS runtime smoke checks/);
   assert.match(backendGuide, /independent liveness, D1-readiness, and CORS runtime smoke checks/);
 });
 
