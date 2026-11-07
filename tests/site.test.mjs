@@ -124,7 +124,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v14"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v15"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /request\.mode === "navigate"/);
@@ -188,7 +188,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v14"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v15"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -361,7 +361,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v14"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v15"/);
 });
 
 
@@ -870,4 +870,27 @@ test("decorative 3D illustration layers are hidden from assistive technology", (
   assert.match(html, /class="orbit orbit-outer" aria-hidden="true"/);
   assert.match(html, /class="orbit orbit-inner" aria-hidden="true"/);
   assert.match(html, /class="orbit-core" aria-hidden="true"/);
+});
+
+
+test("scroll reveal is progressive enhancement and respects reduced motion", () => {
+  assert.match(html, /data-reveal="up"/);
+  assert.match(app, /function initScrollReveal\(\)/);
+  assert.match(app, /typeof window\.IntersectionObserver !== "function"/);
+  assert.match(app, /window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  assert.match(app, /entry\.target\.classList\.add\("is-revealed"\)/);
+  assert.match(app, /document\.documentElement\.classList\.add\("reveal-ready"\)/);
+  assert.match(app, /initScrollReveal\(\)/);
+  assert.match(css, /html\.reveal-ready \[data-reveal="up"\]/);
+  assert.match(css, /html\.reveal-ready \[data-reveal="up"\]\.is-revealed/);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(css, /opacity:1;\s*transform:none;\s*transition:none;/);
+});
+
+test("hero animation pauses while the browser document is hidden", () => {
+  assert.match(app, /function syncVisibility\(\)/);
+  assert.match(app, /document\.visibilityState === "hidden"/);
+  assert.match(app, /document\.addEventListener\("visibilitychange", syncVisibility\)/);
+  assert.match(css, /hero-visual\[data-page-hidden="true"\]/);
+  assert.match(css, /animation-play-state:paused/);
 });
