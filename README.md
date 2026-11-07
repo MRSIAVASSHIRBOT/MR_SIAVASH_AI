@@ -24,7 +24,7 @@ The repository provides a static web application with:
 
 ### What is not connected yet
 
-AI model providers, remote agent execution, user accounts, private profiles, cloud synchronization, product APIs, billing, and server-side user-data storage are not implemented. A separate Cloudflare Worker has only the liveness/readiness endpoints uploaded; its live HTTP behavior has not yet been independently verified. Local favorites and tasks remain in the current browser. Do not enter secrets, passwords, private keys, or sensitive personal data into this static site.
+AI model providers, remote agent execution, user accounts, private profiles, cloud synchronization, product APIs, billing, and server-side user-data storage are not implemented. A separate Cloudflare Worker exposes only health endpoints; independent live HTTP smoke checks passed on 2026-11-07 for liveness, D1 readiness, allowlisted-origin CORS, and denial of CORS grants to untrusted origins. This does not establish deployed-source parity or product API readiness. Local favorites and tasks remain in the current browser. Do not enter secrets, passwords, private keys, or sensitive personal data into this static site.
 
 ## Repository structure
 
@@ -41,7 +41,7 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 - tests/service-worker.test.mjs — runtime regression tests for static-cache isolation and navigation boundaries
 - .github/workflows/deploy.yml — quality checks and GitHub Pages deployment
 - docs/ARCHITECTURE.md — current boundaries and future integration plan
-- cloudflare/gateway/ — dedicated health-only Cloudflare Worker uploaded; independent HTTP runtime verification is still pending
+- cloudflare/gateway/ — dedicated health-only Cloudflare Worker source, D1 migrations, and independent runtime smoke workflow
 - docs/decisions/0001-cloudflare-backend-boundary.md — Cloudflare backend decision record
 - SECURITY.md — security reporting and client-side security boundaries
 
@@ -65,7 +65,7 @@ Run repository checks:
 2. Under Build and deployment, set Source to GitHub Actions.
 3. Push to main, or run the workflow manually from Actions.
 
-The workflow runs syntax and structure tests before uploading the static site. The first deployment still requires GitHub Pages to be enabled for this repository.
+The workflow runs syntax, API-contract, repository, and migration tests before uploading the static site. GitHub Pages is configured for Actions; the latest main deployment succeeded on 2026-11-07 (workflow run 42325701118).
 
 ## Engineering principles
 
