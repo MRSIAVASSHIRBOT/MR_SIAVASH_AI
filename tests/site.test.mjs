@@ -892,7 +892,7 @@ test("scroll reveal is progressive enhancement and respects reduced motion", () 
 });
 
 test("hero animation pauses while the browser document is hidden", () => {
-  assert.match(app, /function syncVisibility\(\)/);
+  assert.match(app, /const syncVisibility = \(\) =>/);
   assert.match(app, /document\.visibilityState === "hidden"/);
   assert.match(app, /document\.addEventListener\("visibilitychange", syncVisibility\)/);
   assert.match(css, /hero-visual\[data-page-hidden="true"\]/);
