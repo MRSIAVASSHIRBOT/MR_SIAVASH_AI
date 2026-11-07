@@ -848,3 +848,26 @@ test("GitHub Pages deployment is restricted to successful main-branch non-PR run
   assert.match(workflowText, /url: \$\{\{ steps\.deployment\.outputs\.page_url \}\}/);
   assert.doesNotMatch(workflowText, /if: github\.event_name != 'pull_request'/);
 });
+
+
+test("hero experience includes accessible 3D motion controls and reduced-motion support", () => {
+  assert.match(html, /class="hero-visual"[^>]*data-motion-paused="false"/);
+  assert.match(html, /id="motionToggle"[^>]*aria-pressed="false"/);
+  assert.match(html, /توقف حرکت/);
+  assert.match(app, /function initMotionControls\(\)/);
+  assert.match(app, /visual\.dataset\.motionPaused = String\(paused\)/);
+  assert.match(app, /button\.setAttribute\("aria-pressed", String\(paused\)\)/);
+  assert.match(app, /initMotionControls\(\)/);
+  assert.match(css, /perspective:\s*1100px/);
+  assert.match(css, /@keyframes orbit-rotate-outer/);
+  assert.match(css, /@keyframes orbit-rotate-inner/);
+  assert.match(css, /animation-play-state:\s*paused/);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(css, /\.orbit-outer,\.orbit-inner,\.orbit-node,\.orbit-core\s*\{\s*animation:none !important;/);
+});
+
+test("decorative 3D illustration layers are hidden from assistive technology", () => {
+  assert.match(html, /class="orbit orbit-outer" aria-hidden="true"/);
+  assert.match(html, /class="orbit orbit-inner" aria-hidden="true"/);
+  assert.match(html, /class="orbit-core" aria-hidden="true"/);
+});
