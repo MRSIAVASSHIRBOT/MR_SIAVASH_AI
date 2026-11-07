@@ -22,7 +22,7 @@ The repository provides a static web application with:
 
 ### What is not connected yet
 
-AI model providers, remote agent execution, user accounts, private profiles, cloud synchronization, backend APIs, billing, and server-side data storage are not implemented. Local favorites and tasks remain in the current browser. Do not enter secrets, passwords, private keys, or sensitive personal data into this static site.
+AI model providers, remote agent execution, user accounts, private profiles, cloud synchronization, product APIs, billing, and server-side user-data storage are not implemented. A separate Cloudflare Worker has only the liveness/readiness endpoints uploaded; its live HTTP behavior has not yet been independently verified. Local favorites and tasks remain in the current browser. Do not enter secrets, passwords, private keys, or sensitive personal data into this static site.
 
 ## Repository structure
 
@@ -39,7 +39,7 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 - tests/service-worker.test.mjs — runtime regression tests for static-cache isolation and navigation boundaries
 - .github/workflows/deploy.yml — quality checks and GitHub Pages deployment
 - docs/ARCHITECTURE.md — current boundaries and future integration plan
-- cloudflare/gateway/ — isolated Worker API foundation; not yet deployed
+- cloudflare/gateway/ — dedicated health-only Cloudflare Worker uploaded; independent HTTP runtime verification is still pending
 - docs/decisions/0001-cloudflare-backend-boundary.md — Cloudflare backend decision record
 - SECURITY.md — security reporting and client-side security boundaries
 
