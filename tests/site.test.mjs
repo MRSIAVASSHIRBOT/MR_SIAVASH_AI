@@ -45,7 +45,6 @@ test("digital identity page exposes public social profiles and GitHub tools safe
   for (const href of [
     "https://www.instagram.com/MR_SIAVASH_AI/",
     "https://www.instagram.com/mr_siavash_ir_bot/",
-    "https://www.instagram.com/l.siavash.l/",
     "https://www.youtube.com/@MR_SIAVASH_EL_IR_BOT",
     "https://t.me/MR_SIAVASH_IR_BOT",
     "https://t.me/MR_SIAVASH_AI",
@@ -59,6 +58,8 @@ test("digital identity page exposes public social profiles and GitHub tools safe
   assert.match(html, /مرز حریم خصوصی/);
   assert.match(html, /OFFICIAL SOCIAL DIRECTORY/);
   assert.match(html, /شناسه‌هایی است که مالک حساب معرفی کرده/);
+  assert.doesNotMatch(html, /l\\.siavash\\.l/);
+  assert.match(html, /<strong>06<\\/strong>/);
 });
 
 test("all static DOM IDs used by the application exist in the HTML", () => {
