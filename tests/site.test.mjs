@@ -24,6 +24,7 @@ const dependabotText = await readFile(new URL("../.github/dependabot.yml", impor
 test("Cloudflare gateway runtime smoke checks live health and exact-origin CORS", () => {
   assert.match(gatewaySmokeWorkflowText, /workflow_dispatch/);
   assert.match(gatewaySmokeWorkflowText, /GATEWAY_BASE_URL: https:\/\/mr-siavash-ai-gateway\.mrsiavashirbot\.workers\.dev/);
+  assert.match(gatewaySmokeWorkflowText, /ALLOWED_ORIGIN: https:\/\/mrsiavasshirbot\.github\.io/);
   assert.match(gatewaySmokeWorkflowText, /\/v1\/health\/live/);
   assert.match(gatewaySmokeWorkflowText, /\/v1\/health\/ready/);
   assert.match(gatewaySmokeWorkflowText, /dependencies\?\.database!==\"ready\"/);
