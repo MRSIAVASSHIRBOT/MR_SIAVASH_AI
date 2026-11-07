@@ -988,6 +988,40 @@ test("hero pointer tilt is not enabled for reduced-motion or coarse-pointer user
   assert.equal(visualEvents.pointermove, undefined);
 });
 
+test("coarse-pointer devices keep the hero scene static", () => {
+  const start = app.indexOf("  function initMotionControls() {");
+  const end = app.indexOf("  function initScrollReveal()", start);
+  const source = app.slice(start, end);
+  const visualEvents = {};
+  const scene = { dataset: {}, style: { setProperty() {} } };
+  const visual = {
+    dataset: {},
+    addEventListener(name, callback) { visualEvents[name] = callback; },
+    getBoundingClientRect() { return { left: 0, top: 0, width: 100, height: 100 }; },
+    querySelector(selector) { return selector === ".hero-scene" ? scene : null; }
+  };
+  const button = {
+    addEventListener() {},
+    setAttribute() {}
+  };
+  const motionPreference = { matches: false, addEventListener() {} };
+  const pointerPreference = { matches: false };
+  const windowStub = {
+    matchMedia(query) { return query.includes("prefers-reduced-motion") ? motionPreference : pointerPreference; },
+    requestAnimationFrame() { throw new Error("Coarse pointers must not request animation frames"); }
+  };
+  const documentStub = { visibilityState: "visible", addEventListener() {} };
+  const init = vm.runInNewContext("(() => { " + source + "; return initMotionControls; })()", {
+    $: (selector, root) => selector === ".hero-visual" ? visual : selector === ".hero-scene" ? root.querySelector(selector) : button,
+    window: windowStub,
+    document: documentStub
+  });
+  init();
+  assert.equal(visualEvents.pointermove, undefined);
+  assert.equal(button.disabled, false);
+  assert.equal(visual.dataset.motionPaused, "false");
+});
+
 test("decorative 3D illustration layers are hidden from assistive technology", () => {
   assert.match(html, /class="orbit orbit-outer" aria-hidden="true"/);
   assert.match(html, /class="orbit orbit-inner" aria-hidden="true"/);
