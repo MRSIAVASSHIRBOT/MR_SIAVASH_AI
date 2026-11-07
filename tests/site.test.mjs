@@ -905,7 +905,7 @@ test("hero pointer tilt is bounded, frame-throttled, and reset on pause or point
     addEventListener(name, callback) { documentEvents[name] = callback; }
   };
   const init = vm.runInNewContext("(() => { " + source + "; return initMotionControls; })()", {
-    $, window: windowStub, document: documentStub
+    $: selector => selector === ".hero-visual" ? visual : button, window: windowStub, document: documentStub
   });
 
   init();
@@ -966,7 +966,7 @@ test("hero pointer tilt is not enabled for reduced-motion or coarse-pointer user
   };
   const documentStub = { visibilityState: "visible", addEventListener() {} };
   const init = vm.runInNewContext("(() => { " + source + "; return initMotionControls; })()", {
-    $, window: windowStub, document: documentStub
+    $: selector => selector === ".hero-visual" ? visual : button, window: windowStub, document: documentStub
   });
   init();
   assert.equal(button.disabled, true);
