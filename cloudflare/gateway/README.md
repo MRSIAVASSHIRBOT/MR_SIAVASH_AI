@@ -53,7 +53,7 @@ Migration 0001 creates tenant-scoped workspace tasks and owner-scoped idempotenc
 5. Implement public module metadata and authenticated workspace APIs against the OpenAPI contract.
 6. Add AI provider adapters and bounded agent jobs only after identity, secrets, and approval controls pass review.
 
-A successful liveness response is not a readiness signal. A successful readiness response only verifies the D1 dependency, not the full product. The current Worker exposes health endpoints only; it does not yet provide authentication, workspace APIs, or AI/agent execution.
+A successful liveness response is not a readiness signal. A successful readiness response only verifies the D1 dependency, not the full product. The originally deployed Worker version exposes health endpoints only. The repository now contains additional source-only support and assistant routes, but those routes are not live until the D1 migration and Worker release are applied and independently verified.
 
 
 ## CORS preflight policy
