@@ -1,6 +1,6 @@
 # Backend foundation — implementation gate
 
-This directory contains API design artifacts and validation tooling; it is not a user-facing backend implementation and does not turn the static GitHub Pages site into an account service. The deployed health-only Cloudflare Worker has passed independent liveness and D1-readiness HTTP checks. The exact-origin CORS smoke workflow is being aligned with the live binding and deployed preflight behavior.
+This directory contains API design artifacts and validation tooling; it is not a user-facing backend implementation and does not turn the static GitHub Pages site into an account service. The deployed health-only Cloudflare Worker has passed independent liveness, D1-readiness, and CORS runtime smoke checks. The workflow verifies the exact allowlisted origin and confirms that untrusted origins receive no CORS grant.
 
 ## Contract
 - openapi.yaml defines the proposed v1 boundary for health, public module metadata and authenticated per-user workspace tasks.
