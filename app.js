@@ -920,8 +920,9 @@
 
   function initMotionControls() {
     const visual = $(".hero-visual");
+    const scene = visual && $(".hero-scene", visual);
     const button = $("#motionToggle");
-    if (!visual || !button) return;
+    if (!visual || !scene || !button) return;
 
     const motionPreference = typeof window.matchMedia === "function"
       ? window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -937,10 +938,10 @@
         window.cancelAnimationFrame(pendingFrame);
       }
       pendingFrame = null;
-      visual.dataset.tilting = "false";
-      if (visual.style && typeof visual.style.setProperty === "function") {
-        visual.style.setProperty("--hero-tilt-x", "0deg");
-        visual.style.setProperty("--hero-tilt-y", "0deg");
+      scene.dataset.tilting = "false";
+      if (scene.style && typeof scene.style.setProperty === "function") {
+        scene.style.setProperty("--hero-tilt-x", "0deg");
+        scene.style.setProperty("--hero-tilt-y", "0deg");
       }
     };
 
@@ -977,7 +978,7 @@
 
     const canTilt = pointerPreference.matches === true &&
       typeof window.requestAnimationFrame === "function" &&
-      visual.style && typeof visual.style.setProperty === "function" &&
+      scene.style && typeof scene.style.setProperty === "function" &&
       typeof visual.getBoundingClientRect === "function";
 
     if (canTilt) {
@@ -997,9 +998,9 @@
         pendingFrame = window.requestAnimationFrame(() => {
           pendingFrame = null;
           if (visual.dataset.motionPaused === "true" || visual.dataset.pageHidden === "true") return;
-          visual.dataset.tilting = "true";
-          visual.style.setProperty("--hero-tilt-x", tiltX);
-          visual.style.setProperty("--hero-tilt-y", tiltY);
+          scene.dataset.tilting = "true";
+          scene.style.setProperty("--hero-tilt-x", tiltX);
+          scene.style.setProperty("--hero-tilt-y", tiltY);
         });
       });
       visual.addEventListener("pointerleave", resetTilt);
