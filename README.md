@@ -20,6 +20,7 @@ The repository provides a static web application with:
 - PWA manifest and versioned service-worker cache for the static app shell, including the module registry.
 - Accessible CSS 3D hero motion with bounded pointer-responsive parallax on fine pointers, frame-throttled updates in an isolated scene layer, manual pause control, live reduced-motion preference handling, hidden-tab suspension, and progressive scroll reveals.
 - GitHub Actions workflow with syntax, API-contract and repository tests; GitHub Pages deployment is gated to successful pushes or manual runs on main.
+- Separate read-only Cloudflare gateway smoke workflow checks deployed liveness/readiness and both allowed and rejected CORS preflights; it requires no API token.
 
 ### What is not connected yet
 

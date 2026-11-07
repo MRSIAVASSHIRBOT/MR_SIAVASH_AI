@@ -18,7 +18,20 @@ const openapiText = await readFile(new URL("../docs/backend/openapi.yaml", impor
 const openapiValidatorText = await readFile(new URL("../scripts/validate-openapi.rb", import.meta.url), "utf8");
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 const workflowText = await readFile(new URL("../.github/workflows/deploy.yml", import.meta.url), "utf8");
+const gatewaySmokeWorkflowText = await readFile(new URL("../.github/workflows/gateway-smoke.yml", import.meta.url), "utf8");
 const dependabotText = await readFile(new URL("../.github/dependabot.yml", import.meta.url), "utf8");
+
+test("Cloudflare gateway runtime smoke checks live health and exact-origin CORS", () => {
+  assert.match(gatewaySmokeWorkflowText, /workflow_dispatch/);
+  assert.match(gatewaySmokeWorkflowText, /GATEWAY_BASE_URL: https:\/\/mr-siavash-ai-gateway\.mrsiavashirbot\.workers\.dev/);
+  assert.match(gatewaySmokeWorkflowText, /\/v1\/health\/live/);
+  assert.match(gatewaySmokeWorkflowText, /\/v1\/health\/ready/);
+  assert.match(gatewaySmokeWorkflowText, /dependencies\?\.database!==\"ready\"/);
+  assert.match(gatewaySmokeWorkflowText, /Access-Control-Request-Method: GET/);
+  assert.match(gatewaySmokeWorkflowText, /https:\/\/untrusted\.invalid/);
+  assert.match(gatewaySmokeWorkflowText, /test \"\$status\" = \"403\"/);
+  assert.doesNotMatch(gatewaySmokeWorkflowText, /(?:CF_API_TOKEN|CLOUDFLARE_API_TOKEN|Authorization: Bearer)/i);
+});
 
 test("HTML references app assets and install manifest", () => {
   assert.match(html, /href="\.\/*styles\.css"/);
