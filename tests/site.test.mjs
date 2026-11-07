@@ -899,7 +899,7 @@ test("hero animation pauses while the browser document is hidden", () => {
 
 test("scroll reveal observes target collections and reveals intersecting elements", () => {
   const start = app.indexOf("  function initScrollReveal() {");
-  const end = app.indexOf("\\n  function init()", start);
+  const end = app.indexOf(String.fromCharCode(10) + "  function init()", start);
   assert.ok(start >= 0 && end > start, "scroll reveal function boundaries must exist");
   const source = app.slice(start, end);
   const targets = [
@@ -934,7 +934,7 @@ test("scroll reveal observes target collections and reveals intersecting element
 
   init();
   assert.deepEqual(observed, targets);
-  assert.equal(callback instanceof Function, false);
+  assert.equal(typeof callback, "function");
   assert.equal(rootClasses[0], "reveal-ready");
   assert.equal(callback.length, 2);
   callback([
@@ -948,7 +948,7 @@ test("scroll reveal observes target collections and reveals intersecting element
 
 test("scroll reveal leaves content untouched without observer support or when motion is reduced", () => {
   const start = app.indexOf("  function initScrollReveal() {");
-  const end = app.indexOf("\\n  function init()", start);
+  const end = app.indexOf(String.fromCharCode(10) + "  function init()", start);
   const source = app.slice(start, end);
   const rootClasses = [];
   const documentStub = {
