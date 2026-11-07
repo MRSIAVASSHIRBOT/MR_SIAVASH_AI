@@ -918,11 +918,26 @@
     });
   }
 
+  function initMotionControls() {
+    const visual = $(".hero-visual");
+    const button = $("#motionToggle");
+    if (!visual || !button) return;
+
+    button.addEventListener("click", () => {
+      const paused = visual.dataset.motionPaused !== "true";
+      visual.dataset.motionPaused = String(paused);
+      button.setAttribute("aria-pressed", String(paused));
+      button.setAttribute("aria-label", paused ? "ادامه حرکت‌های تزئینی" : "توقف حرکت‌های تزئینی");
+      button.textContent = paused ? "ادامه حرکت" : "توقف حرکت";
+    });
+  }
+
   function init() {
     const retryButton = $("#retryRegistryButton");
     if (retryButton) retryButton.addEventListener("click", retryModuleRegistry);
     renderFeatured();
     initNavigation();
+    initMotionControls();
     initCatalog();
     initWorkspace();
     initInstallPrompt();
