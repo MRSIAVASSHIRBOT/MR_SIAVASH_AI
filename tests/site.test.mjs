@@ -19,6 +19,8 @@ const openapiValidatorText = await readFile(new URL("../scripts/validate-openapi
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 const workflowText = await readFile(new URL("../.github/workflows/deploy.yml", import.meta.url), "utf8");
 const gatewaySmokeWorkflowText = await readFile(new URL("../.github/workflows/gateway-smoke.yml", import.meta.url), "utf8");
+const rootReadmeText = await readFile(new URL("../README.md", import.meta.url), "utf8");
+const gatewayReadmeText = await readFile(new URL("../cloudflare/gateway/README.md", import.meta.url), "utf8");
 const dependabotText = await readFile(new URL("../.github/dependabot.yml", import.meta.url), "utf8");
 
 test("Cloudflare gateway runtime smoke checks live health and exact-origin CORS", () => {
@@ -35,6 +37,15 @@ test("Cloudflare gateway runtime smoke checks live health and exact-origin CORS"
   assert.match(gatewaySmokeWorkflowText, /--dump-header "\$headers_file"/);
   assert.match(gatewaySmokeWorkflowText, /access-control-allow-origin:/);
   assert.doesNotMatch(gatewaySmokeWorkflowText, /(?:CF_API_TOKEN|CLOUDFLARE_API_TOKEN|Authorization: Bearer)/i);
+});
+
+test("gateway documentation records successful runtime checks without overstating source parity", () => {
+  assert.match(rootReadmeText, /live HTTP smoke checks passed on 2026-11-07/);
+  assert.match(rootReadmeText, /does not establish deployed-source parity/);
+  assert.match(gatewayReadmeText, /smoke run 42325701077/);
+  assert.match(gatewayReadmeText, /does not prove exact status-code or deployed-source parity/);
+  assert.doesNotMatch(rootReadmeText, /live HTTP behavior has not yet been independently verified/);
+  assert.doesNotMatch(gatewayReadmeText, /No independent HTTP runtime smoke test has verified/);
 });
 
 test("HTML references app assets and install manifest", () => {
