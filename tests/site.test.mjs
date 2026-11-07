@@ -124,7 +124,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v14"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v15"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /request\.mode === "navigate"/);
@@ -141,7 +141,9 @@ test("proposed backend contract is explicitly design-only and versioned", async 
   assert.match(api, /bearerAuth/);
   assert.match(api, /Idempotency-Key/);
   assert.match(api, /additionalProperties: false/);
-  assert.match(backendGuide, /does not contain a running backend/);
+  assert.match(backendGuide, /not a user-facing backend implementation/);
+  assert.match(backendGuide, /health-only Cloudflare Worker resource has been uploaded/);
+  assert.match(backendGuide, /HTTP runtime has not yet been independently verified/);
 });
 
 test("D1 migrations persist verified identity mappings and enforce owner foreign keys", async () => {
@@ -169,7 +171,8 @@ test("security and roadmap docs define production gates", async () => {
   assert.match(threat, /cross-user isolation tests/);
   assert.match(threat, /secrets and tool permissions remain server-side/i);
   assert.match(roadmap, /parallel workstreams/);
-  assert.match(roadmap, /No backend endpoints are live/);
+  assert.match(roadmap, /No user-facing product API, authentication, or cloud workspace endpoint is live/);
+  assert.match(roadmap, /independent HTTP runtime verification is still outstanding/);
 });
 
 test("workspace task controls are wired to accessible UI elements", () => {
@@ -188,7 +191,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v14"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v15"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -361,7 +364,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v14"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v15"/);
 });
 
 
@@ -870,4 +873,97 @@ test("decorative 3D illustration layers are hidden from assistive technology", (
   assert.match(html, /class="orbit orbit-outer" aria-hidden="true"/);
   assert.match(html, /class="orbit orbit-inner" aria-hidden="true"/);
   assert.match(html, /class="orbit-core" aria-hidden="true"/);
+});
+
+
+test("scroll reveal is progressive enhancement and respects reduced motion", () => {
+  assert.match(html, /data-reveal="up"/);
+  assert.match(app, /function initScrollReveal\(\)/);
+  assert.match(app, /const targets = \$\$\("\[data-reveal\]"\)/);
+  assert.match(app, /typeof window\.IntersectionObserver !== "function"/);
+  assert.match(app, /window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
+  assert.match(app, /entry\.target\.classList\.add\("is-revealed"\)/);
+  assert.match(app, /document\.documentElement\.classList\.add\("reveal-ready"\)/);
+  assert.match(app, /initScrollReveal\(\)/);
+  assert.match(css, /html\.reveal-ready \[data-reveal="up"\]/);
+  assert.match(css, /html\.reveal-ready \[data-reveal="up"\]\.is-revealed/);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(css, /opacity:1;\s*transform:none;\s*transition:none;/);
+});
+
+test("hero animation pauses while the browser document is hidden", () => {
+  assert.match(app, /const syncVisibility = \(\) =>/);
+  assert.match(app, /document\.visibilityState === "hidden"/);
+  assert.match(app, /document\.addEventListener\("visibilitychange", syncVisibility\)/);
+  assert.match(css, /hero-visual\[data-page-hidden="true"\]/);
+  assert.match(css, /animation-play-state:paused/);
+});
+
+
+test("scroll reveal observes target collections and reveals intersecting elements", () => {
+  const start = app.indexOf("  function initScrollReveal() {");
+  const end = app.indexOf(String.fromCharCode(10) + "  function init()", start);
+  assert.ok(start >= 0 && end > start, "scroll reveal function boundaries must exist");
+  const source = app.slice(start, end);
+  const targets = [
+    { classList: { values: [], add(value) { this.values.push(value); } } },
+    { classList: { values: [], add(value) { this.values.push(value); } } }
+  ];
+  let callback;
+  let observed = [];
+  let unobserved = [];
+  const rootClasses = [];
+  function FakeObserver(handler, options) {
+    callback = handler;
+    this.options = options;
+    this.observe = target => observed.push(target);
+    this.unobserve = target => unobserved.push(target);
+  }
+  const windowStub = {
+    IntersectionObserver: FakeObserver,
+    matchMedia: () => ({ matches: false })
+  };
+  const documentStub = {
+    documentElement: { classList: { add(value) { rootClasses.push(value); } } }
+  };
+  const init = vm.runInNewContext("(() => { " + source + "; return initScrollReveal; })()", {
+    window: windowStub,
+    document: documentStub,
+    $$: selector => {
+      assert.equal(selector, "[data-reveal]");
+      return targets;
+    }
+  });
+
+  init();
+  assert.deepEqual(observed, targets);
+  assert.equal(typeof callback, "function");
+  assert.equal(rootClasses[0], "reveal-ready");
+  assert.equal(callback.length, 2);
+  callback([
+    { isIntersecting: false, target: targets[0] },
+    { isIntersecting: true, target: targets[1] }
+  ], { unobserve: target => unobserved.push(target) });
+  assert.deepEqual(targets[0].classList.values, []);
+  assert.deepEqual(targets[1].classList.values, ["is-revealed"]);
+  assert.deepEqual(unobserved, [targets[1]]);
+});
+
+test("scroll reveal leaves content untouched without observer support or when motion is reduced", () => {
+  const start = app.indexOf("  function initScrollReveal() {");
+  const end = app.indexOf(String.fromCharCode(10) + "  function init()", start);
+  const source = app.slice(start, end);
+  const rootClasses = [];
+  const documentStub = {
+    documentElement: { classList: { add(value) { rootClasses.push(value); } } }
+  };
+  const run = windowStub => vm.runInNewContext(
+    "(() => { " + source + "; return initScrollReveal; })()",
+    { window: windowStub, document: documentStub, $$: () => [{ classList: { add() {} } }] }
+  );
+
+  run({}).call();
+  assert.deepEqual(rootClasses, []);
+  run({ IntersectionObserver: function () {}, matchMedia: () => ({ matches: true }) }).call();
+  assert.deepEqual(rootClasses, []);
 });

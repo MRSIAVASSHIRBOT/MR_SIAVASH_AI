@@ -923,6 +923,12 @@
     const button = $("#motionToggle");
     if (!visual || !button) return;
 
+    const syncVisibility = () => {
+      visual.dataset.pageHidden = String(document.visibilityState === "hidden");
+    };
+    document.addEventListener("visibilitychange", syncVisibility);
+    syncVisibility();
+
     const reducedMotion = typeof window.matchMedia === "function" &&
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reducedMotion) {
@@ -943,11 +949,33 @@
     });
   }
 
+  function initScrollReveal() {
+    if (typeof window.IntersectionObserver !== "function") return;
+    const reducedMotion = typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) return;
+
+    const targets = $$("[data-reveal]");
+    if (!targets.length) return;
+
+    const observer = new window.IntersectionObserver((entries, activeObserver) => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.classList.add("is-revealed");
+        activeObserver.unobserve(entry.target);
+      });
+    }, { rootMargin: "0px 0px -7% 0px", threshold: 0.08 });
+
+    targets.forEach(target => observer.observe(target));
+    document.documentElement.classList.add("reveal-ready");
+  }
+
   function init() {
     const retryButton = $("#retryRegistryButton");
     if (retryButton) retryButton.addEventListener("click", retryModuleRegistry);
     renderFeatured();
     initNavigation();
+    initScrollReveal();
     initMotionControls();
     initCatalog();
     initWorkspace();

@@ -18,11 +18,12 @@ The repository provides a static web application with:
 - JSON export and validated, bounded JSON import for local workspace data, defined by schemas/workspace-backup.schema.json.
 - Restrictive same-origin Content Security Policy and Referrer-Policy on the static entry document.
 - PWA manifest and versioned service-worker cache for the static app shell, including the module registry.
+- Accessible CSS 3D hero motion, manual pause control, hidden-tab animation suspension, and progressive scroll reveals that respect reduced-motion preferences.
 - GitHub Actions workflow with syntax, API-contract and repository tests; GitHub Pages deployment is gated to successful pushes or manual runs on main.
 
 ### What is not connected yet
 
-AI model providers, remote agent execution, user accounts, private profiles, cloud synchronization, backend APIs, billing, and server-side data storage are not implemented. Local favorites and tasks remain in the current browser. Do not enter secrets, passwords, private keys, or sensitive personal data into this static site.
+AI model providers, remote agent execution, user accounts, private profiles, cloud synchronization, product APIs, billing, and server-side user-data storage are not implemented. A separate Cloudflare Worker has only the liveness/readiness endpoints uploaded; its live HTTP behavior has not yet been independently verified. Local favorites and tasks remain in the current browser. Do not enter secrets, passwords, private keys, or sensitive personal data into this static site.
 
 ## Repository structure
 
@@ -39,7 +40,7 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 - tests/service-worker.test.mjs — runtime regression tests for static-cache isolation and navigation boundaries
 - .github/workflows/deploy.yml — quality checks and GitHub Pages deployment
 - docs/ARCHITECTURE.md — current boundaries and future integration plan
-- cloudflare/gateway/ — isolated Worker API foundation; not yet deployed
+- cloudflare/gateway/ — dedicated health-only Cloudflare Worker uploaded; independent HTTP runtime verification is still pending
 - docs/decisions/0001-cloudflare-backend-boundary.md — Cloudflare backend decision record
 - SECURITY.md — security reporting and client-side security boundaries
 
