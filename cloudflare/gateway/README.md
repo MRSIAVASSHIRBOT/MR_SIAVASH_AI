@@ -58,7 +58,7 @@ A successful liveness response is not a readiness signal. A successful readiness
 
 ## CORS preflight policy
 
-Preflight requests are accepted only when the origin exactly matches `ALLOWED_ORIGINS`, the requested method is `GET`, and every requested header is in the explicit `Content-Type` / `X-Request-ID` allowlist. Unsupported methods, untrusted or missing origins, and unapproved or malformed headers receive a `403` response without granting CORS access. CORS is a browser access policy, not authentication or authorization; non-browser clients must still be treated as untrusted.
+Preflight requests are accepted only when the origin exactly matches `ALLOWED_ORIGINS`, the requested method is one of `GET`, `POST`, or `PATCH`, and every requested header is in the explicit `Content-Type`, `Authorization`, or `X-Request-ID` allowlist. Unsupported methods, untrusted or missing origins, and unapproved or malformed headers receive a `403` response without granting CORS access. CORS is a browser access policy, not authentication or authorization; non-browser clients must still be treated as untrusted.
 
 
 ## Hybrid assistant and human support (source-only)
