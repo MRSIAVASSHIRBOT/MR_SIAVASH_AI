@@ -7,6 +7,7 @@ on:
   pull_request:
     branches:
       - main
+      - feature/python-academy-beginner-course-2026-11-08
   workflow_dispatch:
 
 permissions:
@@ -32,6 +33,9 @@ jobs:
         run: |
           node --check app.js
           node --check sw.js
+          node --check support.js
+          node --check support-admin.js
+          node --check python-course.js
           node --check cloudflare/gateway/src/index.js
       - name: Validate OpenAPI design contract
         run: ruby scripts/validate-openapi.rb
