@@ -786,3 +786,16 @@ html.reveal-ready [data-reveal="up"].is-revealed {
     transition:none;
   }
 }
+
+
+/* Version 1.0 — pointer-responsive 3D hero with bounded motion */
+.hero-visual {
+  --hero-tilt-x:0deg;
+  --hero-tilt-y:0deg;
+  transform:rotateX(var(--hero-tilt-x)) rotateY(var(--hero-tilt-y));
+  transition:transform .2s ease-out;
+}
+.hero-visual[data-tilting="true"] { will-change:transform; }
+@media(prefers-reduced-motion:reduce) {
+  .hero-visual { transform:none; transition:none; }
+}
