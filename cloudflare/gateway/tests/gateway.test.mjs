@@ -13,3 +13,27 @@ test("admin dashboard and APIs reject requests without verified Access JWT",asyn
 test("ticket creation validates email before touching D1",async()=>{const r=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subject:"سؤال",message:"سلام",contact_email:"invalid"})}),{DB:db()});assert.equal(r.status,400);});
 test("public ticket reads require a bearer token",async()=>{const r=await worker.fetch(req("/v1/support/tickets/MS-ABC1234567"),{DB:db()});assert.equal(r.status,404);});
 test("request body limits are enforced",async()=>{const r=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"x".repeat(13000)})}),{DB:db()});assert.equal(r.status,413);});
+
+function rateDb(){return{prepare(){return{bind(){return this;},first:async()=>({request_count:1})};}};}
+test("assistant defaults to the multilingual free-tier model and returns grounded sources",async()=>{
+ let selectedModel=null;
+ const response=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"آموزش پایتون"})}),{
+  DB:rateDb(),
+  AI:{run:async(model,input)=>{selectedModel=model;assert.ok(input.messages.some(x=>x.role==="system"&&x.content.includes("Verified website context")));return{response:"دوره پایتون شامل ۱۲ درس است."};}}
+ });
+ assert.equal(response.status,200);
+ const data=await response.json();
+ assert.equal(selectedModel,"@cf/zai-org/glm-4.7-flash");
+ assert.equal(data.mode,"ai_grounded");
+ assert.ok(data.sources.some(x=>x.href==="./python.html"));
+});
+test("assistant hands off questions with no verified site context",async()=>{
+ let called=false;
+ const response=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"آمار ترافیک روزانه و تعداد بازدیدکنندگان"})}),{
+  DB:rateDb(),AI:{run:async()=>{called=true;return{response:"guess"};}}
+ });
+ const data=await response.json();
+ assert.equal(response.status,200);
+ assert.equal(data.handoff,true);
+ assert.equal(called,false);
+});
