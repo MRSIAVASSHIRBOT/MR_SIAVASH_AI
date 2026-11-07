@@ -923,30 +923,89 @@
     const button = $("#motionToggle");
     if (!visual || !button) return;
 
+    const motionPreference = typeof window.matchMedia === "function"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)")
+      : { matches: false };
+    const pointerPreference = typeof window.matchMedia === "function"
+      ? window.matchMedia("(hover: hover) and (pointer: fine)")
+      : { matches: false };
+    let userPaused = false;
+    let pendingFrame = null;
+
+    const resetTilt = () => {
+      if (pendingFrame !== null && typeof window.cancelAnimationFrame === "function") {
+        window.cancelAnimationFrame(pendingFrame);
+      }
+      pendingFrame = null;
+      visual.dataset.tilting = "false";
+      if (visual.style && typeof visual.style.setProperty === "function") {
+        visual.style.setProperty("--hero-tilt-x", "0deg");
+        visual.style.setProperty("--hero-tilt-y", "0deg");
+      }
+    };
+
+    const syncMotionState = () => {
+      const systemReduced = motionPreference.matches === true;
+      const paused = userPaused || systemReduced;
+      visual.dataset.motionPaused = String(paused);
+      button.disabled = systemReduced;
+      button.setAttribute("aria-pressed", String(paused));
+      button.setAttribute("aria-label", systemReduced
+        ? "حرکت‌های تزئینی طبق تنظیمات دستگاه کاهش یافته‌اند"
+        : paused ? "ادامه حرکت‌های تزئینی" : "توقف حرکت‌های تزئینی");
+      button.textContent = systemReduced ? "حرکت کاهش‌یافته" : paused ? "ادامه حرکت" : "توقف حرکت";
+      if (paused) resetTilt();
+    };
+
     const syncVisibility = () => {
-      visual.dataset.pageHidden = String(document.visibilityState === "hidden");
+      const hidden = document.visibilityState === "hidden";
+      visual.dataset.pageHidden = String(hidden);
+      if (hidden) resetTilt();
     };
     document.addEventListener("visibilitychange", syncVisibility);
     syncVisibility();
 
-    const reducedMotion = typeof window.matchMedia === "function" &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion) {
-      visual.dataset.motionPaused = "true";
-      button.disabled = true;
-      button.textContent = "حرکت کاهش‌یافته";
-      button.setAttribute("aria-label", "حرکت‌های تزئینی طبق تنظیمات دستگاه کاهش یافته‌اند");
-      button.setAttribute("aria-pressed", "true");
-      return;
+    if (typeof motionPreference.addEventListener === "function") {
+      motionPreference.addEventListener("change", syncMotionState);
     }
 
     button.addEventListener("click", () => {
-      const paused = visual.dataset.motionPaused !== "true";
-      visual.dataset.motionPaused = String(paused);
-      button.setAttribute("aria-pressed", String(paused));
-      button.setAttribute("aria-label", paused ? "ادامه حرکت‌های تزئینی" : "توقف حرکت‌های تزئینی");
-      button.textContent = paused ? "ادامه حرکت" : "توقف حرکت";
+      if (motionPreference.matches === true) return;
+      userPaused = !userPaused;
+      syncMotionState();
     });
+
+    const canTilt = pointerPreference.matches === true &&
+      typeof window.requestAnimationFrame === "function" &&
+      visual.style && typeof visual.style.setProperty === "function" &&
+      typeof visual.getBoundingClientRect === "function";
+
+    if (canTilt) {
+      visual.addEventListener("pointermove", event => {
+        if (visual.dataset.motionPaused === "true" ||
+            visual.dataset.pageHidden === "true" ||
+            (event.pointerType && event.pointerType !== "mouse" && event.pointerType !== "pen")) return;
+
+        const rect = visual.getBoundingClientRect();
+        if (!rect.width || !rect.height) return;
+        const horizontal = Math.max(-1, Math.min(1, ((event.clientX - rect.left) / rect.width) * 2 - 1));
+        const vertical = Math.max(-1, Math.min(1, ((event.clientY - rect.top) / rect.height) * 2 - 1));
+        const tiltX = (-vertical * 4).toFixed(2) + "deg";
+        const tiltY = (horizontal * 4).toFixed(2) + "deg";
+
+        if (pendingFrame !== null) return;
+        pendingFrame = window.requestAnimationFrame(() => {
+          pendingFrame = null;
+          if (visual.dataset.motionPaused === "true" || visual.dataset.pageHidden === "true") return;
+          visual.dataset.tilting = "true";
+          visual.style.setProperty("--hero-tilt-x", tiltX);
+          visual.style.setProperty("--hero-tilt-y", tiltY);
+        });
+      });
+      visual.addEventListener("pointerleave", resetTilt);
+    }
+
+    syncMotionState();
   }
 
   function initScrollReveal() {
