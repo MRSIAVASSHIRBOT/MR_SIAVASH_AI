@@ -160,7 +160,7 @@ test("proposed backend contract is explicitly design-only and versioned", async 
   assert.match(api, /additionalProperties: false/);
   assert.match(backendGuide, /not a user-facing backend implementation/);
   assert.match(backendGuide, /deployed health-only Cloudflare Worker has passed independent liveness and D1-readiness HTTP checks/);
-  assert.match(backendGuide, /HTTP runtime has not yet been independently verified/);
+  assert.match(backendGuide, /independent liveness and D1-readiness HTTP checks/);
 });
 
 test("D1 migrations persist verified identity mappings and enforce owner foreign keys", async () => {
