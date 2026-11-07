@@ -6,6 +6,7 @@ import vm from "node:vm";
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
+const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
 const manifestText = await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8");
 const moduleRegistryText = await readFile(new URL("../modules.json", import.meta.url), "utf8");
 const moduleRegistry = JSON.parse(moduleRegistryText);
@@ -1150,7 +1151,7 @@ test("global search and support center are wired without inline script execution
   assert.match(html, /id="ticketTrackForm"/);
   assert.match(html, /support\.js/);
   assert.match(html, /support\.css/);
-  assert.match(app, /support\.js/);
   assert.match(sw, /"\.\/support\.js"/);
   assert.match(sw, /"\.\/support\.css"/);
+  assert.doesNotMatch(support, /innerHTML\s*=/);
 });
