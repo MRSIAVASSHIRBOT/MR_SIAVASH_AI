@@ -144,6 +144,9 @@ test("service worker caches the static shell and ignores non-GET requests", () =
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v16"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
+  assert.match(sw, /"\.\/python\.html"/);
+  assert.match(sw, /"\.\/python-course\.js"/);
+  assert.match(sw, /"\.\/python-course\.css"/);
   assert.match(sw, /request\.mode === "navigate"/);
   assert.match(sw, /request\.method !== "GET"/);
 });
