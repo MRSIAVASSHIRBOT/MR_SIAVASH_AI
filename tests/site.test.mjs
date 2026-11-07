@@ -1161,6 +1161,6 @@ test("global search and support center are wired without inline script execution
 });
 
 test("global search indexes hidden sections and the support center", () => {
-  assert.match(support, /s\\.textContent/);
+  assert.equal(support.includes("s.textContent"), true);
   assert.match(support, /مرکز پشتیبانی/);
 });
