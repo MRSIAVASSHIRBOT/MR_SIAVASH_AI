@@ -92,7 +92,7 @@ No license has been granted yet. All rights are reserved by the repository owner
 - docs/ROADMAP.md coordinates the workstreams and release stages.
 - docs/PLATFORM_CONTRACTS.md defines shared integration and production-readiness requirements.
 
-These are design artifacts only. No backend API, real authentication, account system or cloud synchronization is deployed by the static site.
+The frontend remains static and does not itself provide authentication or cloud synchronization. The support API and admin authorization are implemented in a separate Worker source branch, but are not live until the D1 migration, Access configuration, AI binding (if desired), and Worker deployment are completed.
 
 
 ## Hybrid support and global search
