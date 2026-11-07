@@ -37,3 +37,11 @@ test("assistant hands off questions with no verified site context",async()=>{
  assert.equal(data.handoff,true);
  assert.equal(called,false);
 });
+
+test("assistant knowledge distinguishes roadmap modules from active local modules",async()=>{
+ const response=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"Secure Lab"})}),{DB:rateDb()});
+ const data=await response.json();
+ assert.equal(response.status,200);
+ assert.equal(data.mode,"knowledge_fallback");
+ assert.match(data.answer,/نقشه راه/);
+});
