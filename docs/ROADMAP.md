@@ -19,10 +19,10 @@ The workstreams progress together behind shared release gates. A module is not p
 Current site, local workspace, module catalog, PWA shell and repository checks. This is a prototype, not a hosted account platform.
 
 ### Stage B — backend contract and threat model
-The OpenAPI contract and threat model remain design artifacts. A dedicated health-only Cloudflare Worker has been uploaded and its resource/binding configuration has been read back, but independent HTTP runtime verification is still outstanding. No user-facing product API, authentication, or cloud workspace endpoint is live.
+The OpenAPI contract and threat model remain design artifacts. The dedicated health-only Worker has passed independent liveness and D1-readiness HTTP checks. Exact-origin CORS configuration is confirmed; the deployed bundle still differs from the repository's stricter OPTIONS implementation (runtime 204 with no CORS grant for untrusted origins versus source-level 403). Aligning the production Worker source remains pending and requires a separately reviewed deployment. No user-facing product API, authentication, or cloud workspace endpoint is live.
 
 ### Stage C — first real service
-Independently smoke-test the deployed health endpoints, then implement public module metadata and only later authenticated task persistence. Add integration and isolation tests before enabling cloud sync.
+Maintain automated runtime smoke checks for the deployed health/CORS boundary, then implement public module metadata and only later authenticated task persistence. Add integration and isolation tests before enabling cloud sync.
 
 ### Stage D — independent modules
 Add AI, agent, developer, security, learning, creator and knowledge capabilities through versioned contracts and shared identity/permission boundaries.
