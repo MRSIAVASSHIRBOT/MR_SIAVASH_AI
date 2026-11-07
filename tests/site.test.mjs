@@ -58,8 +58,8 @@ test("digital identity page exposes public social profiles and GitHub tools safe
   assert.match(html, /مرز حریم خصوصی/);
   assert.match(html, /OFFICIAL SOCIAL DIRECTORY/);
   assert.match(html, /شناسه‌هایی است که مالک حساب معرفی کرده/);
-  assert.doesNotMatch(html, /l\\.siavash\\.l/);
-  assert.match(html, /<strong>06<\\/strong>/);
+  assert.ok(!html.includes("@l.siavash.l"));
+  assert.ok(html.includes("<strong>06</strong>"));
 });
 
 test("all static DOM IDs used by the application exist in the HTML", () => {
