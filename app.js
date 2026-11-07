@@ -923,6 +923,17 @@
     const button = $("#motionToggle");
     if (!visual || !button) return;
 
+    const reducedMotion = typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) {
+      visual.dataset.motionPaused = "true";
+      button.disabled = true;
+      button.textContent = "حرکت کاهش‌یافته";
+      button.setAttribute("aria-label", "حرکت‌های تزئینی طبق تنظیمات دستگاه کاهش یافته‌اند");
+      button.setAttribute("aria-pressed", "true");
+      return;
+    }
+
     button.addEventListener("click", () => {
       const paused = visual.dataset.motionPaused !== "true";
       visual.dataset.motionPaused = String(paused);
