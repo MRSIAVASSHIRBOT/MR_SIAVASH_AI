@@ -1,138 +1,34 @@
 "use strict";
-
-const SERVICE_NAME = "mr-siavash-ai-gateway";
-const API_PREFIX = "/v1";
-const CORS_METHODS = new Set(["GET"]);
-const CORS_HEADERS = new Set(["content-type", "x-request-id"]);
-const HEADER_TOKEN = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/;
-
-function securityHeaders() {
-  return {
-    "Content-Type": "application/json; charset=utf-8",
-    "Cache-Control": "no-store",
-    "X-Content-Type-Options": "nosniff",
-    "Referrer-Policy": "no-referrer",
-    "X-Frame-Options": "DENY",
-    "Content-Security-Policy": "default-src 'none'; frame-ancestors 'none'"
-  };
-}
-
-function allowedOrigins(env) {
-  if (typeof env.ALLOWED_ORIGINS !== "string") return new Set();
-  return new Set(env.ALLOWED_ORIGINS.split(",").map(value => value.trim()).filter(Boolean).flatMap(value => {
-    try {
-      const parsed = new URL(value);
-      return parsed.origin === value && (parsed.protocol === "https:" || parsed.protocol === "http:")
-        ? [parsed.origin]
-        : [];
-    } catch {
-      return [];
-    }
-  }));
-}
-
-function responseHeaders(request, env, requestId) {
-  const headers = new Headers(securityHeaders());
-  headers.set("X-Request-ID", requestId);
-  headers.append("Vary", "Origin");
-
-  const origin = request.headers.get("Origin");
-  if (origin && allowedOrigins(env).has(origin)) {
-    headers.set("Access-Control-Allow-Origin", origin);
-  }
-  return headers;
-}
-
-function jsonResponse(request, env, requestId, status, payload) {
-  const headers = responseHeaders(request, env, requestId);
-  if (status === 405) headers.set("Allow", "GET, OPTIONS");
-  return new Response(JSON.stringify(payload), { status, headers });
-}
-
-function requestId() {
-  return globalThis.crypto.randomUUID();
-}
-
-function rejectedPreflight(request, env, id) {
-  return jsonResponse(request, env, id, 403, {
-    error: { code: "cors_preflight_rejected", message: "The CORS preflight request is not permitted." },
-    request_id: id
-  });
-}
-
-function preflightResponse(request, env, id) {
-  const origin = request.headers.get("Origin");
-  if (!origin || !allowedOrigins(env).has(origin)) return rejectedPreflight(request, env, id);
-
-  const method = request.headers.get("Access-Control-Request-Method");
-  if (!method || !CORS_METHODS.has(method)) return rejectedPreflight(request, env, id);
-
-  const requestedHeaders = (request.headers.get("Access-Control-Request-Headers") || "")
-    .split(",")
-    .map(value => value.trim().toLowerCase())
-    .filter(Boolean);
-  if (requestedHeaders.some(header => !HEADER_TOKEN.test(header) || !CORS_HEADERS.has(header))) {
-    return rejectedPreflight(request, env, id);
-  }
-
-  const headers = responseHeaders(request, env, id);
-  headers.set("Access-Control-Allow-Methods", Array.from(CORS_METHODS).join(", "));
-  headers.set("Access-Control-Allow-Headers", Array.from(CORS_HEADERS).join(", "));
-  headers.set("Access-Control-Max-Age", "600");
-  return new Response(null, { status: 204, headers });
-}
-
-async function checkDatabase(env) {
-  if (!env.DB || typeof env.DB.prepare !== "function") {
-    return { ok: false, reason: "database_binding_missing" };
-  }
-
-  try {
-    const result = await env.DB.prepare("SELECT 1 AS ok").first();
-    if (!result || result.ok !== 1) return { ok: false, reason: "database_check_failed" };
-    return { ok: true };
-  } catch {
-    return { ok: false, reason: "database_unavailable" };
-  }
-}
-
-export default {
-  async fetch(request, env) {
-    const id = requestId();
-    const url = new URL(request.url);
-
-    if (request.method === "OPTIONS") {
-      return preflightResponse(request, env, id);
-    }
-
-    if (request.method !== "GET") {
-      return jsonResponse(request, env, id, 405, {
-        error: { code: "method_not_allowed", message: "Only GET and OPTIONS are supported." },
-        request_id: id
-      });
-    }
-
-    if (url.pathname === `${API_PREFIX}/health/live`) {
-      return jsonResponse(request, env, id, 200, {
-        status: "ok",
-        service: SERVICE_NAME,
-        request_id: id
-      });
-    }
-
-    if (url.pathname === `${API_PREFIX}/health/ready`) {
-      const database = await checkDatabase(env);
-      return jsonResponse(request, env, id, database.ok ? 200 : 503, {
-        status: database.ok ? "ready" : "not_ready",
-        service: SERVICE_NAME,
-        dependencies: { database: database.ok ? "ready" : "unavailable" },
-        request_id: id
-      });
-    }
-
-    return jsonResponse(request, env, id, 404, {
-      error: { code: "not_found", message: "The requested API route does not exist." },
-      request_id: id
-    });
-  }
-};
+const SERVICE="mr-siavash-ai-gateway";
+const METHODS=new Set(["GET","POST","PATCH"]);
+const HEADERS=new Set(["content-type","authorization","x-request-id"]);
+const CATEGORIES=new Set(["question","suggestion","complaint","bug","other"]);
+const STATUSES=new Set(["open","in_progress","waiting_user","resolved"]);
+const FAQ=[
+{title:"معرفی سایت",text:"MR_SIAVASH_AI یک اکوسیستم ماژولار برای یادگیری، توسعه نرم‌افزار، امنیت دفاعی، هوش مصنوعی و خلق محتواست.",href:"./index.html#home",keywords:"سایت معرفی خانه اکوسیستم"},
+{title:"آموزش پایتون",text:"دوره پایتون مقدماتی شامل ۱۲ درس فارسی، مثال‌های Python 3، خروجی مورد انتظار و تمرین است. پیشرفت در مرورگر ذخیره می‌شود. سایت کد را اجرا نمی‌کند؛ برای اجرا Python 3 را نصب کن.",href:"./python.html",keywords:"python پایتون آموزش مقدماتی برنامه نویسی درس"},
+{title:"ماژول‌ها",text:"در بخش ماژول‌ها می‌توانی فهرست قابلیت‌ها را مرور و جزئیات هر ماژول را مشاهده کنی. قابلیت‌های فعال از موارد نقشه راه جدا هستند.",href:"./index.html#modules",keywords:"ماژول ابزار قابلیت"},
+{title:"فضای کار",text:"فضای کار برای مدیریت کارهای شخصی در مرورگر فعلی است. همگام‌سازی ابری و حساب کاربری در نسخه فعلی فعال نیست.",href:"./index.html#workspace",keywords:"فضای کار وظیفه task"},
+{title:"پشتیبانی",text:"از مرکز پشتیبانی می‌توانی سؤال، پیشنهاد، انتقاد، شکایت یا گزارش خطا ثبت کنی. کد پیگیری و کلید خصوصی دریافت می‌کنی؛ کلید را محرمانه نگه دار.",href:"./index.html#support",keywords:"کمک پشتیبانی شکایت انتقاد پیشنهاد گزارش خطا"},
+{title:"جست‌وجوی سایت",text:"با دکمه جست‌وجو یا میانبر Ctrl+K صفحات، دوره پایتون و ماژول‌ها را پیدا کن.",href:"./index.html#search",keywords:"جستجو search ctrl k"}
+];
+const json=(req,env,id,status,data)=>{const h=new Headers({"Content-Type":"application/json; charset=utf-8","Cache-Control":"no-store","X-Content-Type-Options":"nosniff","Referrer-Policy":"no-referrer","X-Frame-Options":"DENY","Content-Security-Policy":"default-src 'none'; frame-ancestors 'none'","X-Request-ID":id,"Vary":"Origin"});const origin=req.headers.get("Origin");if(origin&&origins(env).has(origin))h.set("Access-Control-Allow-Origin",origin);if(status===405)h.set("Allow","GET, POST, PATCH, OPTIONS");return new Response(JSON.stringify(data),{status,headers:h});};
+const fail=(code,message,id)=>({error:{code,message},request_id:id});
+function origins(env){return new Set((env.ALLOWED_ORIGINS||"").split(",").map(x=>x.trim()).filter(x=>{try{const u=new URL(x);return u.origin===x&&["https:","http:"].includes(u.protocol);}catch{return false;}}));}
+function preflight(req,env,id){const origin=req.headers.get("Origin"),method=req.headers.get("Access-Control-Request-Method"),headers=(req.headers.get("Access-Control-Request-Headers")||"").split(",").map(x=>x.trim().toLowerCase()).filter(Boolean);if(!origin||!origins(env).has(origin)||!METHODS.has(method)||headers.some(x=>!HEADERS.has(x)||!/^[!#$%&'*+.^_`|~0-9a-z-]+$/.test(x)))return json(req,env,id,403,fail("cors_preflight_rejected","CORS preflight rejected.",id));const h=new Headers({"Access-Control-Allow-Origin":origin,"Access-Control-Allow-Methods":"GET, POST, PATCH","Access-Control-Allow-Headers":"content-type, authorization, x-request-id","Access-Control-Max-Age":"600","Vary":"Origin","X-Request-ID":id});return new Response(null,{status:204,headers:h});}
+async function body(req){const length=Number(req.headers.get("content-length")||0);if(length>12288)return{ok:false,status:413};if(!req.body)return{ok:false,status:400};const r=req.body.getReader(),chunks=[];let size=0;try{while(true){const x=await r.read();if(x.done)break;size+=x.value.byteLength;if(size>12288){await r.cancel();return{ok:false,status:413};}chunks.push(x.value);}}finally{r.releaseLock();}try{const bytes=new Uint8Array(size);let off=0;for(const x of chunks){bytes.set(x,off);off+=x.byteLength;}const value=JSON.parse(new TextDecoder("utf-8",{fatal:true}).decode(bytes));return value&&typeof value==="object"&&!Array.isArray(value)?{ok:true,value}:{ok:false,status:400};}catch{return{ok:false,status:400};}}
+const sha=async s=>{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s));return Array.from(new Uint8Array(b),x=>x.toString(16).padStart(2,"0")).join("");};
+function token(){const b=new Uint8Array(32);crypto.getRandomValues(b);return Array.from(b,x=>x.toString(16).padStart(2,"0")).join("");}
+async function limit(db,scope,req,max){const ip=req.headers.get("CF-Connecting-IP")||"unknown",bucket=await sha(scope+":"+ip);const row=await db.prepare("INSERT INTO api_rate_limits(bucket,window_started_at,request_count,expires_at) VALUES(?,unixepoch(),1,unixepoch()+3600) ON CONFLICT(bucket) DO UPDATE SET request_count=CASE WHEN excluded.window_started_at>=api_rate_limits.window_started_at+60 THEN 1 ELSE api_rate_limits.request_count+1 END,window_started_at=CASE WHEN excluded.window_started_at>=api_rate_limits.window_started_at+60 THEN excluded.window_started_at ELSE api_rate_limits.window_started_at END,expires_at=unixepoch()+3600 RETURNING request_count").bind(bucket).first();return Boolean(row&&row.request_count<=max);}
+const norm=s=>String(s||"").normalize("NFKC").toLowerCase().replace(/[يى]/g,"ی").replace(/ك/g,"ک").replace(/[\u064b-\u065f\u0670\u0640]/g," ").replace(/[^\p{L}\p{N}]+/gu," ").trim();
+function knowledge(q){const terms=norm(q).split(/\s+/).filter(x=>x.length>1);return FAQ.map(x=>({...x,score:terms.filter(t=>norm(x.title+" "+x.text+" "+x.keywords).includes(t)).length})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,3);}
+async function assistant(req,env,id){if(!env.DB)return json(req,env,id,503,fail("database_unavailable","سرویس پشتیبانی موقتاً در دسترس نیست.",id));const p=await body(req);if(!p.ok)return json(req,env,id,p.status,fail("invalid_json","بدنه درخواست نامعتبر یا بیش از حد بزرگ است.",id));const message=typeof p.value.message==="string"?p.value.message.trim():"";if(!message||message.length>1200)return json(req,env,id,400,fail("invalid_message","پیام باید بین ۱ تا ۱۲۰۰ نویسه باشد.",id));if(!await limit(env.DB,"assistant",req,20))return json(req,env,id,429,fail("rate_limited","کمی صبر کن و دوباره تلاش کن.",id));const found=knowledge(message);if(!found.length)return json(req,env,id,200,{answer:"برای این سؤال منبع تأییدشده‌ای در دانش سایت پیدا نکردم و نمی‌خواهم پاسخ حدسی بدهم. می‌توانی گفتگو را به پشتیبانی انسانی ارجاع بدهی.",sources:[],handoff:true,mode:"knowledge_fallback",request_id:id});if(env.AI&&typeof env.AI.run==="function"&&typeof env.AI_MODEL==="string"&&env.AI_MODEL.startsWith("@cf/")){try{const history=Array.isArray(p.value.history)?p.value.history.filter(x=>x&&(x.role==="user"||x.role==="assistant")&&typeof x.content==="string").slice(-6).map(x=>({role:x.role,content:x.content.slice(0,800)})):[];const result=await env.AI.run(env.AI_MODEL,{messages:[{role:"system",content:"You are MR_SIAVASH_AI website support. Reply in the user's language. Answer only from verified website context. Never invent site features, status, pricing or policies. If context is insufficient, say so and recommend human support. Never request passwords or payment details. You cannot execute actions."},{role:"system",content:"Verified website context: "+JSON.stringify(found.map(x=>({title:x.title,text:x.text,href:x.href})))},...history,{role:"user",content:message}],max_tokens:450});const answer=typeof result==="string"?result:result?.response||result?.output_text;if(typeof answer==="string"&&answer.trim())return json(req,env,id,200,{answer:answer.trim().slice(0,3000),sources:found.map(x=>({title:x.title,href:x.href})),handoff:false,mode:"ai_grounded",request_id:id});}catch(e){console.error(JSON.stringify({event:"assistant_inference_failed",message:String(e).slice(0,160)}));}}return json(req,env,id,200,{answer:found[0].text,sources:found.map(x=>({title:x.title,href:x.href})),handoff:false,mode:"knowledge_fallback",request_id:id});}
+function fromB64(s){const v=s.replace(/-/g,"+").replace(/_/g,"/");return Uint8Array.from(atob(v+"=".repeat((4-v.length%4)%4)),c=>c.charCodeAt(0));}
+function jwtPart(s){return JSON.parse(new TextDecoder().decode(fromB64(s)));}
+async function adminIdentity(req,env){if(!env.CF_ACCESS_TEAM_DOMAIN||!env.CF_ACCESS_AUD||!env.ADMIN_EMAILS)return null;let issuer;try{const u=new URL(env.CF_ACCESS_TEAM_DOMAIN.startsWith("https://")?env.CF_ACCESS_TEAM_DOMAIN:"https://"+env.CF_ACCESS_TEAM_DOMAIN);if(u.protocol!=="https:"||u.pathname!=="/")return null;issuer=u.origin;}catch{return null;}const jwt=req.headers.get("Cf-Access-Jwt-Assertion");if(!jwt||jwt.length>8192)return null;const parts=jwt.split(".");if(parts.length!==3)return null;try{const h=jwtPart(parts[0]),c=jwtPart(parts[1]),now=Math.floor(Date.now()/1000);if(h.alg!=="RS256"||!h.kid||c.iss!==issuer||!Array.isArray(c.aud)||!c.aud.includes(env.CF_ACCESS_AUD)||!Number.isFinite(c.exp)||c.exp<=now||(Number.isFinite(c.nbf)&&c.nbf>now)||typeof c.email!=="string")return null;if(!env.ADMIN_EMAILS.split(",").map(x=>x.trim().toLowerCase()).includes(c.email.toLowerCase()))return null;const r=await fetch(issuer+"/cdn-cgi/access/certs");if(!r.ok)return null;const keys=await r.json(),jwk=keys.keys?.find(x=>x.kid===h.kid&&x.kty==="RSA"&&x.alg==="RS256");if(!jwk)return null;const key=await crypto.subtle.importKey("jwk",jwk,{name:"RSASSA-PKCS1-v1_5",hash:"SHA-256"},false,["verify"]);const valid=await crypto.subtle.verify("RSASSA-PKCS1-v1_5",key,fromB64(parts[2]),new TextEncoder().encode(parts[0]+"."+parts[1]));return valid?{email:c.email.toLowerCase()}:null;}catch{return null;}}
+const bearer=req=>{const m=/^Bearer ([a-f0-9]{64})$/i.exec(req.headers.get("Authorization")||"");return m?.[1]||null;};
+async function createTicket(req,env,id,value){if(!env.DB)return json(req,env,id,503,fail("database_unavailable","ذخیره‌سازی پشتیبانی در دسترس نیست.",id));const subject=typeof value.subject==="string"?value.subject.trim().slice(0,120):"",message=typeof value.message==="string"?value.message.trim().slice(0,4000):"",email=typeof value.contact_email==="string"?value.contact_email.trim().slice(0,254):"",category=CATEGORIES.has(value.category)?value.category:"other";const transcript=Array.isArray(value.messages)?value.messages.slice(-10).filter(x=>x&&(x.role==="user"||x.role==="assistant")&&typeof x.content==="string"&&x.content.trim()&&x.content.length<=4000):[];if(!subject||(!message&&!transcript.some(x=>x.role==="user"))||(email&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)))return json(req,env,id,400,fail("invalid_ticket","موضوع و پیام لازم است؛ ایمیل اختیاری باید معتبر باشد.",id));if(value.website)return json(req,env,id,202,{accepted:true,request_id:id});if(!await limit(env.DB,"ticket-create",req,5))return json(req,env,id,429,fail("rate_limited","برای ثبت درخواست جدید کمی صبر کن.",id));const ticketId=crypto.randomUUID(),secret=token(),code="MS-"+Array.from(crypto.getRandomValues(new Uint8Array(5)),x=>x.toString(16).padStart(2,"0")).join("").toUpperCase(),now=new Date().toISOString();const messages=transcript.length?transcript:[{role:"user",content:message}];if(message&&!messages.some(x=>x.role==="user"&&x.content===message))messages.push({role:"user",content:message});const stmts=[env.DB.prepare("INSERT INTO support_tickets(id,ticket_code,access_token_hash,category,subject,contact_email,status,created_at,updated_at) VALUES(?,?,?,?,?,?,'open',?,?)").bind(ticketId,code,await sha(secret),category,subject,email||null,now,now),...messages.map(x=>env.DB.prepare("INSERT INTO support_messages(id,ticket_id,sender_role,body,created_at) VALUES(?,?,?,?,?)").bind(crypto.randomUUID(),ticketId,x.role==="assistant"?"assistant":"user",x.content.trim(),now))];await env.DB.batch(stmts);return json(req,env,id,201,{ticket:{id:ticketId,code,token:secret,status:"open"},notice:"کلید خصوصی فقط یک‌بار نمایش داده می‌شود؛ آن را محرمانه نگه دار.",request_id:id});}
+async function publicTicket(req,env,id,ticketId,reply){if(!env.DB)return json(req,env,id,503,fail("database_unavailable","ذخیره‌سازی در دسترس نیست.",id));const secret=bearer(req);if(!secret)return json(req,env,id,404,fail("ticket_not_found","درخواست پیدا نشد یا کلید خصوصی معتبر نیست.",id));const ticket=await env.DB.prepare("SELECT id,ticket_code,category,subject,status,created_at,updated_at FROM support_tickets WHERE id=? AND access_token_hash=?").bind(ticketId,await sha(secret)).first();if(!ticket)return json(req,env,id,404,fail("ticket_not_found","درخواست پیدا نشد یا کلید خصوصی معتبر نیست.",id));if(!reply&&req.method==="GET"){const m=await env.DB.prepare("SELECT sender_role,body,created_at FROM support_messages WHERE ticket_id=? ORDER BY created_at ASC,id ASC LIMIT 100").bind(ticketId).all();return json(req,env,id,200,{ticket,messages:m.results||[],request_id:id});}if(reply&&req.method==="POST"){const p=await body(req);if(!p.ok)return json(req,env,id,p.status,fail("invalid_json","بدنه درخواست نامعتبر است.",id));const message=typeof p.value.message==="string"?p.value.message.trim():"";if(!message||message.length>4000)return json(req,env,id,400,fail("invalid_message","پیام باید بین ۱ تا ۴۰۰۰ نویسه باشد.",id));if(!await limit(env.DB,"ticket-reply",req,10))return json(req,env,id,429,fail("rate_limited","کمی صبر کن و دوباره تلاش کن.",id));const now=new Date().toISOString();await env.DB.batch([env.DB.prepare("INSERT INTO support_messages(id,ticket_id,sender_role,body,created_at) VALUES(?,?, 'user',?,?)").bind(crypto.randomUUID(),ticketId,message,now),env.DB.prepare("UPDATE support_tickets SET status='open',updated_at=? WHERE id=? AND status!='resolved'").bind(now,ticketId)]);return json(req,env,id,201,{accepted:true,request_id:id});}return json(req,env,id,405,fail("method_not_allowed","روش درخواست مجاز نیست.",id));}
+async function admin(req,env,id,path){const identity=await adminIdentity(req,env);if(!identity)return json(req,env,id,401,fail("admin_auth_required","دسترسی مدیریتی تأیید نشد.",id));if(!env.DB)return json(req,env,id,503,fail("database_unavailable","پایگاه داده در دسترس نیست.",id));if(path==="/v1/admin/support/tickets"&&req.method==="GET"){const status=new URL(req.url).searchParams.get("status"),q=status&&STATUSES.has(status)?await env.DB.prepare("SELECT id,ticket_code,category,subject,contact_email,status,created_at,updated_at FROM support_tickets WHERE status=? ORDER BY updated_at DESC LIMIT 100").bind(status).all():await env.DB.prepare("SELECT id,ticket_code,category,subject,contact_email,status,created_at,updated_at FROM support_tickets ORDER BY updated_at DESC LIMIT 100").all();return json(req,env,id,200,{tickets:q.results||[],admin:identity.email,request_id:id});}const detail=/^\/v1\/admin\/support\/tickets\/([0-9a-f-]{36})$/.exec(path),reply=/^\/v1\/admin\/support\/tickets\/([0-9a-f-]{36})\/messages$/.exec(path),change=/^\/v1\/admin\/support\/tickets\/([0-9a-f-]{36})\/status$/.exec(path);if(detail&&req.method==="GET"){const ticket=await env.DB.prepare("SELECT id,ticket_code,category,subject,contact_email,status,created_at,updated_at FROM support_tickets WHERE id=?").bind(detail[1]).first();if(!ticket)return json(req,env,id,404,fail("ticket_not_found","درخواست پیدا نشد.",id));const messages=await env.DB.prepare("SELECT sender_role,body,created_at FROM support_messages WHERE ticket_id=? ORDER BY created_at ASC,id ASC LIMIT 100").bind(detail[1]).all();return json(req,env,id,200,{ticket,messages:messages.results||[],request_id:id});}if(reply&&req.method==="POST"){const p=await body(req);if(!p.ok)return json(req,env,id,p.status,fail("invalid_json","بدنه درخواست نامعتبر است.",id));const message=typeof p.value.message==="string"?p.value.message.trim():"";if(!message||message.length>4000)return json(req,env,id,400,fail("invalid_message","متن پاسخ نامعتبر است.",id));const now=new Date().toISOString();await env.DB.batch([env.DB.prepare("INSERT INTO support_messages(id,ticket_id,sender_role,body,created_at) VALUES(?,?, 'admin',?,?)").bind(crypto.randomUUID(),reply[1],message,now),env.DB.prepare("UPDATE support_tickets SET status='waiting_user',updated_at=? WHERE id=?").bind(now,reply[1])]);return json(req,env,id,201,{accepted:true,request_id:id});}if(change&&req.method==="PATCH"){const p=await body(req);if(!p.ok)return json(req,env,id,p.status,fail("invalid_json","بدنه درخواست نامعتبر است.",id));if(!STATUSES.has(p.value.status))return json(req,env,id,400,fail("invalid_status","وضعیت نامعتبر است.",id));const r=await env.DB.prepare("UPDATE support_tickets SET status=?,updated_at=? WHERE id=?").bind(p.value.status,new Date().toISOString(),change[1]).run();if(!r.meta?.changes)return json(req,env,id,404,fail("ticket_not_found","درخواست پیدا نشد.",id));return json(req,env,id,200,{accepted:true,request_id:id});}return json(req,env,id,404,fail("not_found","مسیر مدیریتی پیدا نشد.",id));}
+async function ready(env){try{return Boolean(env.DB&&await env.DB.prepare("SELECT 1 AS ok").first().then(x=>x?.ok===1));}catch{return false;}}
+export default{async fetch(req,env){const id=crypto.randomUUID(),u=new URL(req.url);if(req.method==="OPTIONS")return preflight(req,env,id);if(!["GET","POST","PATCH"].includes(req.method))return json(req,env,id,405,fail("method_not_allowed","روش درخواست پشتیبانی نمی‌شود.",id));if(u.pathname==="/v1/health/live"&&req.method==="GET")return json(req,env,id,200,{status:"ok",service:SERVICE,request_id:id});if(u.pathname==="/v1/health/ready"&&req.method==="GET"){const ok=await ready(env);return json(req,env,id,ok?200:503,{status:ok?"ready":"not_ready",service:SERVICE,dependencies:{database:ok?"ready":"unavailable"},request_id:id});}if(u.pathname==="/v1/assistant/chat"&&req.method==="POST")return assistant(req,env,id);if(u.pathname==="/v1/support/tickets"&&req.method==="POST"){const p=await body(req);if(!p.ok)return json(req,env,id,p.status,fail("invalid_json","بدنه درخواست نامعتبر است.",id));return createTicket(req,env,id,p.value);}const t=/^\/v1\/support\/tickets\/([0-9a-f-]{36})(\/messages)?$/.exec(u.pathname);if(t)return publicTicket(req,env,id,t[1],Boolean(t[2]));if(u.pathname.startsWith("/v1/admin/"))return admin(req,env,id,u.pathname);return json(req,env,id,404,fail("not_found","مسیر API پیدا نشد.",id));}};
