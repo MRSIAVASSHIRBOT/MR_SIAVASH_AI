@@ -75,3 +75,6 @@ Ticket credentials are random one-time bearer tokens; only SHA-256 hashes are st
 
 
 Validation note: the current PR checks the exact allowlisted gateway origin in the static site's CSP and the gateway's credentialed CORS policy; no wildcard origin is accepted.
+
+
+The administrator dashboard is served by the Worker at `/admin`, on the same origin as the protected API. Configure a path-scoped Cloudflare Access application for `/admin` and `/v1/admin/*`; this avoids depending on third-party cookies from the GitHub Pages origin. The Worker also validates the Access JWT itself.
