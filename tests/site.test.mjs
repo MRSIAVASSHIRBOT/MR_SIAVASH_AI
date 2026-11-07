@@ -881,11 +881,15 @@ test("hero pointer tilt is bounded, frame-throttled, and reset on pause or point
   const attributes = {};
   let frameCallback = null;
   let frameId = 0;
+  const scene = {
+    dataset: {},
+    style: { setProperty(name, value) { styles[name] = value; } }
+  };
   const visual = {
     dataset: {},
-    style: { setProperty(name, value) { styles[name] = value; } },
     addEventListener(name, callback) { visualEvents[name] = callback; },
-    getBoundingClientRect() { return { left: 0, top: 0, width: 200, height: 100 }; }
+    getBoundingClientRect() { return { left: 0, top: 0, width: 200, height: 100 }; },
+    querySelector(selector) { return selector === ".hero-scene" ? scene : null; }
   };
   const button = {
     disabled: false,
@@ -905,7 +909,7 @@ test("hero pointer tilt is bounded, frame-throttled, and reset on pause or point
     addEventListener(name, callback) { documentEvents[name] = callback; }
   };
   const init = vm.runInNewContext("(() => { " + source + "; return initMotionControls; })()", {
-    $: selector => selector === ".hero-visual" ? visual : button, window: windowStub, document: documentStub
+    $: (selector, root) => selector === ".hero-visual" ? visual : selector === ".hero-scene" ? root.querySelector(selector) : button, window: windowStub, document: documentStub
   });
 
   init();
@@ -917,12 +921,12 @@ test("hero pointer tilt is bounded, frame-throttled, and reset on pause or point
   renderFrame();
   assert.equal(styles["--hero-tilt-x"], "4.00deg");
   assert.equal(styles["--hero-tilt-y"], "4.00deg");
-  assert.equal(visual.dataset.tilting, "true");
+  assert.equal(scene.dataset.tilting, "true");
 
   visualEvents.pointerleave();
   assert.equal(styles["--hero-tilt-x"], "0deg");
   assert.equal(styles["--hero-tilt-y"], "0deg");
-  assert.equal(visual.dataset.tilting, "false");
+  assert.equal(scene.dataset.tilting, "false");
 
   visualEvents.pointermove({ pointerType: "mouse", clientX: 200, clientY: 0 });
   buttonEvents.click();
@@ -948,11 +952,12 @@ test("hero pointer tilt is not enabled for reduced-motion or coarse-pointer user
   const visualEvents = {};
   const buttonEvents = {};
   const attributes = {};
+  const scene = { dataset: {}, style: { setProperty() {} } };
   const visual = {
     dataset: {},
-    style: { setProperty() {} },
     addEventListener(name, callback) { visualEvents[name] = callback; },
-    getBoundingClientRect() { return { left: 0, top: 0, width: 100, height: 100 }; }
+    getBoundingClientRect() { return { left: 0, top: 0, width: 100, height: 100 }; },
+    querySelector(selector) { return selector === ".hero-scene" ? scene : null; }
   };
   const button = {
     addEventListener(name, callback) { buttonEvents[name] = callback; },
@@ -966,7 +971,7 @@ test("hero pointer tilt is not enabled for reduced-motion or coarse-pointer user
   };
   const documentStub = { visibilityState: "visible", addEventListener() {} };
   const init = vm.runInNewContext("(() => { " + source + "; return initMotionControls; })()", {
-    $: selector => selector === ".hero-visual" ? visual : button, window: windowStub, document: documentStub
+    $: (selector, root) => selector === ".hero-visual" ? visual : selector === ".hero-scene" ? root.querySelector(selector) : button, window: windowStub, document: documentStub
   });
   init();
   assert.equal(button.disabled, true);
