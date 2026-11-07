@@ -724,7 +724,9 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline-offset:4px; }
   border-radius:9px;
   background:rgba(8,16,11,.78);
   color:#b9d9c2;
-  font:9px/1.4 inherit;
+  font-family:inherit;
+  font-size:9px;
+  line-height:1.4;
   cursor:pointer;
   transition:background .2s ease,border-color .2s ease,color .2s ease;
   backdrop-filter:blur(12px);
