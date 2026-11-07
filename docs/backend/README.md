@@ -1,6 +1,6 @@
 # Backend foundation — implementation gate
 
-This directory contains API design artifacts and validation tooling; it is not a user-facing backend implementation and does not turn the static GitHub Pages site into an account service. A separate health-only Cloudflare Worker resource has been uploaded, but its HTTP runtime has not yet been independently verified.
+This directory contains API design artifacts and validation tooling; it is not a user-facing backend implementation and does not turn the static GitHub Pages site into an account service. The deployed health-only Cloudflare Worker has passed independent liveness and D1-readiness HTTP checks. The exact-origin CORS smoke workflow is being aligned with the live binding and deployed preflight behavior.
 
 ## Contract
 - openapi.yaml defines the proposed v1 boundary for health, public module metadata and authenticated per-user workspace tasks.
@@ -10,7 +10,7 @@ This directory contains API design artifacts and validation tooling; it is not a
 
 ## Selected deployment boundary
 
-ADR 0001 selects a dedicated Cloudflare Worker for the API while retaining GitHub Pages for the current frontend. The Cloudflare account has a dedicated `mr-siavash-ai-gateway` Worker resource and `mr-siavash-ai-prod` D1 database; an initial health-only Worker version was uploaded. However, no independent HTTP smoke test has verified runtime behavior, and the repository does not yet have a reproducible Wrangler manifest or Worker deployment workflow. The Pages deployment does not publish Worker changes, so merged source must not be assumed to be live. Never reuse GShop's `gahop` Worker or `gshop-db` database.
+ADR 0001 selects a dedicated Cloudflare Worker for the API while retaining GitHub Pages for the current frontend. The Cloudflare account has a dedicated `mr-siavash-ai-gateway` Worker resource and `mr-siavash-ai-prod` D1 database; an initial health-only Worker version was uploaded. Independent HTTP checks confirmed `GET /v1/health/live` and `GET /v1/health/ready` return healthy responses. The deployed `ALLOWED_ORIGINS` binding is exactly `https://mrsiavasshirbot.github.io`. Runtime inspection found a source-parity gap: the deployed bundle answers OPTIONS with 204 for any origin and emits `Access-Control-Allow-Origin` only for an exact allowlisted origin; the current repository source rejects invalid preflights with 403. The browser receives no CORS grant for an untrusted origin, but the deployed bundle is not yet aligned with the stricter repository implementation. No production Worker code was changed during this work. The repository does not yet have a reproducible Wrangler manifest or Worker deployment workflow. The Pages deployment does not publish Worker changes, so merged source must not be assumed to be live. Never reuse GShop's `gahop` Worker or `gshop-db` database.
 
 ## D1 schema foundation
 
