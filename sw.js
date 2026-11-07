@@ -1,7 +1,7 @@
 "use strict";
 
 const CACHE_PREFIX = "mr-siavash-ai-shell-";
-const CACHE_NAME = CACHE_PREFIX + "v15";
+const CACHE_NAME = CACHE_PREFIX + "v16";
 const MAX_MODULE_REGISTRY_BYTES = 64 * 1024;
 const SHELL_FILES = ["./", "./index.html", "./styles.css", "./app.js", "./favicon.svg", "./manifest.webmanifest", "./modules.json"];
 
