@@ -30,9 +30,9 @@ test("Cloudflare gateway runtime smoke checks live health and exact-origin CORS"
   assert.match(gatewaySmokeWorkflowText, /dependencies\?\.database!==\"ready\"/);
   assert.match(gatewaySmokeWorkflowText, /Access-Control-Request-Method: GET/);
   assert.match(gatewaySmokeWorkflowText, /https:\/\/untrusted\.invalid/);
-  assert.match(gatewaySmokeWorkflowText, /case \\"\\$status\\" in/);
+  assert.match(gatewaySmokeWorkflowText, /case "\\$status" in/);
   assert.match(gatewaySmokeWorkflowText, /204\\|403/);
-  assert.match(gatewaySmokeWorkflowText, /--dump-header \\"\\$headers_file\\"/);
+  assert.match(gatewaySmokeWorkflowText, /--dump-header "\\$headers_file"/);
   assert.match(gatewaySmokeWorkflowText, /access-control-allow-origin:/);
   assert.doesNotMatch(gatewaySmokeWorkflowText, /(?:CF_API_TOKEN|CLOUDFLARE_API_TOKEN|Authorization: Bearer)/i);
 });
