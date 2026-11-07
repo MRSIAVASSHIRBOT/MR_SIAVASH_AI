@@ -69,7 +69,7 @@ The Worker source implements a site-grounded assistant, support ticket creation 
 
 Migration `0003_support_inbox.sql` creates ticket, message and hashed-IP rate-limit tables. It has NOT been applied to production. Before enabling these routes, apply it to the dedicated `mr-siavash-ai-prod` D1 database and verify the deployed Worker. Never use `gshop-db`.
 
-Required settings: `DB`, exact-origin `ALLOWED_ORIGINS`, optional `AI` and `AI_MODEL`, and `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`, `ADMIN_EMAILS` for administrator access. Configure a Cloudflare Access application and restrict it to the administrator identity. Admin endpoints independently verify JWT signature, issuer, audience, expiry and email allowlist.
+Required settings: `DB`, exact-origin `ALLOWED_ORIGINS`, optional `AI` and optional `AI_MODEL` (default `@cf/zai-org/glm-4.7-flash`), and `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`, `ADMIN_EMAILS` for administrator access. Configure a Cloudflare Access application and restrict it to the administrator identity. Admin endpoints independently verify JWT signature, issuer, audience, expiry and email allowlist.
 
 Ticket credentials are random one-time bearer tokens; only SHA-256 hashes are stored. Raw client IPs are not stored. Email delivery, retention and erasure automation remain future work.
 
