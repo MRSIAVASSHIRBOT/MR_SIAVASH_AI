@@ -955,7 +955,7 @@
       window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reducedMotion) return;
 
-    const targets = $("[data-reveal]");
+    const targets = $$("[data-reveal]");
     if (!targets.length) return;
 
     const observer = new window.IntersectionObserver((entries, activeObserver) => {
