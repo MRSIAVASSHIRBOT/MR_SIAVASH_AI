@@ -59,3 +59,14 @@ A successful liveness response is not a readiness signal. A successful readiness
 ## CORS preflight policy
 
 Preflight requests are accepted only when the origin exactly matches `ALLOWED_ORIGINS`, the requested method is `GET`, and every requested header is in the explicit `Content-Type` / `X-Request-ID` allowlist. Unsupported methods, untrusted or missing origins, and unapproved or malformed headers receive a `403` response without granting CORS access. CORS is a browser access policy, not authentication or authorization; non-browser clients must still be treated as untrusted.
+
+
+## Hybrid assistant and human support (source-only)
+
+The Worker source implements a site-grounded assistant, support ticket creation and private ticket conversations, plus Cloudflare Access-protected administrator list/detail/reply/status routes. Workers AI is optional: the Worker invokes it only when both the `AI` binding and an `AI_MODEL` beginning with `@cf/` are configured. Otherwise it uses verified FAQ content or explicitly recommends human support.
+
+Migration `0003_support_inbox.sql` creates ticket, message and hashed-IP rate-limit tables. It has NOT been applied to production. Before enabling these routes, apply it to the dedicated `mr-siavash-ai-prod` D1 database and verify the deployed Worker. Never use `gshop-db`.
+
+Required settings: `DB`, exact-origin `ALLOWED_ORIGINS`, optional `AI` and `AI_MODEL`, and `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`, `ADMIN_EMAILS` for administrator access. Configure a Cloudflare Access application and restrict it to the administrator identity. Admin endpoints independently verify JWT signature, issuer, audience, expiry and email allowlist.
+
+Ticket credentials are random one-time bearer tokens; only SHA-256 hashes are stored. Raw client IPs are not stored. Email delivery, retention and erasure automation remain future work.
