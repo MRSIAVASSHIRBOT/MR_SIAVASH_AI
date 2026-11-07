@@ -4,7 +4,7 @@ This directory contains the first isolated Worker service for MR_SIAVASH_AI. It 
 
 ## Deployment status
 
-The health-only Worker was uploaded on 2026-11-06 as `mr-siavash-ai-gateway` and its workers.dev subdomain is enabled: `https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev`. Its control-plane configuration was read back and confirms the dedicated D1 binding, exact GitHub Pages origin allowlist, and observability settings. The Worker has not yet received an independent HTTP runtime smoke test through this integration; verify both health endpoints from an external client before depending on them.
+The health-only Worker was uploaded on 2026-11-06 as `mr-siavash-ai-gateway` and its workers.dev subdomain is enabled: `https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev`. Its control-plane configuration was read back on 2026-11-07 and confirms the dedicated D1 binding, exact GitHub Pages origin allowlist, and observability settings. This readback verifies resource configuration only; it does not prove runtime reachability or that the deployed bundle matches the latest repository source. The Worker has not yet received an independent HTTP runtime smoke test through this integration; verify both health endpoints from an external client before depending on them.
 
 The dedicated production D1 database is `mr-siavash-ai-prod` in Cloudflare's WEUR region. It currently has no tables and contains no user data. No custom domain, DNS record, or public product API route has been added.
 
