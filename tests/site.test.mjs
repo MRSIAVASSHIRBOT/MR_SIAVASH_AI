@@ -141,7 +141,9 @@ test("proposed backend contract is explicitly design-only and versioned", async 
   assert.match(api, /bearerAuth/);
   assert.match(api, /Idempotency-Key/);
   assert.match(api, /additionalProperties: false/);
-  assert.match(backendGuide, /does not contain a running backend/);
+  assert.match(backendGuide, /not a user-facing backend implementation/);
+  assert.match(backendGuide, /health-only Cloudflare Worker resource has been uploaded/);
+  assert.match(backendGuide, /HTTP runtime has not yet been independently verified/);
 });
 
 test("D1 migrations persist verified identity mappings and enforce owner foreign keys", async () => {
@@ -169,7 +171,8 @@ test("security and roadmap docs define production gates", async () => {
   assert.match(threat, /cross-user isolation tests/);
   assert.match(threat, /secrets and tool permissions remain server-side/i);
   assert.match(roadmap, /parallel workstreams/);
-  assert.match(roadmap, /No backend endpoints are live/);
+  assert.match(roadmap, /No user-facing product API, authentication, or cloud workspace endpoint is live/);
+  assert.match(roadmap, /independent HTTP runtime verification is still outstanding/);
 });
 
 test("workspace task controls are wired to accessible UI elements", () => {
