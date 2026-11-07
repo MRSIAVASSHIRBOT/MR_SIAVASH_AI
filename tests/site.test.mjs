@@ -141,7 +141,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v17"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v18"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -211,7 +211,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v17"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v18"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -384,7 +384,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v17"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v18"/);
 });
 
 
@@ -1139,4 +1139,18 @@ test("scroll reveal leaves content untouched without observer support or when mo
   assert.deepEqual(rootClasses, []);
   run({ IntersectionObserver: function () {}, matchMedia: () => ({ matches: true }) }).call();
   assert.deepEqual(rootClasses, []);
+});
+
+
+test("global search and support center are wired without inline script execution", () => {
+  assert.match(html, /id="globalSearchButton"/);
+  assert.match(html, /id="siteSearchDialog"/);
+  assert.match(html, /id="supportLauncher"/);
+  assert.match(html, /id="supportDialog"/);
+  assert.match(html, /id="ticketTrackForm"/);
+  assert.match(html, /support\.js/);
+  assert.match(html, /support\.css/);
+  assert.match(app, /support\.js/);
+  assert.match(sw, /"\.\/support\.js"/);
+  assert.match(sw, /"\.\/support\.css"/);
 });
