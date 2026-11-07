@@ -760,3 +760,29 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline-offset:4px; }
   .orbit-core,.hero-visual:hover .orbit-core { transform:translate(-50%,-50%); }
   .module-card:hover,.identity-link-card:hover { transform:none; }
 }
+
+
+/* Version 0.9 — scroll-aware motion and browser lifecycle efficiency */
+html.reveal-ready [data-reveal="up"] {
+  opacity:0;
+  transform:translate3d(0,18px,0);
+  transition:opacity .68s cubic-bezier(.2,.7,.2,1),transform .68s cubic-bezier(.2,.7,.2,1);
+}
+html.reveal-ready [data-reveal="up"].is-revealed {
+  opacity:1;
+  transform:translate3d(0,0,0);
+}
+#featuredGrid[data-reveal="up"] { transition-delay:.04s; }
+.principles-band[data-reveal="up"] { transition-delay:.08s; }
+.hero-visual[data-page-hidden="true"] .orbit,
+.hero-visual[data-page-hidden="true"] .orbit-node,
+.hero-visual[data-page-hidden="true"] .orbit-core {
+  animation-play-state:paused;
+}
+@media(prefers-reduced-motion:reduce) {
+  html.reveal-ready [data-reveal="up"] {
+    opacity:1;
+    transform:none;
+    transition:none;
+  }
+}
