@@ -93,3 +93,14 @@ No license has been granted yet. All rights are reserved by the repository owner
 - docs/PLATFORM_CONTRACTS.md defines shared integration and production-readiness requirements.
 
 These are design artifacts only. No backend API, real authentication, account system or cloud synchronization is deployed by the static site.
+
+
+## Hybrid support and global search
+
+- Global search indexes site sections, module cards and the Python Academy course; use Ctrl+K.
+- The floating support center includes a site-grounded assistant, direct tickets, ticket follow-up using a one-time private key, and human handoff.
+- Gateway endpoints: POST /v1/assistant/chat; POST /v1/support/tickets; GET /v1/support/tickets/:code; POST /v1/support/tickets/:code/messages; administrator list/detail/reply/status routes under /v1/admin/support/tickets.
+- D1 migration 0003 adds support tickets, messages and hashed-IP rate-limit buckets. It is source-only and has not been applied to production.
+- AI generation is optional and runs only with an AI binding and configured AI_MODEL. Otherwise the assistant uses verified FAQ content and explicitly hands off unknown questions.
+- Admin APIs verify Cloudflare Access JWT signature, issuer, audience, expiry and administrator email allowlist. Configure the Access application and Worker variables before enabling the admin inbox.
+- A ticket token is displayed once and never persisted in browser storage. Store it privately to check replies later.
