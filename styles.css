@@ -789,13 +789,19 @@ html.reveal-ready [data-reveal="up"].is-revealed {
 
 
 /* Version 1.0 — pointer-responsive 3D hero with bounded motion */
-.hero-visual {
+.hero-scene {
   --hero-tilt-x:0deg;
   --hero-tilt-y:0deg;
+  position:absolute;
+  z-index:1;
+  inset:0;
+  pointer-events:none;
+  transform-style:preserve-3d;
   transform:rotateX(var(--hero-tilt-x)) rotateY(var(--hero-tilt-y));
   transition:transform .2s ease-out;
 }
-.hero-visual[data-tilting="true"] { will-change:transform; }
+.hero-scene[data-tilting="true"] { will-change:transform; }
+.hero-visual .visual-topline { z-index:3; }
 @media(prefers-reduced-motion:reduce) {
-  .hero-visual { transform:none; transition:none; }
+  .hero-scene { transform:none; transition:none; }
 }
