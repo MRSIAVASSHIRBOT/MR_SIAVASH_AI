@@ -869,6 +869,112 @@ test("hero experience includes accessible 3D motion controls and reduced-motion 
   assert.match(css, /\.orbit-outer,\.orbit-inner,\.orbit-node,\.orbit-core\s*\{\s*animation:none !important;/);
 });
 
+test("hero pointer tilt is bounded, frame-throttled, and reset on pause or pointer exit", () => {
+  const start = app.indexOf("  function initMotionControls() {");
+  const end = app.indexOf("  function initScrollReveal()", start);
+  assert.ok(start >= 0 && end > start, "motion control function boundaries must exist");
+  const source = app.slice(start, end);
+  const visualEvents = {};
+  const buttonEvents = {};
+  const documentEvents = {};
+  const styles = {};
+  const attributes = {};
+  let frameCallback = null;
+  let frameId = 0;
+  const visual = {
+    dataset: {},
+    style: { setProperty(name, value) { styles[name] = value; } },
+    addEventListener(name, callback) { visualEvents[name] = callback; },
+    getBoundingClientRect() { return { left: 0, top: 0, width: 200, height: 100 }; }
+  };
+  const button = {
+    disabled: false,
+    textContent: "",
+    addEventListener(name, callback) { buttonEvents[name] = callback; },
+    setAttribute(name, value) { attributes[name] = value; }
+  };
+  const motionPreference = { matches: false, addEventListener(name, callback) { this.listener = callback; } };
+  const pointerPreference = { matches: true };
+  const windowStub = {
+    matchMedia(query) { return query.includes("prefers-reduced-motion") ? motionPreference : pointerPreference; },
+    requestAnimationFrame(callback) { frameCallback = callback; return ++frameId; },
+    cancelAnimationFrame() { frameCallback = null; }
+  };
+  const documentStub = {
+    visibilityState: "visible",
+    addEventListener(name, callback) { documentEvents[name] = callback; }
+  };
+  const init = vm.runInNewContext("(() => { " + source + "; return initMotionControls; })()", {
+    $, window: windowStub, document: documentStub
+  });
+
+  init();
+  assert.equal(typeof visualEvents.pointermove, "function");
+  visualEvents.pointermove({ pointerType: "mouse", clientX: 200, clientY: 0 });
+  assert.equal(typeof frameCallback, "function");
+  const renderFrame = frameCallback;
+  frameCallback = null;
+  renderFrame();
+  assert.equal(styles["--hero-tilt-x"], "4.00deg");
+  assert.equal(styles["--hero-tilt-y"], "4.00deg");
+  assert.equal(visual.dataset.tilting, "true");
+
+  visualEvents.pointerleave();
+  assert.equal(styles["--hero-tilt-x"], "0deg");
+  assert.equal(styles["--hero-tilt-y"], "0deg");
+  assert.equal(visual.dataset.tilting, "false");
+
+  visualEvents.pointermove({ pointerType: "mouse", clientX: 200, clientY: 0 });
+  buttonEvents.click();
+  assert.equal(visual.dataset.motionPaused, "true");
+  assert.equal(attributes["aria-pressed"], "true");
+  assert.equal(styles["--hero-tilt-x"], "0deg");
+  frameCallback = null;
+  visualEvents.pointermove({ pointerType: "mouse", clientX: 200, clientY: 0 });
+  assert.equal(frameCallback, null);
+
+  buttonEvents.click();
+  assert.equal(visual.dataset.motionPaused, "false");
+  documentStub.visibilityState = "hidden";
+  documentEvents.visibilitychange();
+  assert.equal(visual.dataset.pageHidden, "true");
+  assert.equal(styles["--hero-tilt-y"], "0deg");
+});
+
+test("hero pointer tilt is not enabled for reduced-motion or coarse-pointer users", () => {
+  const start = app.indexOf("  function initMotionControls() {");
+  const end = app.indexOf("  function initScrollReveal()", start);
+  const source = app.slice(start, end);
+  const visualEvents = {};
+  const buttonEvents = {};
+  const attributes = {};
+  const visual = {
+    dataset: {},
+    style: { setProperty() {} },
+    addEventListener(name, callback) { visualEvents[name] = callback; },
+    getBoundingClientRect() { return { left: 0, top: 0, width: 100, height: 100 }; }
+  };
+  const button = {
+    addEventListener(name, callback) { buttonEvents[name] = callback; },
+    setAttribute(name, value) { attributes[name] = value; }
+  };
+  const motionPreference = { matches: true, addEventListener() {} };
+  const pointerPreference = { matches: false };
+  const windowStub = {
+    matchMedia(query) { return query.includes("prefers-reduced-motion") ? motionPreference : pointerPreference; },
+    requestAnimationFrame() { throw new Error("RAF must not be requested"); }
+  };
+  const documentStub = { visibilityState: "visible", addEventListener() {} };
+  const init = vm.runInNewContext("(() => { " + source + "; return initMotionControls; })()", {
+    $, window: windowStub, document: documentStub
+  });
+  init();
+  assert.equal(button.disabled, true);
+  assert.equal(attributes["aria-pressed"], "true");
+  assert.equal(visual.dataset.motionPaused, "true");
+  assert.equal(visualEvents.pointermove, undefined);
+});
+
 test("decorative 3D illustration layers are hidden from assistive technology", () => {
   assert.match(html, /class="orbit orbit-outer" aria-hidden="true"/);
   assert.match(html, /class="orbit orbit-inner" aria-hidden="true"/);
