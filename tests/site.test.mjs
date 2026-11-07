@@ -1159,3 +1159,8 @@ test("global search and support center are wired without inline script execution
   assert.match(sw, /"\.\/support\.css"/);
   assert.doesNotMatch(support, /innerHTML\s*=/);
 });
+
+test("global search indexes hidden sections and the support center", () => {
+  assert.match(support, /s\\.textContent/);
+  assert.match(support, /مرکز پشتیبانی/);
+});
