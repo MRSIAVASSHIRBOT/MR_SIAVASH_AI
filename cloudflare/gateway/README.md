@@ -72,3 +72,6 @@ Migration `0003_support_inbox.sql` creates ticket, message and hashed-IP rate-li
 Required settings: `DB`, exact-origin `ALLOWED_ORIGINS`, optional `AI` and `AI_MODEL`, and `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`, `ADMIN_EMAILS` for administrator access. Configure a Cloudflare Access application and restrict it to the administrator identity. Admin endpoints independently verify JWT signature, issuer, audience, expiry and email allowlist.
 
 Ticket credentials are random one-time bearer tokens; only SHA-256 hashes are stored. Raw client IPs are not stored. Email delivery, retention and erasure automation remain future work.
+
+
+Validation note: the current PR checks the exact allowlisted gateway origin in the static site's CSP and the gateway's credentialed CORS policy; no wildcard origin is accepted.
