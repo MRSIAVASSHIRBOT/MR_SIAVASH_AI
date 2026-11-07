@@ -876,6 +876,7 @@ test("decorative 3D illustration layers are hidden from assistive technology", (
 test("scroll reveal is progressive enhancement and respects reduced motion", () => {
   assert.match(html, /data-reveal="up"/);
   assert.match(app, /function initScrollReveal\(\)/);
+  assert.match(app, /const targets = \$\$\("\[data-reveal\]"\)/);
   assert.match(app, /typeof window\.IntersectionObserver !== "function"/);
   assert.match(app, /window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)/);
   assert.match(app, /entry\.target\.classList\.add\("is-revealed"\)/);
@@ -893,4 +894,73 @@ test("hero animation pauses while the browser document is hidden", () => {
   assert.match(app, /document\.addEventListener\("visibilitychange", syncVisibility\)/);
   assert.match(css, /hero-visual\[data-page-hidden="true"\]/);
   assert.match(css, /animation-play-state:paused/);
+});
+
+
+test("scroll reveal observes target collections and reveals intersecting elements", () => {
+  const start = app.indexOf("  function initScrollReveal() {");
+  const end = app.indexOf("\\n  function init()", start);
+  assert.ok(start >= 0 && end > start, "scroll reveal function boundaries must exist");
+  const source = app.slice(start, end);
+  const targets = [
+    { classList: { values: [], add(value) { this.values.push(value); } } },
+    { classList: { values: [], add(value) { this.values.push(value); } } }
+  ];
+  let callback;
+  let observed = [];
+  let unobserved = [];
+  const rootClasses = [];
+  function FakeObserver(handler, options) {
+    callback = handler;
+    this.options = options;
+    this.observe = target => observed.push(target);
+    this.unobserve = target => unobserved.push(target);
+  }
+  const windowStub = {
+    IntersectionObserver: FakeObserver,
+    matchMedia: () => ({ matches: false })
+  };
+  const documentStub = {
+    documentElement: { classList: { add(value) { rootClasses.push(value); } } }
+  };
+  const init = vm.runInNewContext("(() => { " + source + "; return initScrollReveal; })()", {
+    window: windowStub,
+    document: documentStub,
+    $$: selector => {
+      assert.equal(selector, "[data-reveal]");
+      return targets;
+    }
+  });
+
+  init();
+  assert.deepEqual(observed, targets);
+  assert.equal(callback instanceof Function, false);
+  assert.equal(rootClasses[0], "reveal-ready");
+  assert.equal(callback.length, 2);
+  callback([
+    { isIntersecting: false, target: targets[0] },
+    { isIntersecting: true, target: targets[1] }
+  ], { unobserve: target => unobserved.push(target) });
+  assert.deepEqual(targets[0].classList.values, []);
+  assert.deepEqual(targets[1].classList.values, ["is-revealed"]);
+  assert.deepEqual(unobserved, [targets[1]]);
+});
+
+test("scroll reveal leaves content untouched without observer support or when motion is reduced", () => {
+  const start = app.indexOf("  function initScrollReveal() {");
+  const end = app.indexOf("\\n  function init()", start);
+  const source = app.slice(start, end);
+  const rootClasses = [];
+  const documentStub = {
+    documentElement: { classList: { add(value) { rootClasses.push(value); } } }
+  };
+  const run = windowStub => vm.runInNewContext(
+    "(() => { " + source + "; return initScrollReveal; })()",
+    { window: windowStub, document: documentStub, $$: () => [{ classList: { add() {} } }] }
+  );
+
+  run({}).call();
+  assert.deepEqual(rootClasses, []);
+  run({ IntersectionObserver: function () {}, matchMedia: () => ({ matches: true }) }).call();
+  assert.deepEqual(rootClasses, []);
 });
