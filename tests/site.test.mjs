@@ -854,7 +854,11 @@ test("static document enforces a restrictive self-hosted Content Security Policy
   assert.deepEqual(directives.get("object-src"), ["'none'"]);
   assert.deepEqual(directives.get("frame-src"), ["'none'"]);
   assert.ok(directives.has("upgrade-insecure-requests"));
-  assert.doesNotMatch(match[1], /unsafe-inline|unsafe-eval|https?:\/\//i);
+  assert.deepEqual(directives.get("connect-src"), ["'self'", "https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev"]);
+  const nonConnectSources = [...directives.entries()].filter(([name]) => name !== "connect-src").flatMap(([, values]) => values).join(" ");
+  assert.equal(nonConnectSources.includes("https://"), false);
+  assert.equal(nonConnectSources.includes("unsafe-inline"), false);
+  assert.equal(nonConnectSources.includes("unsafe-eval"), false);
   assert.doesNotMatch(html, /\son[a-z]+\s*=/i, "inline event handlers would violate the policy");
   assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)[^>]*>/i, "inline scripts would violate the policy");
   assert.doesNotMatch(html, /\sstyle\s*=/i, "inline style attributes would violate the policy");
