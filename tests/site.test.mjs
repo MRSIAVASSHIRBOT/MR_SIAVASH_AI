@@ -124,7 +124,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v13"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v14"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /request\.mode === "navigate"/);
@@ -188,7 +188,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v13"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v14"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -361,7 +361,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v13"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v14"/);
 });
 
 
@@ -847,4 +847,27 @@ test("GitHub Pages deployment is restricted to successful main-branch non-PR run
   assert.match(workflowText, /id-token: write/);
   assert.match(workflowText, /url: \$\{\{ steps\.deployment\.outputs\.page_url \}\}/);
   assert.doesNotMatch(workflowText, /if: github\.event_name != 'pull_request'/);
+});
+
+
+test("hero experience includes accessible 3D motion controls and reduced-motion support", () => {
+  assert.match(html, /class="hero-visual"[^>]*data-motion-paused="false"/);
+  assert.match(html, /id="motionToggle"[^>]*aria-pressed="false"/);
+  assert.match(html, /توقف حرکت/);
+  assert.match(app, /function initMotionControls\(\)/);
+  assert.match(app, /visual\.dataset\.motionPaused = String\(paused\)/);
+  assert.match(app, /button\.setAttribute\("aria-pressed", String\(paused\)\)/);
+  assert.match(app, /initMotionControls\(\)/);
+  assert.match(css, /perspective:\s*1100px/);
+  assert.match(css, /@keyframes orbit-rotate-outer/);
+  assert.match(css, /@keyframes orbit-rotate-inner/);
+  assert.match(css, /animation-play-state:\s*paused/);
+  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
+  assert.match(css, /\.orbit-outer,\.orbit-inner,\.orbit-node,\.orbit-core\s*\{\s*animation:none !important;/);
+});
+
+test("decorative 3D illustration layers are hidden from assistive technology", () => {
+  assert.match(html, /class="orbit orbit-outer" aria-hidden="true"/);
+  assert.match(html, /class="orbit orbit-inner" aria-hidden="true"/);
+  assert.match(html, /class="orbit-core" aria-hidden="true"/);
 });

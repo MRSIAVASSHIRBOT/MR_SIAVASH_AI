@@ -635,3 +635,128 @@ button:focus-visible,a:focus-visible,input:focus-visible { outline-offset:4px; }
 @media (prefers-reduced-motion: reduce) {
   *,*::before,*::after { scroll-behavior:auto !important; animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
 }
+
+
+/* Version 0.8 — immersive 3D motion system and expressive typography */
+.hero-copy h1,
+.section-heading h2,
+.page-heading h1,
+.principles-intro h2 { text-wrap: balance; }
+.hero-copy h1 span {
+  background: linear-gradient(110deg,#a8f4bf 5%,#69d994 48%,#c0f6cf 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 8px 22px rgba(120,223,160,.13));
+}
+.hero-visual {
+  perspective: 1100px;
+  transform-style: preserve-3d;
+  isolation: isolate;
+}
+.hero-visual::after {
+  position:absolute;
+  inset:12% 16%;
+  z-index:0;
+  border-radius:50%;
+  background:radial-gradient(ellipse,rgba(105,217,148,.11),transparent 68%);
+  filter:blur(24px);
+  content:"";
+  pointer-events:none;
+}
+.orbit {
+  transform-style:preserve-3d;
+  backface-visibility:hidden;
+}
+.orbit-outer {
+  transform:translate(-50%,-50%) rotate(-20deg) rotateX(64deg);
+  animation:orbit-rotate-outer 34s linear infinite;
+}
+.orbit-inner {
+  transform:translate(-50%,-50%) rotate(35deg) rotateX(66deg);
+  animation:orbit-rotate-inner 27s linear infinite;
+}
+@keyframes orbit-rotate-outer {
+  from { transform:translate(-50%,-50%) rotate(-20deg) rotateX(64deg); }
+  to { transform:translate(-50%,-50%) rotate(340deg) rotateX(64deg); }
+}
+@keyframes orbit-rotate-inner {
+  from { transform:translate(-50%,-50%) rotate(35deg) rotateX(66deg); }
+  to { transform:translate(-50%,-50%) rotate(-325deg) rotateX(66deg); }
+}
+.orbit-node {
+  transform-style:preserve-3d;
+  animation:node-float 6.5s ease-in-out infinite;
+  box-shadow:0 15px 34px rgba(0,0,0,.25),0 0 26px rgba(120,223,160,.055);
+}
+.node-top { transform:translateX(-50%) translateZ(38px); animation-delay:-1.1s; }
+.node-right { transform:translateZ(30px); animation-delay:-2.8s; }
+.node-bottom { transform:translateX(-50%) translateZ(46px); animation-delay:-4.2s; }
+.node-left { transform:translateZ(24px); animation-delay:-.4s; }
+@keyframes node-float {
+  0%,100% { translate:0 0; }
+  50% { translate:0 -8px; }
+}
+.orbit-core {
+  transform:translate(-50%,-50%) translateZ(52px);
+  animation:core-breathe 5.8s ease-in-out infinite;
+  transition:filter .35s ease,transform .35s ease;
+}
+@keyframes core-breathe {
+  0%,100% { filter:brightness(1); }
+  50% { filter:brightness(1.16); }
+}
+.hero-visual:hover .orbit-core {
+  transform:translate(-50%,-50%) translateZ(68px) scale(1.035);
+}
+.hero-visual[data-motion-paused="true"] .orbit,
+.hero-visual[data-motion-paused="true"] .orbit-node,
+.hero-visual[data-motion-paused="true"] .orbit-core {
+  animation-play-state:paused;
+}
+.motion-toggle {
+  position:absolute;
+  z-index:5;
+  top:48px;
+  left:18px;
+  padding:7px 10px;
+  border:1px solid rgba(120,223,160,.22);
+  border-radius:9px;
+  background:rgba(8,16,11,.78);
+  color:#b9d9c2;
+  font-family:inherit;
+  font-size:9px;
+  line-height:1.4;
+  cursor:pointer;
+  transition:background .2s ease,border-color .2s ease,color .2s ease;
+  backdrop-filter:blur(12px);
+}
+.motion-toggle:hover {
+  border-color:rgba(120,223,160,.48);
+  background:rgba(31,75,46,.78);
+  color:var(--green-bright);
+}
+.motion-toggle:focus-visible { outline:2px solid var(--green); outline-offset:3px; }
+.module-card,
+.identity-link-card {
+  transform-style:preserve-3d;
+  backface-visibility:hidden;
+}
+.module-card:hover {
+  transform:perspective(1000px) translateY(-6px) rotateX(1.4deg) rotateY(-1deg) translateZ(5px);
+}
+.identity-link-card:hover {
+  transform:perspective(900px) translateY(-5px) rotateX(1deg) rotateY(-.8deg);
+}
+@media(max-width:680px) {
+  .motion-toggle { top:43px; left:12px; padding:6px 8px; font-size:8px; }
+  .hero-visual:hover .orbit-core { transform:translate(-50%,-50%) translateZ(52px); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .orbit-outer,.orbit-inner,.orbit-node,.orbit-core { animation:none !important; }
+  .orbit-outer { transform:translate(-50%,-50%) rotate(-20deg) rotateX(64deg); }
+  .orbit-inner { transform:translate(-50%,-50%) rotate(35deg) rotateX(66deg); }
+  .orbit-node { translate:none; }
+  .orbit-core,.hero-visual:hover .orbit-core { transform:translate(-50%,-50%); }
+  .module-card:hover,.identity-link-card:hover { transform:none; }
+}

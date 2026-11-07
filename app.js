@@ -918,11 +918,37 @@
     });
   }
 
+  function initMotionControls() {
+    const visual = $(".hero-visual");
+    const button = $("#motionToggle");
+    if (!visual || !button) return;
+
+    const reducedMotion = typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reducedMotion) {
+      visual.dataset.motionPaused = "true";
+      button.disabled = true;
+      button.textContent = "حرکت کاهش‌یافته";
+      button.setAttribute("aria-label", "حرکت‌های تزئینی طبق تنظیمات دستگاه کاهش یافته‌اند");
+      button.setAttribute("aria-pressed", "true");
+      return;
+    }
+
+    button.addEventListener("click", () => {
+      const paused = visual.dataset.motionPaused !== "true";
+      visual.dataset.motionPaused = String(paused);
+      button.setAttribute("aria-pressed", String(paused));
+      button.setAttribute("aria-label", paused ? "ادامه حرکت‌های تزئینی" : "توقف حرکت‌های تزئینی");
+      button.textContent = paused ? "ادامه حرکت" : "توقف حرکت";
+    });
+  }
+
   function init() {
     const retryButton = $("#retryRegistryButton");
     if (retryButton) retryButton.addEventListener("click", retryModuleRegistry);
     renderFeatured();
     initNavigation();
+    initMotionControls();
     initCatalog();
     initWorkspace();
     initInstallPrompt();
