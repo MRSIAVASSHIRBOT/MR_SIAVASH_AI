@@ -63,6 +63,8 @@ Preflight requests are accepted only when the origin exactly matches `ALLOWED_OR
 
 ## Hybrid assistant and human support (source-only)
 
+Quality checks are required on this stacked pull request before release.
+
 The Worker source implements a site-grounded assistant, support ticket creation and private ticket conversations, plus Cloudflare Access-protected administrator list/detail/reply/status routes. Workers AI is optional: the Worker invokes it only when both the `AI` binding and an `AI_MODEL` beginning with `@cf/` are configured. Otherwise it uses verified FAQ content or explicitly recommends human support.
 
 Migration `0003_support_inbox.sql` creates ticket, message and hashed-IP rate-limit tables. It has NOT been applied to production. Before enabling these routes, apply it to the dedicated `mr-siavash-ai-prod` D1 database and verify the deployed Worker. Never use `gshop-db`.
