@@ -98,7 +98,7 @@ A module cannot move to production until all applicable gates pass:
 
 ## 9. Current implementation boundary
 
-The current site remains a static browser application. The workspace is local to the browser profile. This document, the OpenAPI file, and the threat model are design artifacts. They do not create a backend, accounts, cloud sync, AI provider integration, or agent runtime.
+The current site remains a static browser application. The workspace is local to the browser profile. A separate Cloudflare Worker resource has been uploaded with health-only liveness/readiness routes and a dedicated D1 binding; its deployed HTTP behavior has not yet been independently smoke-tested, and the current repository source must not be assumed to match the uploaded Worker bundle. This is not a user-facing product API. This document, the OpenAPI file, and the threat model remain design artifacts; no accounts, authenticated workspace API, cloud sync, AI provider integration, or agent runtime are implemented.
 
 
 ### Browser-local cross-tab synchronization
