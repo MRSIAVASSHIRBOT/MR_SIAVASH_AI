@@ -12,9 +12,10 @@ function createHarness(fetchImpl = async () => new Response("asset", {
 }), cachedResponse = null) {
   const listeners = new Map();
   const writes = [];
+  const reads = [];
   let skipWaitingCalls = 0;
   const cache = {
-    async match() { return cachedResponse; },
+    async match(key) { reads.push(key.url || String(key)); return cachedResponse ? cachedResponse.clone() : null; },
     async put(key, value) { writes.push({ key: key.url || String(key), value }); },
     async add() {},
     async addAll(urls) { writes.push({ precache: urls }); }
@@ -31,7 +32,7 @@ function createHarness(fetchImpl = async () => new Response("asset", {
     async delete() { return true; }
   };
   vm.runInNewContext(source, { self, caches, URL, Set, Response, TextEncoder, TextDecoder, Uint8Array, fetch: fetchImpl, console });
-  return { listeners, writes, get skipWaitingCalls() { return skipWaitingCalls; } };
+  return { listeners, writes, reads, get skipWaitingCalls() { return skipWaitingCalls; } };
 }
 
 function dispatchFetch(listeners, request) {
@@ -294,4 +295,53 @@ test("navigation does not cache unsuccessful HTTP responses", async () => {
   });
   assert.equal(response.status, 503);
   assert.equal(writes.length, 0);
+});
+
+
+test("online navigation caches each supported course document at its own URL", async () => {
+  const targets = [
+    ["https://example.test/app/", "https://example.test/app/index.html"],
+    ["https://example.test/app/index.html", "https://example.test/app/index.html"],
+    ["https://example.test/app/python.html", "https://example.test/app/python.html"],
+    ["https://example.test/app/academy.html", "https://example.test/app/academy.html"]
+  ];
+  for (const [url, expectedCacheUrl] of targets) {
+    const { listeners, writes } = createHarness(async () => new Response("<html>course</html>", {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8" }
+    }));
+    const response = await dispatchFetch(listeners, { method: "GET", mode: "navigate", url });
+    assert.equal(response.status, 200, url);
+    assert.equal(writes.length, 1, url);
+    assert.equal(writes[0].key, expectedCacheUrl, url);
+  }
+});
+
+test("offline Python and academy direct navigation restores each page from its own cache entry", async () => {
+  const cached = new Response("<html>cached course</html>", {
+    status: 200,
+    headers: { "Content-Type": "text/html; charset=utf-8" }
+  });
+  for (const path of ["python.html", "academy.html"]) {
+    const { listeners, reads, writes } = createHarness(async () => {
+      throw new Error("offline");
+    }, cached);
+    const url = "https://example.test/app/" + path;
+    const response = await dispatchFetch(listeners, { method: "GET", mode: "navigate", url });
+    assert.equal(response.status, 200, path);
+    assert.match(await response.text(), /cached course/, path);
+    assert.deepEqual(reads, [url], path);
+    assert.equal(writes.length, 0, path);
+  }
+});
+
+test("offline course navigation returns a bounded 503 when its own page is not cached", async () => {
+  const { listeners } = createHarness(async () => {
+    throw new Error("offline");
+  });
+  const response = await dispatchFetch(listeners, {
+    method: "GET", mode: "navigate", url: "https://example.test/app/academy.html"
+  });
+  assert.equal(response.status, 503);
+  assert.match(await response.text(), /نسخه آفلاین صفحه در دسترس نیست/);
 });
