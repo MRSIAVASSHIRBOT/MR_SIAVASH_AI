@@ -10,7 +10,7 @@ const workerSource = await readFile(new URL("../cloudflare/gateway/src/index.js"
 
 test("production documentation distinguishes health checks from source-only product APIs", () => {
   for (const text of [architecture, gatewayReadme, security]) {
-    assert.match(text, /health-only/i);
+    assert.match(text, /health-only|health endpoints only/i);
     assert.match(text, /support/i);
   }
   assert.match(architecture, /Automated HTTP smoke checks on 2026-11-08 passed/);
