@@ -1271,7 +1271,7 @@ test("global search indexes every academy chapter and Python lesson with safe de
   assert.equal(new Set(index.items.map(item => item.id)).size, index.items.length);
   for (const item of [...academyLessons, ...pythonLessons]) {
     assert.ok(item.href.startsWith("./"));
-    assert.doesNotMatch(item.href, /^\\/\\//i);
+    assert.ok(!item.href.startsWith("//"));
     assert.ok(item.title.length > 0 && item.description.length > 0);
   }
   assert.match(academy, /params\.get\("course"\)/);
