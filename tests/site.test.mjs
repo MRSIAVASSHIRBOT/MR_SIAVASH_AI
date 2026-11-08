@@ -12,6 +12,7 @@ const supportCss = await readFile(new URL("../support.css", import.meta.url), "u
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
 const boundedJson = await readFile(new URL("../bounded-json.js", import.meta.url), "utf8");
+const searchSource = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
 const manifestText = await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8");
 const moduleRegistryText = await readFile(new URL("../modules.json", import.meta.url), "utf8");
 const moduleRegistry = JSON.parse(moduleRegistryText);
@@ -1371,18 +1372,16 @@ test("local support guide retries loading its index after an initial offline fai
     }]
   };
   const modules = { schema: "mr-siavash-ai-module-registry", version: 1, modules: [] };
-  const fetch = async path => {
-    fetchCalls++;
-    if (fetchCalls <= 2) throw new Error("simulated offline failure");
-    return {
-      ok: true,
-      headers: { get: name => name === "content-type" ? "application/json" : null },
-      text: async () => JSON.stringify(path.includes("search-index") ? index : modules)
-    };
+  const window = {
+    MRSIAVASHReadJson: async path => {
+      fetchCalls++;
+      if (fetchCalls <= 2) throw new Error("simulated offline failure");
+      return path.includes("search-index") ? index : modules;
+    }
   };
   vm.runInNewContext(support, {
     document,
-    fetch,
+    window,
     URL,
     TextEncoder,
     location: { href: "https://example.test/" }
@@ -1408,13 +1407,13 @@ test("support UI accurately identifies its local, non-generative guide", () => {
   assert.match(html, />یافتن راهنما<\/button>/);
   assert.doesNotMatch(html, /ارتباط مستقیم با پشتیبانی|ارجاع به پشتیبانی انسانی|گفتگو با ربات/);
   assert.doesNotMatch(support, /handoffButton|\.\/v1\/|method:"POST"/);
-  assert.match(support, /window\.MRSIAVASHReadJson/);
+  assert.ok(support.includes("window.MRSIAVASHReadJson"));
 });
 
 
 test("support and global search delegate public JSON reads to the shared bounded loader", () => {
-  assert.match(support, /window\\.MRSIAVASHReadJson/);
-  assert.match(searchSource, /window\\.MRSIAVASHReadJson/);
+  assert.ok(support.includes("window.MRSIAVASHReadJson"));
+  assert.ok(searchSource.includes("window.MRSIAVASHReadJson"));
   assert.match(boundedJson, /reader.cancel/);
   assert.match(boundedJson, /controller.abort/);
   assert.match(boundedJson, /credentials:"omit"/);
