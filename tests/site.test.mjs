@@ -184,7 +184,7 @@ test("proposed backend contract is explicitly design-only and versioned", async 
   assert.match(api, /Idempotency-Key/);
   assert.match(api, /additionalProperties: false/);
   assert.match(backendGuide, /not a user-facing backend implementation/);
-  assert.match(backendGuide, /deployed health-only Cloudflare Worker has passed independent liveness, D1-readiness, and CORS runtime smoke checks/);
+  assert.match(backendGuide, /production Worker is `mr-siavash-ai-gateway`/);
   assert.match(backendGuide, /independent liveness, D1-readiness, and CORS runtime smoke checks/);
 });
 
@@ -213,8 +213,9 @@ test("security and roadmap docs define production gates", async () => {
   assert.match(threat, /cross-user isolation tests/);
   assert.match(threat, /secrets and tool permissions remain server-side/i);
   assert.match(roadmap, /parallel workstreams/);
-  assert.match(roadmap, /No user-facing product API, authentication, or cloud workspace endpoint is live/);
-  assert.match(roadmap, /Aligning the production Worker source remains pending/);
+  assert.match(roadmap, /production Worker currently serves health\/readiness, a knowledge-fallback assistant endpoint, public support-ticket routes/);
+  assert.match(roadmap, /manual-only production release workflow/);
+  assert.match(roadmap, /retention decision/);
 });
 
 test("workspace task controls are wired to accessible UI elements", () => {
