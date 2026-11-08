@@ -32,6 +32,7 @@ jobs:
       - name: Check JavaScript syntax
         run: |
           node --check app.js
+          node --check ui-sounds.js
           node --check sw.js
           node --check support.js
           node --check support-admin.js
