@@ -103,7 +103,7 @@ No license has been granted yet. All rights are reserved by the repository owner
 
 The frontend remains static and does not itself provide authentication or cloud synchronization. Support, assistant and administrator routes exist in the repository source but are not deployed. Production D1 already contains the support schema. Cloudflare Access is configured for the administrator console and API paths, but the deployed Worker is still health-only. Workers AI is not bound to the production Worker.
 
-## Hybrid support and global search
+## Local support guide and global search
 
 - Global search indexes site sections, module cards and the Python Academy course; use Ctrl+K.
 - The floating support center currently provides a browser-local, keyword-ranked guide over public site metadata. It is not an LLM chatbot and does not send chat text to a server. Ticket submission, ticket tracking, and human handoff are disabled in the deployed UI until their Worker routes are deployed and independently verified.
