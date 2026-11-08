@@ -132,6 +132,20 @@ test("client code does not contain a hard-coded provider secret", () => {
 
 test("stylesheet braces are balanced", () => {
   assert.equal((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length);
+  assert.equal((supportCss.match(/\{/g) || []).length, (supportCss.match(/\}/g) || []).length);
+});
+
+test("support stylesheet has valid line endings and assistant source styles", () => {
+  assert.equal(supportCss.includes("\\n"), false, "literal backslash-n sequences must not appear in CSS");
+  assert.match(supportCss, /\.assistant-sources\s*\{/);
+  assert.match(supportCss, /safe-area-inset-bottom/);
+});
+
+test("cross-page interaction refinements include keyboard and reduced-motion support", () => {
+  assert.match(css, /:where\(button,a,input,select,textarea,\[tabindex\]\):focus-visible/);
+  assert.match(css, /@media\(forced-colors:active\)/);
+  assert.match(css, /@media\(prefers-reduced-motion:reduce\)/);
+  assert.match(css, /@media\(max-width:420px\)/);
 });
 
 test("web manifest is valid and scoped to the deployment path", () => {
