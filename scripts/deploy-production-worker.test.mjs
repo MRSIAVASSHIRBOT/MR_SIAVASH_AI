@@ -12,7 +12,7 @@ const settings = {
     { name: "ADMIN_EMAILS", type: "plain_text", text: "admin@example.test" },
     { name: "CF_ACCESS_TEAM_DOMAIN", type: "plain_text", text: "team.example.cloudflareaccess.com" },
     { name: "CF_ACCESS_AUD", type: "plain_text", text: "audience-test" },
-    { name: "PRIVATE_TOKEN", type: "secret_text" }
+    { name: "PRIVATE_TOKEN", type: "secret_text", value: "secret-value-never-copy" }
   ]
 };
 
@@ -140,6 +140,6 @@ test("secret values are not copied into uploaded version metadata", () => {
   const metadata = buildVersionMetadata(settings, {
     expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f"
   });
-  assert.doesNotMatch(JSON.stringify(metadata), /PRIVATE_TOKEN|secret_text/);
+  assert.doesNotMatch(JSON.stringify(metadata), /PRIVATE_TOKEN|secret-value-never-copy/);
   assert.ok(metadata.keep_bindings.includes("secret_text"));
 });
