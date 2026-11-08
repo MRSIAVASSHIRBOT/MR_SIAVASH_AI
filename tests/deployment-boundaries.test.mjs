@@ -22,7 +22,7 @@ test("production documentation distinguishes deployed routes from current source
     assert.match(doc, /retention/i);
   }
   assert.match(gatewayReadme, /does \*\*not\*\* yet contain `GET \/v1\/modules`/);
-  assert.match(gatewayReadme, /public support-ticket create\/read\/reply endpoints/);
+  assert.match(gatewayReadme, /public support ticket creation\/read\/reply endpoints/);
   assert.match(gatewayReadme, /ticket submission and tracking disabled/i);
 });
 
