@@ -110,13 +110,14 @@ test("support ticket credentials are stored as hashes and authorize private foll
  const created = await worker.fetch(req("/v1/support/tickets", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ category: "question", subject: "پرسش آزمایشی", message: "سلام، این یک آزمون است." })
+  body: JSON.stringify({ category: "question", subject: "پرسش آزمایشی", message: "سلام، این یک آزمون است.", consent: true })
  }), { DB: store.db, SUPPORT_RETENTION_DAYS: "90" });
  assert.equal(created.status, 201);
  const data = await created.json();
  const { id, code, token: secret } = data.ticket;
  assert.match(code, /^MS-[A-F0-9]{16}$/);
  assert.match(secret, /^[a-f0-9]{64}$/);
+ assert.equal(data.ticket.retention_days,90);
  const stored = store.tickets.get(id);
  assert.ok(stored);
  assert.notEqual(stored.access_token_hash, secret);
