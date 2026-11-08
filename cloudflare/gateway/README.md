@@ -63,7 +63,7 @@ Preview intentionally has no Access audience/administrator bindings and no Worke
 
 The Worker source contains a scheduled cleanup handler. It deletes support tickets after the configured number of days without an update; the D1 foreign-key cascade deletes linked messages. It also deletes expired idempotency records and rate-limit buckets. Allowed retention periods are 30–365 days.
 
-Preview uses 90 days. Production retention is an explicit opt-in in the manual release workflow and defaults to disabled. This matters because production D1 already contains support records. Do not enable a retention cron or delete existing records without the repository owner's explicit selection of the retention period.
+Preview remains configured for 90 days in its isolated database. The selected production retention period is 30 days; production retention is still an explicit opt-in and remains disabled until a separately approved production release. Enabling the cleanup schedule can delete existing production tickets that have been inactive for 30 days, so the release requires a final data-impact review. The selection itself has not changed production bindings, schedules or records.
 
 Ticket creation requires an explicit privacy acknowledgement and an active 30–365-day retention setting. The public interface enables new intake only after the Worker confirms both. Existing-ticket tracking remains available when D1 is healthy. Ticket tokens are returned once and stored only as SHA-256 hashes; the browser sends them in the Authorization header and never puts them in URLs, logs, localStorage or analytics. Do not collect passwords, payment data, API keys or authentication codes.
 
