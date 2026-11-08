@@ -100,7 +100,7 @@ async function cloudflareRequest(path, { token, fetchImpl = fetch, ...options } 
   return payload.result;
 }
 
-async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false } = {}) {
+async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false, retentionDays = 90 } = {}) {
   const base = "https://" + WORKER + ".mrsiavashirbot.workers.dev";
   async function call(path, init, status) {
     const response = await fetchImpl(base + path, init);
@@ -114,6 +114,8 @@ async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSuppo
   if (live.body.status !== "ok") throw new Error("Production liveness payload is invalid.");
   const ready = await call("/v1/health/ready", {}, 200);
   if (ready.body.status !== "ready" || ready.body.dependencies?.database !== "ready") throw new Error("Production D1 readiness payload is invalid.");
+  if (ready.body.features?.publicSupport !== enableSupportRetention) throw new Error("Production support readiness does not match the approved retention setting.");
+  if (enableSupportRetention && ready.body.features?.supportRetentionDays !== retentionDays) throw new Error("Production support retention days do not match the approved release input.");
   const modules = await call("/v1/modules", {}, 200);
   if (!Array.isArray(modules.body.items) || modules.body.items.length !== 9) throw new Error("Production module catalog does not match the reviewed nine-module contract.");
 
@@ -224,7 +226,7 @@ export async function releaseProductionWorker({
       });
     }
 
-    await smokeProduction(fetchImpl, { enableWorkersAI, enableSupportRetention });
+    await smokeProduction(fetchImpl, { enableWorkersAI, enableSupportRetention, retentionDays });
     const finalSettings = await cloudflareRequest(prefix + "/settings", { token, fetchImpl });
     const obs = finalSettings.observability || {};
     if (obs.redact_query_string !== true || obs.logs?.enabled !== true || obs.traces?.enabled !== true) {
