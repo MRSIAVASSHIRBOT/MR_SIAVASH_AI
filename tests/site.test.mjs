@@ -69,6 +69,11 @@ test("navigation buttons have real section targets", () => {
   assert.match(html, /href="\.\/studio\.html"/, "digital studio must be reachable from the main site");
 });
 
+test("support deep links open the existing support center", () => {
+  assert.match(app, /if \(viewName === "support"\)[\s\S]*?supportDialog\.showModal\(\)/);
+  assert.match(html, /id="supportDialog"/);
+});
+
 test("digital identity page exposes public social profiles and GitHub tools safely", () => {
   assert.match(html, /id="view-identity"/);
   assert.match(html, /data-view="identity"/);
