@@ -2,7 +2,7 @@
 
 ## Scope
 
-The public website is a static GitHub Pages application. A separate Cloudflare Worker, `mr-siavash-ai-gateway`, is deployed on its `workers.dev` hostname. The production script was last verified on 2026-11-08 to expose only:
+The public website is a static GitHub Pages application. A separate Cloudflare Worker, `mr-siavash-ai-gateway`, is deployed on its `workers.dev` hostname. The production script was last verified on 2026-11-08 to expose health endpoints only:
 
 - `GET /v1/health/live`
 - `GET /v1/health/ready`
