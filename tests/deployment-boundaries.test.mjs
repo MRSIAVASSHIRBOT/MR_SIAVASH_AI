@@ -21,11 +21,11 @@ test("production documentation distinguishes health checks from source-only prod
   assert.doesNotMatch(architecture, /independent HTTP runtime smoke test remains outstanding/);
 });
 
-test("admin page does not claim Access is enabled before production configuration", () => {
+test("admin page distinguishes configured Access from undeployed admin routes", () => {
   assert.match(adminPage, /noindex,nofollow/);
   assert.match(adminPage, /هنوز در محیط تولید فعال نشده/);
-  assert.match(adminPage, /Cloudflare Access نیز هنوز برای این حساب فعال نشده است/);
-  assert.doesNotMatch(adminPage, /محافظت می‌شود/);
+  assert.match(adminPage, /Cloudflare Access برای مسیرهای مدیریتی پیکربندی شده است/);
+  assert.doesNotMatch(adminPage, /Cloudflare Access نیز هنوز برای این حساب فعال نشده است/);
   assert.doesNotMatch(adminPage, /workers\.dev\/admin/);
 });
 
