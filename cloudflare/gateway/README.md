@@ -1,6 +1,6 @@
 # Cloudflare Gateway
 
-The gateway is a dedicated Worker for MR_SIAVASH_AI. It is isolated from GShop and uses its own production and preview D1 databases.
+The production Worker and isolated preview Worker are dedicated Cloudflare services for MR_SIAVASH_AI. They are isolated from GShop and use separate production and preview D1 databases.
 
 ## Cloudflare resources
 
