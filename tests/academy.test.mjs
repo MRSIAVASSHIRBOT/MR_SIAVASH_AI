@@ -6,7 +6,8 @@ const html = await readFile(new URL("../academy.html", import.meta.url), "utf8")
 const js = await readFile(new URL("../academy.js", import.meta.url), "utf8");
 const css = await readFile(new URL("../academy.css", import.meta.url), "utf8");
 const home = await readFile(new URL("../index.html", import.meta.url), "utf8");
-const search = await readFile(new URL("../support.js", import.meta.url), "utf8");
+const search = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
+const searchIndex = JSON.parse(await readFile(new URL("../search-index.json", import.meta.url), "utf8"));
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
 test("academy exposes six structured courses and thirty chapters", () => {
@@ -36,11 +37,12 @@ test("academy tracks progress locally and renders lesson content as text", () =>
 
 test("academy navigation, global search, and offline shell are integrated", () => {
   assert.match(home, /href="\.\/academy\.html">آکادمی آموزش/);
-  assert.match(search, /آکادمی برنامه‌نویسی/);
+  assert.ok(searchIndex.items.some(item => item.title === "آکادمی" || item.title.includes("HTML از پایه")));
+  assert.match(search, /mr-siavash-ai-search-index|readJson/);
   assert.match(sw, /"\.\/academy\.html"/);
   assert.match(sw, /"\.\/academy\.css"/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v23"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v24"/);
 });
 
 test("academy layout supports mobile, keyboard, and reduced-motion preferences", () => {
