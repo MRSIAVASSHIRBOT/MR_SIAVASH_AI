@@ -46,7 +46,13 @@ jobs:
 
           ready_body="$(curl --fail --silent --show-error --max-time 15 "$GATEWAY_BASE_URL/v1/health/ready")"
           public_support="$(node -e 'const x=JSON.parse(process.argv[1]);process.stdout.write(typeof x.features?.publicSupport==="boolean"?String(x.features.publicSupport):"legacy")' "$ready_body")"
-          invalid_status="$(curl --silent --show-error --max-time 15 --output /tmp/invalid-ticket.json --write-out '%{http_code}' --request POST "$GATEWAY_BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"subject":"","message":""}')"
+          consent_required="$(node -e 'const x=JSON.parse(process.argv[1]);process.stdout.write(String(x.features?.supportConsentRequired===true))' "$ready_body")"
+          if [ "$consent_required" = "true" ]; then
+            consent_status="$(curl --silent --show-error --max-time 15 --output /tmp/consent-ticket.json --write-out '%{http_code}' --request POST "$GATEWAY_BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"category":"question","subject":"Smoke check","message":"Consent gate check"}')"
+            test "$consent_status" = "400"
+            node -e 'const x=JSON.parse(require("node:fs").readFileSync("/tmp/consent-ticket.json","utf8"));if(x.error?.code!=="consent_required")process.exit(1)'
+          fi
+          invalid_status="$(curl --silent --show-error --max-time 15 --output /tmp/invalid-ticket.json --write-out '%{http_code}' --request POST "$GATEWAY_BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"subject":"","message":"","consent":true}')"
           if [ "$public_support" = "false" ]; then
             test "$invalid_status" = "503"
             node -e 'const x=JSON.parse(require("node:fs").readFileSync("/tmp/invalid-ticket.json","utf8"));if(x.error?.code!=="support_retention_required")process.exit(1)'
