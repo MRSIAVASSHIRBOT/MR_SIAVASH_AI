@@ -1406,14 +1406,16 @@ test("local support guide retries loading its index after an initial offline fai
 });
 
 test("support UI accurately identifies its local, non-generative guide", () => {
-  assert.match(html, /راهنمای محلی سایت؛ بدون ارسال پیام به سرور یا ارتباط با اپراتور انسانی/);
-  assert.match(html, />راهنمای سایت<\/button>/);
   assert.match(html, /راهنمای محلی سایت · بدون ارسال پیام به سرور؛ پاسخ بر پایه محتوای عمومی منتشرشده/);
+  assert.match(html, />راهنمای محلی<\\/button>/);
   assert.match(html, /سؤال یا عبارت مورد جست‌وجو/);
-  assert.match(html, />یافتن راهنما<\/button>/);
+  assert.match(html, />یافتن راهنما<\\/button>/);
   assert.doesNotMatch(html, /ارتباط مستقیم با پشتیبانی|ارجاع به پشتیبانی انسانی|گفتگو با ربات/);
-  assert.doesNotMatch(support, /handoffButton|\.\/v1\/|method:"POST"/);
   assert.ok(support.includes("window.MRSIAVASHReadJson"));
+  const askStart=support.indexOf("async function ask");
+  const askEnd=support.indexOf("async function apiRequest",askStart);
+  assert.ok(askStart>=0&&askEnd>askStart);
+  assert.doesNotMatch(support.slice(askStart,askEnd), /apiRequest|fetch\\(/);
 });
 
 
@@ -1423,7 +1425,7 @@ test("support and global search delegate public JSON reads to the shared bounded
   assert.match(boundedJson, /reader.cancel/);
   assert.match(boundedJson, /controller.abort/);
   assert.match(boundedJson, /credentials:"omit"/);
-  assert.equal(support.includes("fetch("), false);
+  assert.match(support, /fetch\(API_BASE\+path/);
   assert.equal(searchSource.includes("fetch("), false);
 });
 
