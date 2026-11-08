@@ -16,6 +16,10 @@ The dedicated production D1 database is `mr-siavash-ai-prod` (`87c15170-7995-492
 - Stable JSON errors, per-response request IDs, no-store responses, and baseline browser security headers.
 - Unknown routes and unsupported methods fail closed.
 
+
+
+The repository source also implements `GET /v1/modules` as a public, read-only endpoint backed by the reviewed module metadata contract, with bounded category filtering and pagination. This route is source-only until a separately reviewed Worker deployment is completed and verified; it is not available from the currently deployed health-only bundle.
+
 ## Explicitly not implemented
 
 The Cloudflare account contains the dedicated Worker resource, but its downloaded production script is still the original health-only implementation. The repository's GitHub Pages workflow does not deploy Worker code, so merged source changes (including strict CORS, support tickets, assistant and admin routes) must not be assumed live. Automated HTTP smoke checks verify only the old health/CORS boundary. Cloudflare Access is currently not enabled for the account, and the Worker settings expose no `AI` binding or Access environment variables. Do not configure the frontend to treat health routes as proof that support, authentication, AI or workspace APIs are live.
