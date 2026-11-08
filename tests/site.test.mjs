@@ -5,6 +5,7 @@ import vm from "node:vm";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
+const experienceCss = await readFile(new URL("../experience.css", import.meta.url), "utf8");
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
@@ -41,6 +42,7 @@ test("Cloudflare gateway runtime smoke checks live health and exact-origin CORS"
 
 test("HTML references app assets and install manifest", () => {
   assert.match(html, /href="\.\/*styles\.css"/);
+  assert.match(html, /href="\.\/*experience\.css"/);
   assert.match(html, /src="\.\/*app\.js"/);
   assert.match(html, /rel="manifest"/);
   assert.match(html, /id="mainNav"/);
@@ -157,7 +159,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v19"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -227,7 +229,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v19"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -400,7 +402,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v19"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
 });
 
 
@@ -1178,4 +1180,31 @@ test("global search and support center are wired without inline script execution
 test("global search indexes hidden sections and the support center", () => {
   assert.equal(support.includes("s.textContent"), true);
   assert.match(support, /مرکز پشتیبانی/);
+});
+
+
+test("experience stylesheet is included in both entry points and offline shell", async () => {
+  const pythonHtml = await readFile(new URL("../python.html", import.meta.url), "utf8");
+  assert.match(pythonHtml, /href="\.\/experience\.css"/);
+  assert.match(sw, /"\.\/experience\.css"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
+});
+
+test("homepage experience additions are present and versioned", () => {
+  assert.match(html, /class="hero-proof-row"/);
+  assert.match(html, /class="hero-readout"/);
+  assert.match(html, /class="experience-strip"/);
+  assert.match(html, /نسخه ۰\.۷/);
+});
+
+test("experience stylesheet has balanced syntax and responsive accessibility contracts", () => {
+  assert.equal((experienceCss.match(/\{/g) || []).length, (experienceCss.match(/\}/g) || []).length);
+  assert.match(experienceCss, /--experience-accent/);
+  assert.match(experienceCss, /@media\s*\(max-width:\s*1024px\)/);
+  assert.match(experienceCss, /@media\s*\(max-width:\s*760px\)/);
+  assert.match(experienceCss, /@media\s*\(max-width:\s*480px\)/);
+  assert.match(experienceCss, /prefers-reduced-motion/);
+  assert.match(experienceCss, /forced-colors/);
+  assert.match(experienceCss, /:focus-visible/);
+  assert.match(experienceCss, /content-visibility/);
 });
