@@ -775,6 +775,21 @@
         "deployment",
         "تست"
       ]
+    },
+    {
+      "id": "page-reference-library",
+      "type": "page",
+      "title": "کتابخانه منابع معتبر",
+      "description": "مستندات رسمی Python، MDN، GitHub، OWASP و Cloudflare برای مطالعه و پژوهش.",
+      "href": "./studio.html#resources",
+      "terms": [
+        "مستندات",
+        "منابع",
+        "documentation",
+        "OWASP",
+        "MDN",
+        "Python docs"
+      ]
     }
   ]
 }
