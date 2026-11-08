@@ -54,6 +54,14 @@ test("Workers AI binding is strictly opt-in and uses the reviewed default model"
   assert.equal(enabled.bindings.find(x => x.name === "AI_MODEL").text, "@cf/zai-org/glm-4.7-flash");
 });
 
+test("selected production retention defaults to 30 days when explicitly enabled", () => {
+  const selected = buildVersionMetadata(settings, {
+    expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f",
+    enableSupportRetention: true
+  });
+  assert.equal(selected.bindings.find(x => x.name === "SUPPORT_RETENTION_DAYS").text, "30");
+});
+
 test("support retention is opt-in and validates the selected period", () => {
   assert.throws(() => buildVersionMetadata(settings, {
     expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f",
