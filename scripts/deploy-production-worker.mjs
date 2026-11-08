@@ -125,6 +125,12 @@ async function smokeProduction(fetchImpl, { enableWorkersAI = false } = {}) {
     body: JSON.stringify({ subject: "", message: "" })
   }, 400);
   if (invalid.body.error?.code !== "invalid_ticket") throw new Error("Production ticket validation route did not reject an invalid payload.");
+  const consent = await call("/v1/support/tickets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category: "question", subject: "Release smoke check", message: "Consent gate verification" })
+  }, 400);
+  if (consent.body.error?.code !== "consent_required") throw new Error("Production support intake did not enforce explicit privacy consent.");
 
   const trusted = await fetchImpl(base + "/v1/modules", {
     method: "OPTIONS",
