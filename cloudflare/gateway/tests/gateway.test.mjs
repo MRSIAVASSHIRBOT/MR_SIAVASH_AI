@@ -45,3 +45,127 @@ test("assistant knowledge distinguishes roadmap modules from active local module
  assert.equal(data.mode,"knowledge_fallback");
  assert.match(data.answer,/نقشه راه/);
 });
+
+
+import { createHash } from "node:crypto";
+
+function supportDb() {
+ const tickets = new Map();
+ const messages = [];
+ const rates = new Map();
+ const db = {
+  prepare(sql) {
+   let values = [];
+   return {
+    sql,
+    get values() { return values; },
+    bind(...args) { values = args; return this; },
+    async first() {
+     if (sql.startsWith("INSERT INTO api_rate_limits")) {
+      const bucket = values[0];
+      const count = (rates.get(bucket) || 0) + 1;
+      rates.set(bucket, count);
+      return { request_count: count };
+     }
+     if (sql.startsWith("SELECT id,ticket_code,category,subject,status,created_at,updated_at FROM support_tickets WHERE ticket_code=? AND access_token_hash=?")) {
+      const [code, hash] = values;
+      return [...tickets.values()].find(ticket => ticket.ticket_code === code && ticket.access_token_hash === hash) || null;
+     }
+     return null;
+    },
+    async all() {
+     if (sql.startsWith("SELECT sender_role,body,created_at FROM support_messages WHERE ticket_id=?")) {
+      return { results: messages.filter(message => message.ticket_id === values[0]).map(({ sender_role, body, created_at }) => ({ sender_role, body, created_at })) };
+     }
+     return { results: [] };
+    }
+   };
+  },
+  async batch(statements) {
+   for (const statement of statements) {
+    const values = statement.values;
+    if (statement.sql.startsWith("INSERT INTO support_tickets")) {
+     const [id, ticket_code, access_token_hash, category, subject, contact_email, created_at, updated_at] = values;
+     tickets.set(id, { id, ticket_code, access_token_hash, category, subject, contact_email, status: "open", created_at, updated_at });
+    } else if (statement.sql.startsWith("INSERT INTO support_messages")) {
+     const isPublicReply = statement.sql.includes("VALUES(?,?, 'user',?,?)");
+     const [id, ticket_id, roleOrBody, bodyOrCreated, createdAt] = values;
+     messages.push(isPublicReply
+      ? { id, ticket_id, sender_role: "user", body: roleOrBody, created_at: bodyOrCreated }
+      : { id, ticket_id, sender_role: roleOrBody, body: bodyOrCreated, created_at: createdAt });
+    } else if (statement.sql.startsWith("UPDATE support_tickets SET status='open'")) {
+     const [updated_at, id] = values;
+     const ticket = tickets.get(id);
+     if (ticket) { ticket.status = "open"; ticket.updated_at = updated_at; }
+    }
+   }
+   return [];
+  }
+ };
+ return { db, tickets, messages };
+}
+
+test("support ticket credentials are stored as hashes and authorize private follow-up", async () => {
+ const store = supportDb();
+ const created = await worker.fetch(req("/v1/support/tickets", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ category: "question", subject: "پرسش آزمایشی", message: "سلام، این یک آزمون است." })
+ }), { DB: store.db });
+ assert.equal(created.status, 201);
+ const data = await created.json();
+ const { id, code, token: secret } = data.ticket;
+ assert.match(code, /^MS-[A-F0-9]{16}$/);
+ assert.match(secret, /^[a-f0-9]{64}$/);
+ const stored = store.tickets.get(id);
+ assert.ok(stored);
+ assert.notEqual(stored.access_token_hash, secret);
+ assert.equal(stored.access_token_hash, createHash("sha256").update(secret).digest("hex"));
+
+ const denied = await worker.fetch(req("/v1/support/tickets/" + code), { DB: store.db });
+ assert.equal(denied.status, 404);
+
+ const read = await worker.fetch(req("/v1/support/tickets/" + code, {
+  headers: { Authorization: "Bearer " + secret }
+ }), { DB: store.db });
+ assert.equal(read.status, 200);
+ const privateData = await read.json();
+ assert.equal(privateData.ticket.id, id);
+ assert.equal(privateData.messages.length, 1);
+ assert.equal(privateData.messages[0].body, "سلام، این یک آزمون است.");
+
+ stored.status = "resolved";
+ const reply = await worker.fetch(req("/v1/support/tickets/" + code + "/messages", {
+  method: "POST",
+  headers: { "Content-Type": "application/json", Authorization: "Bearer " + secret },
+  body: JSON.stringify({ message: "ممنون از پاسخ‌گویی." })
+ }), { DB: store.db });
+ assert.equal(reply.status, 201);
+ assert.equal(stored.status, "open");
+
+ const afterReply = await worker.fetch(req("/v1/support/tickets/" + code, {
+  headers: { Authorization: "Bearer " + secret }
+ }), { DB: store.db });
+ const updated = await afterReply.json();
+ assert.equal(updated.messages.length, 2);
+ assert.equal(updated.messages[1].body, "ممنون از پاسخ‌گویی.");
+});
+
+test("assistant rate limits are enforced before invoking Workers AI", async () => {
+ let called = false;
+ const limitedDb = {
+  prepare() {
+   return { bind() { return this; }, first: async () => ({ request_count: 21 }) };
+  }
+ };
+ const response = await worker.fetch(req("/v1/assistant/chat", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ message: "آموزش پایتون" })
+ }), {
+  DB: limitedDb,
+  AI: { run: async () => { called = true; return { response: "unexpected" }; } }
+ });
+ assert.equal(response.status, 429);
+ assert.equal(called, false);
+});
