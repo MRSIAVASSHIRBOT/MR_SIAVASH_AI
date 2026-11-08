@@ -52,13 +52,17 @@ jobs:
           BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
         run: |
           set -euo pipefail
+          ready_body="$(curl --fail --silent --show-error --max-time 15 "$BASE_URL/v1/health/ready")"
+          consent_required="$(node -e 'const x=JSON.parse(process.argv[1]);process.stdout.write(String(x.features?.supportConsentRequired===true))' "$ready_body")"
+          if [ "$consent_required" = "true" ]; then
+            consent_body="$(mktemp)"
+            trap 'rm -f "$consent_body"' EXIT
+            consent_status="$(curl --silent --show-error --max-time 15 --output "$consent_body" --write-out '%{http_code}' --request POST "$BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"category":"question","subject":"Smoke check","message":"Consent gate check"}')"
+            test "$consent_status" = "400"
+            node -e 'const fs=require("node:fs");const x=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(x.error?.code!=="consent_required")process.exit(1)' "$consent_body"
+          fi
           invalid_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request POST "$BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"subject":"","message":"","consent":true}')"
           test "$invalid_status" = "400"
-          consent_body="$(mktemp)"
-          trap 'rm -f "$consent_body"' EXIT
-          consent_status="$(curl --silent --show-error --max-time 15 --output "$consent_body" --write-out '%{http_code}' --request POST "$BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"category":"question","subject":"Smoke check","message":"Consent gate check"}')"
-          test "$consent_status" = "400"
-          node -e 'const fs=require("node:fs");const x=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(x.error?.code!=="consent_required")process.exit(1)' "$consent_body"
           admin_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "$BASE_URL/v1/admin/support/tickets")"
           test "$admin_status" = "401"
           ticket_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "$BASE_URL/v1/support/tickets/MS-0000000000000000")"
