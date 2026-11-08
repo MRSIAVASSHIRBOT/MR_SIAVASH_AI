@@ -50,7 +50,7 @@ test("bounded JSON loader fetches only same-origin JSON without credentials", as
       releaseLock() {}
     })}});
   });
-  assert.deepEqual(await loader("./search-index.json", 4096), expected);
+  assert.equal(JSON.stringify(await loader("./search-index.json", 4096)), JSON.stringify(expected));
   assert.equal(options.method, "GET");
   assert.equal(options.credentials, "omit");
   assert.equal(options.cache, "no-cache");
