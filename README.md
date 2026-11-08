@@ -14,7 +14,7 @@ The repository provides a static web application with:
 - A Persian beginner Python course with 12 lessons, practical code samples, expected outputs, knowledge checks, and browser-local progress. The site does not execute Python; learners run copied examples in Python 3.
 - A Persian multi-course academy with six learning paths and 30 chapters covering HTML, CSS, JavaScript, Git/GitHub, Linux, and defensive web security. Course progress is stored locally in the current browser.
 - Accessible global search with weighted Persian/Arabic normalization, module discovery, all 30 academy chapters and all 12 Python lessons, keyboard result navigation, and direct lesson deep links (Ctrl/Cmd + K).
-- A local support guide that searches the public site index without sending chat text to a server, plus a public ticket create/track/reply flow that remains fail-closed until production confirms a valid support-retention policy.
+- A local support guide that searches the public site index without sending chat text to a server, plus a public ticket create/track/reply flow. New ticket intake stays disabled until production confirms a valid support-retention policy; tracking existing tickets remains available while D1 is healthy.
 - Browser-local workspace task manager with search, status filters, progress counts and confirmed bulk cleanup.
 - Non-destructive workspace recovery: unreadable or repaired snapshots block implicit overwrites until an explicit validated-backup import; cross-tab writes and storage-clear events cannot bypass the recovery lock.
 - Local workspace recovery repairs missing or duplicate task IDs and explicitly reports discarded invalid or over-capacity records instead of silently truncating task text.
