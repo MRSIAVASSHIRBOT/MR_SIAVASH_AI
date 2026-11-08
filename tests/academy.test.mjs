@@ -29,7 +29,7 @@ test("academy tracks progress locally and renders lesson content as text", () =>
   assert.doesNotMatch(js, /\.innerHTML\s*=/);
   assert.match(js, /aria-pressed/);
   assert.match(js, /aria-expanded/);
-  assert.match(js, /navigator\\.serviceWorker\\.register/);
+  assert.ok(js.includes("navigator.serviceWorker.register"));
   assert.ok(js.includes("aria-valuenow"));
   assert.ok(js.includes("پیشرفت در همین مرورگر ذخیره شد"));
 });
