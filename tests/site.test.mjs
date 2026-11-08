@@ -1300,7 +1300,7 @@ test("support assistant is a local guide and does not submit unavailable tickets
   assert.match(html, /ثبت درخواست · به‌زودی/);
   assert.match(html, /پیگیری · به‌زودی/);
   assert.match(support, /readJson\("\.\/search-index\.json"/);
-  assert.match(support, /credentials:"omit"/);
+  assert.match(boundedJson, /credentials:"omit"/);
   assert.match(support, /disableUnavailable/);
   assert.match(support, /ثبت آنلاین درخواست هنوز در نسخه/);
   assert.match(support, /پیگیری آنلاین هنوز فعال نیست/);
