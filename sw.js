@@ -97,7 +97,8 @@ self.addEventListener("fetch", event => {
       { requestUrl: new URL("./", scopeUrl).href, cacheUrl: indexUrl },
       { requestUrl: indexUrl, cacheUrl: indexUrl },
       { requestUrl: new URL("./python.html", scopeUrl).href, cacheUrl: new URL("./python.html", scopeUrl).href },
-      { requestUrl: new URL("./academy.html", scopeUrl).href, cacheUrl: new URL("./academy.html", scopeUrl).href }
+      { requestUrl: new URL("./academy.html", scopeUrl).href, cacheUrl: new URL("./academy.html", scopeUrl).href },
+      { requestUrl: new URL("./studio.html", scopeUrl).href, cacheUrl: new URL("./studio.html", scopeUrl).href }
     ];
     const target = navigationTargets.find(item => item.requestUrl === requestUrl.href);
     if (!target) return;
