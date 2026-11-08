@@ -36,6 +36,7 @@ jobs:
           node --check support.js
           node --check support-admin.js
           node --check python-course.js
+          node --check academy.js
           node --check cloudflare/gateway/src/index.js
       - name: Validate OpenAPI design contract
         run: ruby scripts/validate-openapi.rb
