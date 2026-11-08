@@ -10,6 +10,25 @@ test("CORS allows only exact origin and approved methods and headers",async()=>{
 test("unknown routes and unsupported methods fail closed",async()=>{assert.equal((await worker.fetch(req("/v1/nope"),{})).status,404);assert.equal((await worker.fetch(req("/v1/health/live",{method:"DELETE"}),{})).status,405);});
 test("assistant validates input and fails closed without database",async()=>{const r=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"سلام"})}),{});assert.equal(r.status,503);});
 test("admin dashboard and APIs reject requests without verified Access JWT",async()=>{const page=await worker.fetch(req("/admin"),{});assert.equal(page.status,401);const r=await worker.fetch(req("/v1/admin/support/tickets"),{DB:db()});assert.equal(r.status,401);assert.equal((await r.json()).error.code,"admin_auth_required");});
+test("scheduled cleanup fails closed when no retention period is configured",async()=>{
+ let batches=0;
+ const DB={prepare(){throw new Error("cleanup must not prepare SQL without an approved retention period");},batch(){batches++;}};
+ await assert.rejects(worker.scheduled({}, {DB}),/SUPPORT_RETENTION_DAYS must be explicitly configured/);
+ assert.equal(batches,0);
+});
+test("scheduled cleanup applies the configured 30-day inactivity window",async()=>{
+ const statements=[];
+ const DB={
+  prepare(sql){return{bind(...values){const statement={sql,values};statements.push(statement);return statement;}};},
+  async batch(items){assert.equal(items.length,3);return items;}
+ };
+ await worker.scheduled({}, {DB,SUPPORT_RETENTION_DAYS:"30"});
+ assert.equal(statements.length,3);
+ assert.match(statements[0].sql,/DELETE FROM support_tickets WHERE updated_at < \\?/);
+ const cutoff=Date.parse(statements[0].values[0]);
+ assert.ok(Number.isFinite(cutoff));
+ assert.ok(Math.abs((Date.now()-cutoff)-30*86400000)<5000);
+});
 test("ticket creation validates email before touching D1",async()=>{const r=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subject:"سؤال",message:"سلام",contact_email:"invalid"})}),{DB:db(),SUPPORT_RETENTION_DAYS:"90"});assert.equal(r.status,400);});
 test("public ticket reads require a bearer token",async()=>{const r=await worker.fetch(req("/v1/support/tickets/MS-ABC1234567"),{DB:db()});assert.equal(r.status,404);});
 test("request body limits are enforced",async()=>{const r=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"x".repeat(13000)})}),{DB:db()});assert.equal(r.status,413);});
