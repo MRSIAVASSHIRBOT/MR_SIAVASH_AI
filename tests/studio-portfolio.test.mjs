@@ -9,7 +9,7 @@ const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 const search = JSON.parse(await readFile(new URL("../search-index.json", import.meta.url), "utf8"));
 
 test("studio page exposes profile, project, learning, lab, journal and status sections", () => {
-  for (const id of ["profile", "projects", "learning", "lab", "journal", "status", "saved"]) {
+  for (const id of ["profile", "projects", "learning", "lab", "journal", "resources", "status", "saved"]) {
     assert.match(html, new RegExp('id="' + id + '"'));
   }
   assert.match(html, /MR_SIAVASH_HUB_AI/);
@@ -48,6 +48,8 @@ test("studio page remains self-hosted and included in the offline shell", () => 
   }
 });
 
+  assert.ok(sw.includes('new URL("./studio.html", scopeUrl)'), "studio navigation must be cached offline");
+
 test("studio styles have balanced braces and responsive/accessibility fallbacks", () => {
   assert.equal((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length);
   assert.match(css, /@media\(max-width:640px\)/);
@@ -58,7 +60,7 @@ test("studio styles have balanced braces and responsive/accessibility fallbacks"
 test("studio sections are discoverable through the bounded search index", () => {
   assert.equal(search.schema, "mr-siavash-ai-search-index");
   const ids = new Set(search.items.map(item => item.id));
-  for (const id of ["page-studio", "page-projects", "page-learning-paths", "page-engineering-lab", "page-research-notes", "page-service-status"]) {
+  for (const id of ["page-studio", "page-projects", "page-learning-paths", "page-engineering-lab", "page-research-notes", "page-reference-library", "page-service-status"]) {
     assert.ok(ids.has(id), "missing search item: " + id);
   }
 });
