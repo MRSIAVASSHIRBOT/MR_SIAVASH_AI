@@ -63,8 +63,9 @@ async function loadKnowledge(){
     }
    }
   }
-  knowledge=items;loaded=true;
+  knowledge=items;
   if(!knowledge.length)throw new Error("فهرست راهنمای محلی بارگذاری نشد.");
+  loaded=true;
  })();
  try{return await loading;}finally{loading=null;}
 }
