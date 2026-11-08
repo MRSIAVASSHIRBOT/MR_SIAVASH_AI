@@ -167,8 +167,11 @@ export async function releaseProductionWorker({
   }
 
   const previousDeployment = deploymentsResult.deployments?.[0];
-  const previousVersion = previousDeployment?.versions?.slice().sort((a, b) => b.percentage - a.percentage)[0]?.version_id;
-  if (!previousVersion) throw new Error("No previous production Worker version is available for rollback.");
+  const previousVersions = (previousDeployment?.versions || []).map(item => ({ version_id: item.version_id, percentage: item.percentage }));
+  const previousVersion = previousVersions.slice().sort((a, b) => b.percentage - a.percentage)[0]?.version_id;
+  if (!previousVersion || previousVersions.reduce((sum, item) => sum + item.percentage, 0) !== 100) {
+    throw new Error("A complete previous production traffic split is required for safe rollback.");
+  }
   const previousSchedules = (schedulesResult.schedules || []).map(item => ({ cron: item.cron }));
 
   const workerSource = source ?? await readFile(resolve("cloudflare/gateway/src/index.js"), "utf8");
@@ -203,7 +206,7 @@ export async function releaseProductionWorker({
     if (obs.redact_query_string !== true || obs.logs?.enabled !== true || obs.traces?.enabled !== true) {
       throw new Error("Production observability privacy settings changed unexpectedly; release verification failed.");
     }
-    return { validated: true, deployed: true, worker: WORKER, versionId, previousVersion, schedules: desiredSchedules };
+    return { validated: true, deployed: true, worker: WORKER, versionId, previousVersions, schedules: desiredSchedules };
   } catch (error) {
     if (!deployed) throw error;
     let rollbackError = null;
@@ -212,7 +215,7 @@ export async function releaseProductionWorker({
         token, fetchImpl, method: "POST",
         body: JSON.stringify({
           strategy: "percentage",
-          versions: [{ version_id: previousVersion, percentage: 100 }],
+          versions: previousVersions,
           annotations: { "workers/message": "Automatic rollback after failed MR_SIAVASH_AI smoke checks" }
         })
       });
