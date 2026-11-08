@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import vm from "node:vm";
+import { supportGate, validTicketCredentials } from "../support-tickets.mjs";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
@@ -164,7 +165,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -238,7 +239,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -411,7 +412,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
 });
 
 
@@ -1205,7 +1206,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1263,7 +1264,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"web-security"/);
   assert.match(academyCss, /#9c8cff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
 });
 
 
@@ -1428,4 +1429,27 @@ test("support and global search delegate public JSON reads to the shared bounded
   assert.match(boundedJson, /credentials:"omit"/);
   assert.equal(support.includes("fetch("), false);
   assert.equal(searchSource.includes("fetch("), false);
+});
+
+test("public support gate requires healthy D1 and an explicit safe retention period", () => {
+  const base = {
+    status: "ready",
+    dependencies: { database: "ready" },
+    features: { publicSupport: true, supportRetentionDays: 90 }
+  };
+  assert.equal(supportGate(base), true);
+  assert.equal(supportGate({ ...base, status: "not_ready" }), false);
+  assert.equal(supportGate({ ...base, dependencies: { database: "unavailable" } }), false);
+  assert.equal(supportGate({ ...base, features: { publicSupport: false, supportRetentionDays: 90 } }), false);
+  assert.equal(supportGate({ ...base, features: { publicSupport: true, supportRetentionDays: 7 } }), false);
+  assert.equal(supportGate({ ...base, features: { publicSupport: true, supportRetentionDays: 366 } }), false);
+  assert.equal(supportGate({ ...base, features: { publicSupport: true } }), false);
+});
+
+test("public ticket tracking validates one-time code and bearer-token formats", () => {
+  assert.equal(validTicketCredentials("MS-0123456789ABCDEF", "a".repeat(64)), true);
+  assert.equal(validTicketCredentials("MS-0123456789ABCDE", "a".repeat(64)), false);
+  assert.equal(validTicketCredentials("MS-0123456789ABCDEF", "a".repeat(63)), false);
+  assert.equal(validTicketCredentials("MS-0123456789ABCDEF", "g".repeat(64)), false);
+  assert.equal(validTicketCredentials("https://example.test/?token=secret", "a".repeat(64)), false);
 });
