@@ -1,1 +1,115 @@
-(()=>{"use strict";const API="https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev",$=s=>document.querySelector(s);let history=[];const norm=s=>String(s||"").normalize("NFKC").toLowerCase().replace(/[يى]/g,"ی").replace(/ك/g,"ک").replace(/[\u064b-\u065f\u0670\u0640]/g," ").replace(/[^\p{L}\p{N}]+/gu," ").trim();function msg(text,role="assistant",sources=[]){const p=document.createElement("p");p.className="assistant-bubble"+(role==="user"?" user":"");p.textContent=text;$("#assistantMessages").append(p);if(role==="assistant"&&Array.isArray(sources)&&sources.length){const refs=document.createElement("div");refs.className="assistant-sources";for(const source of sources.slice(0,3)){try{const url=new URL(source.href,location.href);if(url.origin!==location.origin)continue;const a=document.createElement("a");a.href=url.href;a.textContent=source.title||"منبع سایت";refs.append(a);}catch{}}if(refs.childElementCount)$("#assistantMessages").append(refs);}$("#assistantMessages").scrollTop=$("#assistantMessages").scrollHeight;}function tab(name){document.querySelectorAll("[data-support-tab]").forEach(b=>b.setAttribute("aria-selected",String(b.dataset.supportTab===name)));document.querySelectorAll("[data-support-pane]").forEach(p=>{p.classList.toggle("is-active",p.dataset.supportPane===name);p.hidden=p.dataset.supportPane!==name;});}async function api(path,opt={}){const r=await fetch(API+path,{...opt,credentials:"omit",headers:{"Content-Type":"application/json",...(opt.headers||{})}});let d={};try{d=await r.json();}catch{}if(!r.ok)throw new Error(d.error?.message||"سرویس در دسترس نیست.");return d;}function success(data){const box=document.createElement("div");box.className="ticket-secret";const strong=document.createElement("strong");strong.textContent="درخواست ثبت شد";const code=document.createElement("p");code.textContent="کد پیگیری: "+data.ticket.code;const secret=document.createElement("p");secret.textContent="کلید خصوصی: "+data.ticket.token;const note=document.createElement("p");note.textContent="کلید فقط یک‌بار نمایش داده می‌شود. آن را محرمانه نگه دار؛ برای پیگیری بعدی لازم است.";box.append(strong,code,secret,note);return box;}async function ask(e){e.preventDefault();const input=$("#assistantInput"),text=input.value.trim();if(!text)return;input.value="";msg(text,"user");history.push({role:"user",content:text});const btn=e.currentTarget.querySelector("button[type=submit]");btn.disabled=true;try{const d=await api("/v1/assistant/chat",{method:"POST",body:JSON.stringify({message:text,history:history.slice(-6)})});msg(d.answer,"assistant",d.sources);history.push({role:"assistant",content:d.answer});$("#handoffButton").hidden=!d.handoff;}catch(err){msg(err.message+" می‌توانی درخواست انسانی ثبت کنی.");$("#handoffButton").hidden=false;}finally{btn.disabled=false;}}async function ticket(data,target){const d=await api("/v1/support/tickets",{method:"POST",body:JSON.stringify(data)});target.replaceChildren(success(d));}async function track(e){e.preventDefault();const out=$("#ticketTrackResult");out.replaceChildren();out.textContent="در حال دریافت وضعیت...";const code=$("#ticketCodeInput").value.trim().toUpperCase(),secret=$("#ticketTokenInput").value.trim();try{const d=await api("/v1/support/tickets/"+encodeURIComponent(code),{headers:{Authorization:"Bearer "+secret}});out.replaceChildren();const head=document.createElement("p");head.textContent="وضعیت: "+({open:"باز",in_progress:"در حال بررسی",waiting_user:"منتظر پاسخ شما",resolved:"بسته‌شده"}[d.ticket.status]||d.ticket.status);out.append(head);for(const m of d.messages){const p=document.createElement("p");p.className="ticket-message";p.textContent=({user:"شما",assistant:"ربات",admin:"پشتیبانی"}[m.sender_role]||m.sender_role)+": "+m.body;out.append(p);}const form=document.createElement("form");form.className="support-form";const label=document.createElement("label");label.textContent="پاسخ جدید";const area=document.createElement("textarea");area.rows=3;area.maxLength=4000;area.required=true;const button=document.createElement("button");button.type="submit";button.className="button button-primary";button.textContent="ارسال پاسخ";form.append(label,area,button);form.addEventListener("submit",async ev=>{ev.preventDefault();const message=area.value.trim();if(!message)return;button.disabled=true;try{await api("/v1/support/tickets/"+encodeURIComponent(code)+"/messages",{method:"POST",headers:{Authorization:"Bearer "+secret},body:JSON.stringify({message})});await track(new Event("submit"));}catch(err){const p=document.createElement("p");p.textContent=err.message;out.append(p);}finally{button.disabled=false;}});out.append(form);}catch(err){out.textContent=err.message;}}function init(){const support=$("#supportDialog");if(!support)return;$("#supportLauncher").addEventListener("click",()=>support.showModal());$("#supportClose").addEventListener("click",()=>support.close());document.querySelectorAll("[data-support-tab]").forEach(b=>b.addEventListener("click",()=>tab(b.dataset.supportTab)));$("#assistantForm").addEventListener("submit",ask);$("#handoffButton").addEventListener("click",async()=>{const box=document.createElement("div");$("#assistantMessages").append(box);try{await ticket({category:"question",subject:history.findLast?.(x=>x.role==="user")?.content.slice(0,80)||"گفتگو با دستیار",message:"گفتگو با ربات",messages:history},box);$("#handoffButton").hidden=true;}catch(e){box.textContent=e.message;}});$("#ticketTrackForm").addEventListener("submit",track);$("#supportRequestForm").addEventListener("submit",async e=>{e.preventDefault();const form=e.currentTarget,status=$("#supportRequestStatus");status.textContent="در حال ثبت...";try{await ticket({category:$("#supportCategory").value,subject:$("#supportSubject").value.trim(),contact_email:$("#supportEmail").value.trim(),message:$("#supportMessage").value.trim(),website:$("#supportWebsite").value},status);form.reset();}catch(err){status.textContent=err.message;}});}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();})();
+(()=>{"use strict";
+const $=selector=>document.querySelector(selector);
+const normalise=value=>String(value||"").normalize("NFKC").toLocaleLowerCase("fa")
+ .replace(/[يى]/g,"ی").replace(/ك/g,"ک")
+ .replace(/[\u064b-\u065f\u0670\u0640]/g,"")
+ .replace(/[^\p{L}\p{N}]+/gu," ").trim();
+let knowledge=[],loaded=false,loading=null;
+function message(text,role="assistant",sources=[]){
+ const p=document.createElement("p");p.className="assistant-bubble"+(role==="user"?" user":"");p.textContent=text;
+ $("#assistantMessages").append(p);
+ if(role==="assistant"&&sources.length){
+  const refs=document.createElement("div");refs.className="assistant-sources";
+  for(const source of sources.slice(0,3)){
+   try{
+    const url=new URL(source.href,location.href);
+    if(url.origin!==location.origin||!/^https?:$/.test(url.protocol))continue;
+    const link=document.createElement("a");link.href=url.href;link.textContent=source.title;refs.append(link);
+   }catch{}
+  }
+  if(refs.childElementCount)$("#assistantMessages").append(refs);
+ }
+ $("#assistantMessages").scrollTop=$("#assistantMessages").scrollHeight;
+}
+function tab(name){
+ document.querySelectorAll("[data-support-tab]").forEach(button=>button.setAttribute("aria-selected",String(button.dataset.supportTab===name)));
+ document.querySelectorAll("[data-support-pane]").forEach(pane=>{pane.classList.toggle("is-active",pane.dataset.supportPane===name);pane.hidden=pane.dataset.supportPane!==name;});
+}
+async function readJson(path,maxBytes){
+ const response=await fetch(path,{credentials:"omit",cache:"no-cache"});
+ if(!response.ok)throw new Error("راهنمای سایت در دسترس نیست.");
+ const type=response.headers.get("content-type")||"";
+ if(!/^application\/(?:json|[a-z0-9.+-]+\+json)(?:\s*;|$)/i.test(type))throw new Error("نوع داده راهنما معتبر نیست.");
+ const text=await response.text();
+ if(new TextEncoder().encode(text).byteLength>maxBytes)throw new Error("حجم راهنمای سایت بیش از حد مجاز است.");
+ return JSON.parse(text);
+}
+async function loadKnowledge(){
+ if(loading)return loading;
+ loading=(async()=>{
+  const [indexResult,moduleResult]=await Promise.allSettled([
+   readJson("./search-index.json",96*1024),readJson("./modules.json",64*1024)
+  ]);
+  const items=[];
+  if(indexResult.status==="fulfilled"){
+   const index=indexResult.value;
+   if(index?.schema==="mr-siavash-ai-search-index"&&index.version===1&&Array.isArray(index.items)&&index.items.length<=100){
+    for(const item of index.items){
+     if(!item||typeof item.title!=="string"||typeof item.description!=="string"||item.type==="action")continue;
+     const href=typeof item.href==="string"?item.href:
+      item.view==="home"?"./index.html#home":item.view==="modules"?"./index.html#modules":
+      item.view==="workspace"?"./index.html#workspace":item.view==="identity"?"./index.html#identity":
+      item.view==="about"?"./index.html#about":null;
+     if(href&&href.startsWith("./")&&!href.startsWith("../")&&!href.includes("://"))items.push({title:item.title,description:item.description,href,terms:Array.isArray(item.terms)?item.terms:[]});
+    }
+   }
+  }
+  if(moduleResult.status==="fulfilled"){
+   const registry=moduleResult.value;
+   if(registry?.schema==="mr-siavash-ai-module-registry"&&registry.version===1&&Array.isArray(registry.modules)){
+    for(const item of registry.modules){
+     if(typeof item?.title!=="string"||typeof item?.description!=="string")continue;
+     items.push({title:item.title,description:item.description,href:"./index.html#modules",terms:[item.id,item.categoryLabel,...(Array.isArray(item.features)?item.features:[])]});
+    }
+   }
+  }
+  knowledge=items;loaded=true;
+  if(!knowledge.length)throw new Error("فهرست راهنمای محلی بارگذاری نشد.");
+ })();
+ try{return await loading;}finally{loading=null;}
+}
+function rank(query){
+ const q=normalise(query),terms=[...new Set(q.split(/\s+/).filter(Boolean))];
+ if(!terms.length)return [];
+ return knowledge.map(item=>{
+  const title=normalise(item.title),body=normalise([item.description,...item.terms].join(" "));
+  let score=title===q?100:title.startsWith(q)?55:title.includes(q)?35:0,matched=0;
+  for(const term of terms){let hit=false;if(title.includes(term)){score+=title.startsWith(term)?14:10;hit=true;}if(body.includes(term)){score+=4;hit=true;}if(hit)matched++;}
+  if(matched===terms.length)score+=12;
+  return {item,score};
+ }).filter(result=>result.score>0).sort((a,b)=>b.score-a.score).slice(0,3);
+}
+async function ask(event){
+ event.preventDefault();
+ const input=$("#assistantInput"),text=input.value.trim();
+ if(!text)return;
+ input.value="";message(text,"user");
+ const button=event.currentTarget.querySelector('button[type="submit"]');button.disabled=true;
+ try{
+  if(!loaded)await loadKnowledge();
+  const found=rank(text);
+  if(!found.length){message("در محتوای منتشرشدهٔ سایت، پاسخ مرتبط و قابل اتکایی پیدا نکردم. می‌توانی با جست‌وجوی اصلی سایت عبارت دیگری را امتحان کنی.");return;}
+  const first=found[0].item;
+  const answer="نزدیک‌ترین راهنمای موجود: "+first.title+"\n"+first.description+"\n\nبرای جزئیات بیشتر، یکی از منابع مرتبط زیر را باز کن.";
+  message(answer,"assistant",found.map(result=>({title:result.item.title,href:result.item.href})));
+ }catch(error){message("راهنمای محلی فعلاً بارگذاری نشد. لطفاً اتصال را بررسی و دوباره تلاش کن.");}
+ finally{button.disabled=false;input.focus();}
+}
+function disableUnavailable(formId,statusId,text){
+ const form=$(formId),status=$(statusId);if(!form)return;
+ form.querySelectorAll("input,select,textarea,button").forEach(control=>{control.disabled=true;});
+ if(status)status.textContent=text;
+}
+function init(){
+ const support=$("#supportDialog");if(!support)return;
+ $("#supportLauncher").addEventListener("click",()=>support.showModal());
+ $("#supportClose").addEventListener("click",()=>support.close());
+ document.querySelectorAll("[data-support-tab]").forEach(button=>button.addEventListener("click",()=>tab(button.dataset.supportTab)));
+ $("#assistantForm").addEventListener("submit",ask);
+ disableUnavailable("#supportRequestForm","#supportRequestStatus","ثبت آنلاین درخواست هنوز در نسخهٔ مستقرشده فعال نیست. لطفاً فعلاً اطلاعات تماس یا پیام خصوصی وارد نکن.");
+ disableUnavailable("#ticketTrackForm","#ticketTrackResult","پیگیری آنلاین هنوز فعال نیست؛ API پشتیبانی در محیط تولید مستقر نشده است.");
+ $("#handoffButton").hidden=true;
+ loadKnowledge().catch(()=>{});
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+})();
