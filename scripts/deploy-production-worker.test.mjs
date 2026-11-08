@@ -148,5 +148,6 @@ test("production release smoke follows the explicit support-retention selection"
   const source = await (await import("node:fs/promises")).readFile(new URL("./deploy-production-worker.mjs", import.meta.url), "utf8");
   assert.match(source, /enableSupportRetention \? 400 : 503/);
   assert.match(source, /support_retention_required/);
+  assert.match(source, /consent_required/);
   assert.match(source, /smokeProduction\(fetchImpl, \{ enableWorkersAI, enableSupportRetention \}\)/);
 });
