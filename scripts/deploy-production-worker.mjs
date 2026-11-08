@@ -16,7 +16,7 @@ function requireBinding(bindings, name) {
   return binding.text;
 }
 
-export function buildVersionMetadata(settings, { expectedDatabaseId, commitSha, enableWorkersAI = false, enableSupportRetention = false, retentionDays = 90 } = {}) {
+export function buildVersionMetadata(settings, { expectedDatabaseId, commitSha, enableWorkersAI = false, enableSupportRetention = false, retentionDays = 30 } = {}) {
   if (!settings || !Array.isArray(settings.bindings)) throw new Error("Cloudflare Worker settings are incomplete.");
   if (!/^[0-9a-f-]{36}$/i.test(expectedDatabaseId || "")) throw new Error("Expected production D1 database ID is invalid.");
   if (!settings.compatibility_date) throw new Error("Worker compatibility date is missing.");
@@ -100,7 +100,7 @@ async function cloudflareRequest(path, { token, fetchImpl = fetch, ...options } 
   return payload.result;
 }
 
-async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false, retentionDays = 90 } = {}) {
+async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false, retentionDays = 30 } = {}) {
   const base = "https://" + WORKER + ".mrsiavashirbot.workers.dev";
   async function call(path, init, status) {
     const response = await fetchImpl(base + path, init);
@@ -173,7 +173,7 @@ export async function releaseProductionWorker({
   deploy = false,
   enableWorkersAI = false,
   enableSupportRetention = false,
-  retentionDays = 90,
+  retentionDays = 30,
   commitSha = "",
   fetchImpl = fetch,
   source
@@ -263,7 +263,7 @@ async function main() {
   const deploy = String(process.env.DEPLOY_WORKER || "").toLowerCase() === "true";
   const enableWorkersAI = String(process.env.ENABLE_WORKERS_AI || "").toLowerCase() === "true";
   const enableSupportRetention = String(process.env.ENABLE_SUPPORT_RETENTION || "").toLowerCase() === "true";
-  const retentionDays = Number(process.env.SUPPORT_RETENTION_DAYS || 90);
+  const retentionDays = Number(process.env.SUPPORT_RETENTION_DAYS || 30);
   const result = await releaseProductionWorker({
     token, accountId, expectedDatabaseId, deploy, enableWorkersAI, enableSupportRetention, retentionDays,
     commitSha: process.env.GITHUB_SHA || ""
