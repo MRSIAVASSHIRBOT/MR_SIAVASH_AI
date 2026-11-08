@@ -211,7 +211,7 @@ export async function releaseProductionWorker({
     deployed = true;
 
     const desiredSchedules = configureCronSchedules(previousSchedules, enableSupportRetention);
-    if (enableSupportRetention) {
+    if (JSON.stringify(desiredSchedules) !== JSON.stringify(previousSchedules)) {
       await cloudflareRequest(prefix + "/schedules", {
         token, fetchImpl, method: "PUT", body: JSON.stringify(desiredSchedules)
       });
