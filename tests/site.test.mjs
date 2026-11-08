@@ -1303,3 +1303,95 @@ test("support assistant is a local guide and does not submit unavailable tickets
   assert.doesNotMatch(support, /Authorization/);
   assert.doesNotMatch(support, /\/v1\/support/);
 });
+
+
+test("local support guide retries loading its index after an initial offline failure", async () => {
+  let fetchCalls = 0;
+  let ready;
+  let submit;
+  const rendered = [];
+  const button = { disabled: false };
+  const input = { value: "پایتون", focus() {} };
+  const messages = {
+    children: [],
+    scrollHeight: 0,
+    append(...items) { this.children.push(...items); },
+    get childElementCount() { return this.children.length; }
+  };
+  const makeElement = () => ({
+    children: [],
+    append(...items) { this.children.push(...items); },
+    get childElementCount() { return this.children.length; },
+    setAttribute() {},
+    addEventListener(name, callback) { if (name === "submit") submit = callback; },
+    querySelector() { return button; },
+    querySelectorAll() { return []; },
+    focus() {},
+    close() {},
+    showModal() {}
+  });
+  const elements = new Map([
+    ["#supportDialog", makeElement()],
+    ["#supportLauncher", makeElement()],
+    ["#supportClose", makeElement()],
+    ["#assistantForm", makeElement()],
+    ["#assistantInput", input],
+    ["#assistantMessages", messages],
+    ["#supportRequestForm", makeElement()],
+    ["#ticketTrackForm", makeElement()],
+    ["#supportRequestStatus", { textContent: "" }],
+    ["#ticketTrackResult", { textContent: "" }],
+    ["#handoffButton", { hidden: false }]
+  ]);
+  const document = {
+    readyState: "loading",
+    addEventListener(name, callback) { if (name === "DOMContentLoaded") ready = callback; },
+    querySelector(selector) { return elements.get(selector) || null; },
+    querySelectorAll() { return []; },
+    createElement() {
+      const element = makeElement();
+      Object.defineProperty(element, "textContent", { value: "", writable: true });
+      return element;
+    }
+  };
+  const index = {
+    schema: "mr-siavash-ai-search-index",
+    version: 1,
+    items: [{
+      id: "python-guide",
+      type: "page",
+      title: "راهنمای پایتون",
+      description: "آموزش مقدماتی پایتون و درس‌های کاربردی.",
+      href: "./python.html",
+      terms: ["پایتون", "آموزش"]
+    }]
+  };
+  const modules = { schema: "mr-siavash-ai-module-registry", version: 1, modules: [] };
+  const fetch = async path => {
+    fetchCalls++;
+    if (fetchCalls <= 2) throw new Error("simulated offline failure");
+    return {
+      ok: true,
+      headers: { get: name => name === "content-type" ? "application/json" : null },
+      text: async () => JSON.stringify(path.includes("search-index") ? index : modules)
+    };
+  };
+  vm.runInNewContext(support, {
+    document,
+    fetch,
+    URL,
+    TextEncoder,
+    location: { href: "https://example.test/" }
+  });
+  ready();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(fetchCalls, 2, "initial background load should fail once");
+  assert.equal(typeof submit, "function");
+  await submit({
+    preventDefault() {},
+    currentTarget: elements.get("#assistantForm")
+  });
+  assert.equal(fetchCalls, 4, "submitting after recovery should retry both public indexes");
+  assert.ok(messages.children.some(node => String(node.textContent).includes("راهنمای پایتون")));
+  assert.equal(button.disabled, false);
+});
