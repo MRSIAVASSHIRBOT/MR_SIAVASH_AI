@@ -4,7 +4,7 @@
 
 The public website is a static GitHub Pages application. The production Worker, `mr-siavash-ai-gateway`, is deployed on its `workers.dev` hostname. A separate preview Worker, `mr-siavash-ai-gateway-preview`, runs current source against an isolated D1 database. A Cloudflare control-plane inspection on 2026-11-08 identified deployed version `f7d5a92e-2694-4af1-8b99-18d04742925d`.
 
-The deployed Worker currently contains health/readiness, a knowledge-fallback assistant endpoint, public support ticket creation/read/reply endpoints, and Access-protected administrator console/API routes. It does not yet contain the current repository's public `/v1/modules` route or scheduled retention handler. The current `main` source and isolated preview Worker contain those newer capabilities. Production has no Workers AI binding; no model-generated assistant response is active.
+The production Worker currently contains health/readiness, a knowledge-fallback assistant endpoint, public support ticket creation/read/reply endpoints, and Access-protected administrator console/API routes. It does not yet contain the current repository's public `/v1/modules` route or scheduled retention handler. The current `main` source and isolated preview Worker contain those newer capabilities. Production has no Workers AI binding; no model-generated assistant response is active.
 
 The public UI continues to disable ticket submission and tracking until the reviewed production release and retention decision are complete. Production D1 already contains support records; their contents were not inspected or exported. Do not reset the database, reapply migrations 0001–0003, or enable automatic deletion without explicit owner approval.
 
