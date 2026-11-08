@@ -63,5 +63,7 @@ jobs:
           CLOUDFLARE_D1_DATABASE_ID: 87c15170-7995-4929-b00c-20b5b491c05f
           DEPLOY_WORKER: ${{ inputs.deploy }}
           ENABLE_WORKERS_AI: ${{ inputs.enable_workers_ai }}
+          ENABLE_SUPPORT_RETENTION: ${{ inputs.enable_support_retention }}
+          SUPPORT_RETENTION_DAYS: ${{ inputs.retention_days }}
           GITHUB_SHA: ${{ github.sha }}
         run: node scripts/deploy-production-worker.mjs
