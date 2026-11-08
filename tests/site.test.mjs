@@ -1307,7 +1307,9 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(html, />پیگیری<\/button>/);
   assert.match(html, /support-tickets\.mjs/);
   assert.match(html, /support-privacy-note/);
-  assert.match(html, /id="supportConsent"/);
+  assert.match(html, /id="supportConsent"[^>]*disabled/);
+  assert.match(html, /id="supportRequestForm"[^>]*method="post"/);
+  assert.match(html, /id="ticketTrackForm"[^>]*method="post"/);
   assert.match(html, /privacy\.html/);
   assert.match(html, /type="password"/);
   assert.match(support, /readJson\("\.\/search-index\.json"/);
