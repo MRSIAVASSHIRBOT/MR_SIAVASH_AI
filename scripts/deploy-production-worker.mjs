@@ -119,10 +119,16 @@ async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSuppo
 
   const unknown = await call("/v1/support/tickets/MS-0000000000000000", {}, 404);
   if (unknown.body.error?.code !== "ticket_not_found") throw new Error("Production public ticket route is not responding with the expected private-not-found result.");
+  const consent = await call("/v1/support/tickets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category: "question", subject: "Release smoke check", message: "Consent gate verification" })
+  }, 400);
+  if (consent.body.error?.code !== "consent_required") throw new Error("Production support intake did not enforce explicit privacy consent.");
   const invalid = await call("/v1/support/tickets", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ subject: "", message: "" })
+    body: JSON.stringify({ subject: "", message: "", consent: true })
   }, enableSupportRetention ? 400 : 503);
   const expectedTicketError = enableSupportRetention ? "invalid_ticket" : "support_retention_required";
   if (invalid.body.error?.code !== expectedTicketError) throw new Error("Production ticket intake did not match the selected retention policy.");
