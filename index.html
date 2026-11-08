@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="./styles.css">
   <link rel="stylesheet" href="./support.css">
   <link rel="stylesheet" href="./python-course.css">
+  <link rel="stylesheet" href="./experience.css">
   <script src="./app.js" defer></script>
   <script src="./support.js" defer></script>
   <script src="./python-course.js" defer></script>
@@ -77,6 +78,7 @@
               <button class="button button-quiet" type="button" data-view="about">معماری پروژه <span aria-hidden="true">↗</span></button>
             </div>
             <div class="hero-footnote"><span class="tiny-check">✓</span> ماژولار از ابتدا <span class="footnote-separator">/</span> فارسی و راست‌چین <span class="footnote-separator">/</span> توسعه‌پذیر</div>
+            <div class="hero-proof-row" aria-label="ویژگی‌های تجربه محصول"><span><i>01</i> تجربه یکپارچه</span><span><i>02</i> کنترل دست کاربر</span><span><i>03</i> طراحی واکنش‌گرا</span></div>
           </div>
 
           <div class="hero-visual" data-reveal="up" role="group" aria-label="نمای مفهومی معماری اکوسیستم" data-motion-paused="false">
@@ -92,6 +94,7 @@
             <div class="orbit-core" aria-hidden="true"><span class="core-symbol">M<span>/</span></span><strong>MR_SIAVASH_AI</strong><small>CONNECTED BY DESIGN</small></div>
             <div class="visual-caption" aria-hidden="true"><span class="caption-pulse"></span> ساختار مستقل؛ ارتباط هدفمند</div>
             </div>
+            <div class="hero-readout" aria-label="نمای وضعیت رابط"><span class="readout-pulse"></span><div><small>INTERFACE STATUS</small><strong>طراحی برای تمرکز</strong></div><span class="readout-code">UI / 07</span></div>
           </div>
         </div>
 
@@ -104,6 +107,7 @@
           <div class="metrics-note">شفافیت وضعیت، بخشی از طراحی محصول است.</div>
         </div>
 
+        <section class="experience-strip" aria-label="اصول تجربه کاربری" data-reveal="up"><article><span class="experience-index">A / 01</span><strong>شفاف و قابل فهم</strong><p>هر بخش مشخص می‌کند چه کاری انجام می‌دهد و چه چیزی هنوز فعال نیست.</p></article><article><span class="experience-index">A / 02</span><strong>سریع و سبک</strong><p>حرکت و جلوه بصری در خدمت محتواست؛ نه مانع دسترسی به آن.</p></article><article><span class="experience-index">A / 03</span><strong>قابل استفاده برای همه</strong><p>صفحه‌کلید، لمس، کاهش حرکت و نمایشگرهای کوچک در طراحی لحاظ می‌شوند.</p></article></section>
         <div class="section-heading" data-reveal="up">
           <div><div class="eyebrow"><span class="eyebrow-line"></span> THE BUILDING BLOCKS</div><h2>بخش‌های اصلی اکوسیستم</h2></div>
           <button class="text-link" type="button" data-view="modules">مشاهده همه ماژول‌ها <span>←</span></button>
@@ -248,7 +252,7 @@
   <dialog class="support-dialog" id="supportDialog" aria-labelledby="supportTitle"><div class="support-head"><div><span class="eyebrow">HELP CENTER</span><h2 id="supportTitle">چطور می‌توانیم کمک کنیم؟</h2><p>ربات راهنما یا ارتباط مستقیم با پشتیبانی</p></div><button class="dialog-close" id="supportClose" type="button" aria-label="بستن">×</button></div><div class="support-tabs"><button type="button" data-support-tab="assistant" aria-selected="true">گفتگو با ربات</button><button type="button" data-support-tab="request" aria-selected="false">ثبت درخواست</button><button type="button" data-support-tab="track" aria-selected="false">پیگیری</button></div><section class="support-pane is-active" data-support-pane="assistant"><div class="assistant-intro"><span class="assistant-avatar">AI</span><div><strong>دستیار MR_SIAVASH_AI</strong><small>دانش سایت + هوش مصنوعی + ارجاع انسانی</small></div></div><div class="assistant-messages" id="assistantMessages" aria-live="polite"><p class="assistant-bubble">سلام! درباره سایت یا آموزش‌ها چه سؤالی داری؟</p></div><form id="assistantForm" class="support-form"><label for="assistantInput">پیام شما</label><textarea id="assistantInput" rows="2" maxlength="1200" required></textarea><div class="support-form-actions"><button class="button button-primary" type="submit">ارسال پیام</button><button class="button button-quiet" id="handoffButton" type="button" hidden>ارجاع به پشتیبانی انسانی</button></div></form></section><section class="support-pane" data-support-pane="request" hidden><form id="supportRequestForm" class="support-form"><label for="supportCategory">نوع درخواست</label><select id="supportCategory"><option value="question">سؤال و راهنمایی</option><option value="suggestion">پیشنهاد</option><option value="complaint">انتقاد یا شکایت</option><option value="bug">گزارش خطا</option><option value="other">سایر</option></select><label for="supportSubject">موضوع</label><input id="supportSubject" maxlength="120" required><label for="supportEmail">ایمیل تماس (اختیاری)</label><input id="supportEmail" type="email" maxlength="254"><label for="supportMessage">شرح درخواست</label><textarea id="supportMessage" rows="4" maxlength="4000" required></textarea><label class="support-honeypot">وب‌سایت<input id="supportWebsite" tabindex="-1" autocomplete="off"></label><button class="button button-primary" type="submit">ثبت درخواست</button><p id="supportRequestStatus" role="status" aria-live="polite"></p></form></section><section class="support-pane" data-support-pane="track" hidden><form id="ticketTrackForm" class="support-form"><p>کد پیگیری و کلید خصوصی را وارد کن. کلید فقط نزد توست.</p><label for="ticketCodeInput">کد پیگیری</label><input id="ticketCodeInput" maxlength="20" required placeholder="MS-..."><label for="ticketTokenInput">کلید خصوصی</label><input id="ticketTokenInput" minlength="64" maxlength="64" required autocomplete="off"><button class="button button-primary" type="submit">مشاهده گفتگو</button><div id="ticketTrackResult" role="status" aria-live="polite"></div></form></section></dialog>
     <footer class="site-footer">
       <a class="footer-brand" href="#home" data-view="home"><span class="brand-mark small-mark">M<i>/</i></span><strong>MR_SIAVASH_AI</strong></a>
-      <span>یک اکوسیستم؛ مسیرهای مستقل. <span class="footer-version">نسخه ۰.۶</span></span>
+      <span>یک اکوسیستم؛ مسیرهای مستقل. <span class="footer-version">نسخه ۰.۷</span></span>
       <a href="https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI" target="_blank" rel="noreferrer">مخزن پروژه <span>↗</span></a>
     </footer>
   </div>
