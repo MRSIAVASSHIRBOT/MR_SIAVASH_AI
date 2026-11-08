@@ -26,6 +26,8 @@ function tab(name){
  document.querySelectorAll("[data-support-pane]").forEach(pane=>{pane.classList.toggle("is-active",pane.dataset.supportPane===name);pane.hidden=pane.dataset.supportPane!==name;});
 }
 async function readBoundedText(response,maxBytes){
+ const declaredLength=Number(response.headers.get("content-length"));
+ if(Number.isFinite(declaredLength)&&declaredLength>maxBytes)throw new Error("حجم راهنمای سایت بیش از حد مجاز است.");
  if(!response.body||typeof response.body.getReader!=="function"){
   const text=await response.text();
   if(new TextEncoder().encode(text).byteLength>maxBytes)throw new Error("حجم راهنمای سایت بیش از حد مجاز است.");
@@ -39,7 +41,7 @@ async function readBoundedText(response,maxBytes){
    if(part.done)break;
    total+=part.value.byteLength;
    if(total>maxBytes){
-    await reader.cancel();
+    try{await reader.cancel();}catch{}
     throw new Error("حجم راهنمای سایت بیش از حد مجاز است.");
    }
    chunks.push(part.value);
@@ -55,8 +57,6 @@ async function readJson(path,maxBytes){
  if(!response.ok)throw new Error("راهنمای سایت در دسترس نیست.");
  const type=response.headers.get("content-type")||"";
  if(!/^application\/(?:json|[a-z0-9.+-]+\+json)(?:\s*;|$)/i.test(type))throw new Error("نوع داده راهنما معتبر نیست.");
- const declaredLength=Number(response.headers.get("content-length"));
- if(Number.isFinite(declaredLength)&&declaredLength>maxBytes)throw new Error("حجم راهنمای سایت بیش از حد مجاز است.");
  const text=await readBoundedText(response,maxBytes);
  return JSON.parse(text);
 }
