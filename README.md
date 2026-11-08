@@ -44,7 +44,7 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 - tests/service-worker.test.mjs — runtime regression tests for static-cache isolation and navigation boundaries
 - .github/workflows/deploy.yml — quality checks and GitHub Pages deployment
 - docs/ARCHITECTURE.md — current boundaries and future integration plan
-- cloudflare/gateway/ — dedicated health-only Cloudflare Worker uploaded; independent HTTP runtime verification is still pending
+- cloudflare/gateway/ — deployed Worker remains health-only; automated health/CORS smoke checks passed on 2026-11-07, but deployed code has not been updated to the current repository source
 - docs/decisions/0001-cloudflare-backend-boundary.md — Cloudflare backend decision record
 - SECURITY.md — security reporting and client-side security boundaries
 
@@ -92,7 +92,7 @@ No license has been granted yet. All rights are reserved by the repository owner
 - docs/ROADMAP.md coordinates the workstreams and release stages.
 - docs/PLATFORM_CONTRACTS.md defines shared integration and production-readiness requirements.
 
-The frontend remains static and does not itself provide authentication or cloud synchronization. The support API and admin authorization are implemented in a separate Worker source branch, but are not live until the D1 migration, Access configuration, AI binding (if desired), and Worker deployment are completed.
+The frontend remains static and does not itself provide authentication or cloud synchronization. The support API and admin routes are implemented in `main`, but the deployed Worker still exposes health endpoints only. Production D1 already contains the support schema; Cloudflare Access is not enabled and the Worker has no AI binding. The support routes are not live until the Worker is deployed and administrator Access is configured. AI binding is additionally required only for model-generated answers; verified FAQ fallback remains available without it.
 
 
 ## Hybrid support and global search
@@ -100,7 +100,7 @@ The frontend remains static and does not itself provide authentication or cloud 
 - Global search indexes site sections, module cards and the Python Academy course; use Ctrl+K.
 - The floating support center includes a site-grounded assistant, direct tickets, ticket follow-up using a one-time private key, and human handoff.
 - Gateway endpoints: POST /v1/assistant/chat; POST /v1/support/tickets; GET /v1/support/tickets/:code; POST /v1/support/tickets/:code/messages; administrator list/detail/reply/status routes under /v1/admin/support/tickets.
-- D1 migration 0003 adds support tickets, messages and hashed-IP rate-limit buckets. It is source-only and has not been applied to production.
+- D1 migration 0003 adds support tickets, messages and hashed-IP rate-limit buckets. Read-only inspection on 2026-11-08 confirmed the exact three table definitions in production D1; all three tables currently contain zero rows. This confirms schema presence, not live API availability.
 - AI generation is optional and runs only with an AI binding and configured AI_MODEL. Otherwise the assistant uses verified FAQ content and explicitly hands off unknown questions.
 - Admin APIs verify Cloudflare Access JWT signature, issuer, audience, expiry and administrator email allowlist. Configure the Access application and Worker variables before enabling the admin inbox.
 - A ticket token is displayed once and never persisted in browser storage. Store it privately to check replies later.
