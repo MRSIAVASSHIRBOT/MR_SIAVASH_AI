@@ -73,3 +73,6 @@
   .support-launcher { transition:none; }
   .support-launcher:hover { transform:none; }
 }
+
+.support-form [role="status"]{color:var(--muted);font-size:12px;line-height:1.9;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.025)}
+.support-form :disabled{cursor:not-allowed;opacity:.55}
