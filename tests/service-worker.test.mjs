@@ -348,3 +348,10 @@ test("offline course navigation returns a bounded 503 when its own page is not c
   assert.equal(response.status, 503);
   assert.match(await response.text(), /نسخه آفلاین صفحه در دسترس نیست/);
 });
+
+
+test("offline shell includes the public privacy notice", async () => {
+  const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \\+ "v28"/);
+  assert.match(sw, /"\\.\\/privacy\\.html"/);
+});
