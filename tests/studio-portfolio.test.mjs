@@ -15,6 +15,10 @@ test("studio page exposes profile, project, learning, lab, journal and status se
   assert.match(html, /MR_SIAVASH_HUB_AI/);
   assert.match(html, /MR_SIAVASH_AI/);
   assert.match(html, /Gshop/);
+  assert.match(html, /id="focus-areas"/);
+  assert.match(html, /id="printResume"/);
+  assert.match(html, /چاپ نمایه \/ PDF/);
+  assert.match(html, /id="resources"/);
 });
 
 test("studio links point to known public project repositories", () => {
@@ -36,11 +40,13 @@ test("studio code examples are copy-only and never evaluated", () => {
   assert.match(html, /این قطعه‌کد صرفاً نمایش داده می‌شود/);
   assert.match(js, /clipboard\.writeText/);
   assert.doesNotMatch(js, /\beval\s*\(|new Function|\bFunction\s*\(/);
+  assert.match(js, /window\.print\(\)/);
   assert.doesNotMatch(html, /<script\s*>/i);
 });
 
 test("studio page remains self-hosted and included in the offline shell", () => {
   assert.match(html, /Content-Security-Policy/);
+  assert.match(html, /href="\.\/index\.html#support"/);
   assert.match(html, /studio-portfolio\.css/);
   assert.match(html, /studio-portfolio\.js/);
   for (const asset of ["studio.html", "studio-portfolio.css", "studio-portfolio.js"]) {
@@ -55,6 +61,7 @@ test("studio styles have balanced braces and responsive/accessibility fallbacks"
   assert.match(css, /@media\(max-width:640px\)/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /forced-colors:active/);
+  assert.match(css, /@media print/);
 });
 
 test("studio sections are discoverable through the bounded search index", () => {

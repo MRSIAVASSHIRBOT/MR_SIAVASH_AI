@@ -790,6 +790,21 @@
         "MDN",
         "Python docs"
       ]
+    },
+    {
+      "id": "page-professional-profile",
+      "type": "page",
+      "title": "رزومه و نمایه حرفه‌ای",
+      "description": "حوزه‌های تمرکز، پروژه‌ها و نسخهٔ قابل چاپ نمایه حرفه‌ای.",
+      "href": "./studio.html#profile",
+      "terms": [
+        "رزومه",
+        "CV",
+        "چاپ",
+        "PDF",
+        "حوزه های تمرکز",
+        "مهارت"
+      ]
     }
   ]
 }
