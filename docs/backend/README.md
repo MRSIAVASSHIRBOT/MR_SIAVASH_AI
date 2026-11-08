@@ -4,6 +4,8 @@ MR_SIAVASH_AI uses a dedicated Cloudflare Worker and D1 database. This backend i
 
 ## Current environment state
 
+The deployed production Worker currently exposes public support-ticket create/read/reply endpoints; this describes the deployed bundle, not every route in the current repository source.
+
 ### Production
 
 The production Worker is `mr-siavash-ai-gateway`; its dedicated D1 database is `mr-siavash-ai-prod`. A Cloudflare control-plane readback on 2026-11-08 identified deployed version `f7d5a92e-2694-4af1-8b99-18d04742925d`.
