@@ -25,13 +25,39 @@ function tab(name){
  document.querySelectorAll("[data-support-tab]").forEach(button=>button.setAttribute("aria-selected",String(button.dataset.supportTab===name)));
  document.querySelectorAll("[data-support-pane]").forEach(pane=>{pane.classList.toggle("is-active",pane.dataset.supportPane===name);pane.hidden=pane.dataset.supportPane!==name;});
 }
+async function readBoundedText(response,maxBytes){
+ const declaredLength=Number(response.headers.get("content-length"));
+ if(Number.isFinite(declaredLength)&&declaredLength>maxBytes)throw new Error("حجم راهنمای سایت بیش از حد مجاز است.");
+ if(!response.body||typeof response.body.getReader!=="function"){
+  const text=await response.text();
+  if(new TextEncoder().encode(text).byteLength>maxBytes)throw new Error("حجم راهنمای سایت بیش از حد مجاز است.");
+  return text;
+ }
+ const reader=response.body.getReader(),chunks=[];
+ let total=0;
+ try{
+  while(true){
+   const part=await reader.read();
+   if(part.done)break;
+   total+=part.value.byteLength;
+   if(total>maxBytes){
+    try{await reader.cancel();}catch{}
+    throw new Error("حجم راهنمای سایت بیش از حد مجاز است.");
+   }
+   chunks.push(part.value);
+  }
+ }finally{reader.releaseLock();}
+ const bytes=new Uint8Array(total);
+ let offset=0;
+ for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
+ return new TextDecoder("utf-8",{fatal:true}).decode(bytes);
+}
 async function readJson(path,maxBytes){
  const response=await fetch(path,{credentials:"omit",cache:"no-cache"});
  if(!response.ok)throw new Error("راهنمای سایت در دسترس نیست.");
  const type=response.headers.get("content-type")||"";
  if(!/^application\/(?:json|[a-z0-9.+-]+\+json)(?:\s*;|$)/i.test(type))throw new Error("نوع داده راهنما معتبر نیست.");
- const text=await response.text();
- if(new TextEncoder().encode(text).byteLength>maxBytes)throw new Error("حجم راهنمای سایت بیش از حد مجاز است.");
+ const text=await readBoundedText(response,maxBytes);
  return JSON.parse(text);
 }
 async function loadKnowledge(){
