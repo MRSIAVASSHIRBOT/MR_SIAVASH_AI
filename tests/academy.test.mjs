@@ -42,7 +42,7 @@ test("academy navigation, global search, and offline shell are integrated", () =
   assert.match(sw, /"\.\/academy\.html"/);
   assert.match(sw, /"\.\/academy\.css"/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v25"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
 });
 
 test("academy layout supports mobile, keyboard, and reduced-motion preferences", () => {

@@ -103,10 +103,10 @@ No license has been granted yet. All rights are reserved by the repository owner
 
 The frontend remains static and does not itself provide authentication or cloud synchronization. Support, assistant and administrator routes exist in the repository source but are not deployed. Production D1 already contains the support schema. Cloudflare Access is configured for the administrator console and API paths, but the deployed Worker is still health-only. Workers AI is not bound to the production Worker.
 
-## Hybrid support and global search
+## Local support guide and global search
 
 - Global search indexes site sections, module cards and the Python Academy course; use Ctrl+K.
-- The floating support center includes a site-grounded assistant, direct tickets, ticket follow-up using a one-time private key, and human handoff in the frontend/source implementation. The remote support service is not live until the Worker release is deployed.
+- The floating support center currently provides a browser-local, keyword-ranked guide over public site metadata. It is not an LLM chatbot and does not send chat text to a server. Ticket submission, ticket tracking, and human handoff are disabled in the deployed UI until their Worker routes are deployed and independently verified.
 - Gateway endpoints in source: POST /v1/assistant/chat; POST /v1/support/tickets; GET /v1/support/tickets/:code; POST /v1/support/tickets/:code/messages; administrator list/detail/reply/status routes under /v1/admin/support/tickets.
 - D1 migration 0003 adds support tickets, messages and hashed-IP rate-limit buckets. Read-only inspection on 2026-11-08 confirmed the three table definitions in production D1; this confirms schema presence, not live API availability.
 - AI generation is optional and runs only with an AI binding and configured AI_MODEL. Production currently has no AI binding; verified FAQ fallback is available in source.
