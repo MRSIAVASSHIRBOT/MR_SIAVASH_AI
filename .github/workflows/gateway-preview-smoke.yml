@@ -1,0 +1,60 @@
+name: Cloudflare Gateway Preview Runtime Smoke
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gateway-preview-smoke
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: Verify deployed preview API
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check liveness
+        env:
+          BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
+        run: |
+          set -euo pipefail
+          body="$(curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 2 --max-time 15 "$BASE_URL/v1/health/live")"
+          node -e 'const x=JSON.parse(process.argv[1]);if(x.status!=="ok"||x.service!=="mr-siavash-ai-gateway"||typeof x.request_id!=="string")process.exit(1)' "$body"
+      - name: Check D1 readiness
+        env:
+          BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
+        run: |
+          set -euo pipefail
+          body="$(curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 2 --max-time 15 "$BASE_URL/v1/health/ready")"
+          node -e 'const x=JSON.parse(process.argv[1]);if(x.status!=="ready"||x.dependencies?.database!=="ready")process.exit(1)' "$body"
+      - name: Check public module catalog
+        env:
+          BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
+        run: |
+          set -euo pipefail
+          body="$(curl --fail --silent --show-error --max-time 15 "$BASE_URL/v1/modules")"
+          node -e 'const x=JSON.parse(process.argv[1]);if(!Array.isArray(x.items)||x.items.length<1)process.exit(1)' "$body"
+      - name: Check trusted and untrusted CORS boundaries
+        env:
+          BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
+          ALLOWED_ORIGIN: https://mrsiavasshirbot.github.io
+        run: |
+          set -euo pipefail
+          trusted="$(mktemp)"
+          untrusted="$(mktemp)"
+          trap 'rm -f "$trusted" "$untrusted"' EXIT
+          trusted_status="$(curl --silent --show-error --max-time 15 --dump-header "$trusted" --output /dev/null --write-out '%{http_code}' --request OPTIONS "$BASE_URL/v1/modules" --header "Origin: $ALLOWED_ORIGIN" --header 'Access-Control-Request-Method: GET' --header 'Access-Control-Request-Headers: content-type')"
+          test "$trusted_status" = "204"
+          grep -Fqi "access-control-allow-origin: $ALLOWED_ORIGIN" "$trusted"
+          untrusted_status="$(curl --silent --show-error --max-time 15 --dump-header "$untrusted" --output /dev/null --write-out '%{http_code}' --request OPTIONS "$BASE_URL/v1/modules" --header 'Origin: https://untrusted.invalid' --header 'Access-Control-Request-Method: GET')"
+          test "$untrusted_status" = "403"
+          if grep -Eiq '^access-control-allow-origin:' "$untrusted"; then
+            echo "Untrusted origin received a CORS grant." >&2
+            exit 1
+          fi
