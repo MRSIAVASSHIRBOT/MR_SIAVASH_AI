@@ -13,7 +13,7 @@ The repository provides a static web application with:
 - Searchable module catalog with category filters and saved modules.
 - A Persian beginner Python course with 12 lessons, practical code samples, expected outputs, knowledge checks, and browser-local progress. The site does not execute Python; learners run copied examples in Python 3.
 - A Persian multi-course academy with six learning paths and 30 chapters covering HTML, CSS, JavaScript, Git/GitHub, Linux, and defensive web security. Course progress is stored locally in the current browser.
-- Accessible module detail dialogs and keyboard shortcuts (Ctrl/Cmd + K, /).
+- Accessible global search with weighted Persian/Arabic normalization, module discovery, all 30 academy chapters and all 12 Python lessons, keyboard result navigation, and direct lesson deep links (Ctrl/Cmd + K).
 - Browser-local workspace task manager with search, status filters, progress counts and confirmed bulk cleanup.
 - Non-destructive workspace recovery: unreadable or repaired snapshots block implicit overwrites until an explicit validated-backup import; cross-tab writes and storage-clear events cannot bypass the recovery lock.
 - Local workspace recovery repairs missing or duplicate task IDs and explicitly reports discarded invalid or over-capacity records instead of silently truncating task text.
@@ -38,6 +38,7 @@ A Cloudflare Access self-hosted application is configured for the Worker paths `
 - python.html, python-course.js, python-course.css — standalone interactive Python beginner course
 - academy.html, academy.js, academy.css — searchable multi-course learning academy and local progress tracker
 - modules.json — versioned, validated module catalog (public static metadata)
+- search-index.json and site-search.js — bounded, validated global search index and accessible result navigation
 - Workspace tasks and favorites synchronize between same-origin tabs through validated browser storage events (last-write-wins; no cloud sync)
 - schemas/module-registry.schema.json — formal JSON Schema 2020-12 contract for module metadata
 - schemas/workspace-backup.schema.json — formal JSON Schema 2020-12 contract for local workspace backups
