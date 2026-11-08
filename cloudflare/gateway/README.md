@@ -53,9 +53,28 @@ Migration 0001 creates tenant-scoped workspace tasks and owner-scoped idempotenc
 5. Implement public module metadata and authenticated workspace APIs against the OpenAPI contract.
 6. Add AI provider adapters and bounded agent jobs only after identity, secrets, and approval controls pass review.
 
-A successful liveness response is not a readiness signal. A successful readiness response only verifies the D1 dependency, not the full product. The current Worker exposes health endpoints only; it does not yet provide authentication, workspace APIs, or AI/agent execution.
+A successful liveness response is not a readiness signal. A successful readiness response only verifies the D1 dependency, not the full product. The originally deployed Worker version exposes health endpoints only. The repository now contains additional source-only support and assistant routes, but those routes are not live until the D1 migration and Worker release are applied and independently verified.
 
 
 ## CORS preflight policy
 
-Preflight requests are accepted only when the origin exactly matches `ALLOWED_ORIGINS`, the requested method is `GET`, and every requested header is in the explicit `Content-Type` / `X-Request-ID` allowlist. Unsupported methods, untrusted or missing origins, and unapproved or malformed headers receive a `403` response without granting CORS access. CORS is a browser access policy, not authentication or authorization; non-browser clients must still be treated as untrusted.
+Preflight requests are accepted only when the origin exactly matches `ALLOWED_ORIGINS`, the requested method is one of `GET`, `POST`, or `PATCH`, and every requested header is in the explicit `Content-Type`, `Authorization`, or `X-Request-ID` allowlist. Unsupported methods, untrusted or missing origins, and unapproved or malformed headers receive a `403` response without granting CORS access. CORS is a browser access policy, not authentication or authorization; non-browser clients must still be treated as untrusted.
+
+
+## Hybrid assistant and human support (source-only)
+
+Quality checks are required on this stacked pull request before release.
+
+The Worker source implements a site-grounded assistant, support ticket creation and private ticket conversations, plus Cloudflare Access-protected administrator list/detail/reply/status routes. Workers AI is optional: the Worker invokes it only when both the `AI` binding and an `AI_MODEL` beginning with `@cf/` are configured. Otherwise it uses verified FAQ content or explicitly recommends human support.
+
+Migration `0003_support_inbox.sql` creates ticket, message and hashed-IP rate-limit tables. It has NOT been applied to production. Before enabling these routes, apply it to the dedicated `mr-siavash-ai-prod` D1 database and verify the deployed Worker. Never use `gshop-db`.
+
+Required settings: `DB`, exact-origin `ALLOWED_ORIGINS`, optional `AI` and optional `AI_MODEL` (default `@cf/zai-org/glm-4.7-flash`), and `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`, `ADMIN_EMAILS` for administrator access. Configure a Cloudflare Access application and restrict it to the administrator identity. Admin endpoints independently verify JWT signature, issuer, audience, expiry and email allowlist.
+
+Ticket credentials are random one-time bearer tokens; only SHA-256 hashes are stored. Raw client IPs are not stored. Email delivery, retention and erasure automation remain future work.
+
+
+Validation note: the current PR checks the exact allowlisted gateway origin in the static site's CSP and the gateway's credentialed CORS policy; no wildcard origin is accepted.
+
+
+The administrator dashboard is served by the Worker at `/admin`, on the same origin as the protected API. Configure a path-scoped Cloudflare Access application for `/admin` and `/v1/admin/*`; this avoids depending on third-party cookies from the GitHub Pages origin. The Worker also validates the Access JWT itself.

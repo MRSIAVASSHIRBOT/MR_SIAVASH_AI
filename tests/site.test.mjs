@@ -6,6 +6,7 @@ import vm from "node:vm";
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
+const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
 const manifestText = await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8");
 const moduleRegistryText = await readFile(new URL("../modules.json", import.meta.url), "utf8");
 const moduleRegistry = JSON.parse(moduleRegistryText);
@@ -141,7 +142,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v17"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v18"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -211,7 +212,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v17"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v18"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -384,7 +385,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v17"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v18"/);
 });
 
 
@@ -853,7 +854,11 @@ test("static document enforces a restrictive self-hosted Content Security Policy
   assert.deepEqual(directives.get("object-src"), ["'none'"]);
   assert.deepEqual(directives.get("frame-src"), ["'none'"]);
   assert.ok(directives.has("upgrade-insecure-requests"));
-  assert.doesNotMatch(match[1], /unsafe-inline|unsafe-eval|https?:\/\//i);
+  assert.deepEqual(directives.get("connect-src"), ["'self'", "https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev"]);
+  const nonConnectSources = [...directives.entries()].filter(([name]) => name !== "connect-src").flatMap(([, values]) => values).join(" ");
+  assert.equal(nonConnectSources.includes("https://"), false);
+  assert.equal(nonConnectSources.includes("unsafe-inline"), false);
+  assert.equal(nonConnectSources.includes("unsafe-eval"), false);
   assert.doesNotMatch(html, /\son[a-z]+\s*=/i, "inline event handlers would violate the policy");
   assert.doesNotMatch(html, /<script(?![^>]*\bsrc=)[^>]*>/i, "inline scripts would violate the policy");
   assert.doesNotMatch(html, /\sstyle\s*=/i, "inline style attributes would violate the policy");
@@ -1139,4 +1144,23 @@ test("scroll reveal leaves content untouched without observer support or when mo
   assert.deepEqual(rootClasses, []);
   run({ IntersectionObserver: function () {}, matchMedia: () => ({ matches: true }) }).call();
   assert.deepEqual(rootClasses, []);
+});
+
+
+test("global search and support center are wired without inline script execution", () => {
+  assert.match(html, /id="globalSearchButton"/);
+  assert.match(html, /id="siteSearchDialog"/);
+  assert.match(html, /id="supportLauncher"/);
+  assert.match(html, /id="supportDialog"/);
+  assert.match(html, /id="ticketTrackForm"/);
+  assert.match(html, /support\.js/);
+  assert.match(html, /support\.css/);
+  assert.match(sw, /"\.\/support\.js"/);
+  assert.match(sw, /"\.\/support\.css"/);
+  assert.doesNotMatch(support, /innerHTML\s*=/);
+});
+
+test("global search indexes hidden sections and the support center", () => {
+  assert.equal(support.includes("s.textContent"), true);
+  assert.match(support, /مرکز پشتیبانی/);
 });
