@@ -85,4 +85,4 @@
 .support-ticket-message strong{color:var(--green-bright);font-size:11px}
 .support-ticket-message p{margin:6px 0 0;color:var(--text);font-size:12px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}
 .support-ticket-reply{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
-#supportTicketCredential{display:grid;gap:7px;margin-top:10px}
+#supportTicketCredential{display:grid;gap:7px;margin-top:10px}#supportTicketCredential[hidden]{display:none}
