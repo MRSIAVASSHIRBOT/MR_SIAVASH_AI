@@ -1,6 +1,8 @@
 # Cloudflare Gateway
 
-The production Worker and isolated preview Worker are dedicated Cloudflare services for MR_SIAVASH_AI. They are isolated from GShop and use separate production and preview D1 databases.\n\nThe deployed production Worker currently exposes public support ticket creation/read/reply endpoints; this describes the deployed bundle, not every route in the current repository source.
+The production Worker and isolated preview Worker are dedicated Cloudflare services for MR_SIAVASH_AI. They are isolated from GShop and use separate production and preview D1 databases.
+
+The active production deployment is tracked separately from source uploads; a successful version upload does not mean that version is receiving live traffic.
 
 ## Cloudflare resources
 
@@ -13,7 +15,7 @@ Never bind this project to GShop's `gahop` Worker or `gshop-db`.
 
 ## Verified production state — 2026-11-08
 
-Cloudflare control-plane inspection identified deployed Worker version `f7d5a92e-2694-4af1-8b99-18d04742925d`. Its deployed bundle is older than the current repository source.
+Cloudflare control-plane inspection on 2026-11-08 verified that 100% of production traffic is on Worker version 5, `f7d5a92e-2694-4af1-8b99-18d04742925d`. Version 6 (`864e90b3-d163-41d6-84f6-6e87dd0960d7`, source commit `b060beeecd13196d1143187a518962379a696c22`) was uploaded with the scheduled handler and a 90-day retention binding, but its deployment was rolled back within seconds to version 5 after post-deployment smoke checks failed. Version 6 is not active. The rollback restored the previous traffic split and left the production cron schedule empty.
 
 The deployed version contains:
 - `GET /v1/health/live` and `GET /v1/health/ready`.
@@ -28,19 +30,11 @@ The production Access application is configured for `/admin` and `/v1/admin/*` w
 
 Production D1 already contains support records. Their contents were not inspected or exported. Do not reset the database, reapply migrations 0001–0003, or run destructive cleanup without explicit approval.
 
-Production has no Workers AI binding and no cron schedule for retention. Query-string redaction is enabled; persistent invocation logs and traces remain enabled. The production support API code exists in the deployed bundle, but the user-facing forms remain disabled.
+Production version 5 has no Workers AI binding or scheduled handler, and the live Worker has no cron schedule for retention. The uploaded version 6 includes a scheduled handler but is not active. The latest upload's 90-day binding is not an active production retention policy. Query-string redaction is enabled; persistent invocation logs and traces remain enabled. The production support API code exists in the deployed bundle, but the user-facing forms remain disabled.
 
 ## Preview state
 
-The isolated preview Worker is deployed from current repository source and uses only the dedicated preview D1 database. Migrations 0001–0003 are recorded in the preview `d1_migrations` table. Runtime smoke checks passed for:
-- liveness and D1 readiness;
-- public module metadata;
-- grounded knowledge fallback;
-- support-ticket validation and private-not-found behavior;
-- administrator fail-closed behavior;
-- exact-origin CORS.
-
-Preview intentionally has no Access audience/administrator bindings and no Workers AI binding. Its admin routes must remain fail-closed. Preview retention is configured for 90 days with a daily 03:00 UTC cron; the preview database is isolated from production.
+The preview Worker uses only the dedicated preview D1 database; migrations 0001–0003 are recorded there. Control-plane inspection shows preview traffic was rolled back to version 3 (`ee5ca3d5-280c-4b97-88fc-fcbbf8429496`) after a version 4 deployment attempt (`febed03d-580a-4246-8e7e-9ba39555d3c8`) failed its deployment verification. The GitHub preview smoke run for main commit `b060beeecd13196d1143187a518962379a696c22` passed immediately before that attempt, so it does not prove version 4 remained active. The preview schedule is daily at 03:00 UTC with a 90-day policy. Preview has no Access administrator bindings or Workers AI binding; admin routes must remain fail-closed.
 
 ## Current source API
 
@@ -63,7 +57,7 @@ Preview intentionally has no Access audience/administrator bindings and no Worke
 
 The Worker source contains a scheduled cleanup handler. It deletes support tickets after the configured number of days without an update; the D1 foreign-key cascade deletes linked messages. It also deletes expired idempotency records and rate-limit buckets. Allowed retention periods are 30–365 days.
 
-Preview uses 90 days. Production retention is an explicit opt-in in the manual release workflow and defaults to disabled. This matters because production D1 already contains support records. Do not enable a retention cron or delete existing records without the repository owner's explicit selection of the retention period.
+Preview uses 90 days. The selected default for a future production policy is 30 days. The manual release workflow remains opt-in and defaults to disabled; no production cron is configured. This matters because production D1 already contains support records. Do not enable a retention cron or delete existing records without the repository owner's explicit selection of the retention period.
 
 Ticket creation requires an explicit privacy acknowledgement and an active 30–365-day retention setting. The public interface enables new intake only after the Worker confirms both. Existing-ticket tracking remains available when D1 is healthy. Ticket tokens are returned once and stored only as SHA-256 hashes; the browser sends them in the Authorization header and never puts them in URLs, logs, localStorage or analytics. Do not collect passwords, payment data, API keys or authentication codes.
 

@@ -22,7 +22,9 @@ test("production documentation distinguishes deployed routes from current source
     assert.match(doc, /retention/i);
   }
   assert.match(gatewayReadme, /does \*\*not\*\* yet contain `GET \/v1\/modules`/);
-  assert.match(gatewayReadme, /public support ticket creation\/read\/reply endpoints/);
+  assert.match(gatewayReadme, /100% of production traffic is on Worker version 5/);
+  assert.match(gatewayReadme, /Version 6 .* rolled back within seconds/);
+  assert.match(gatewayReadme, /POST.*v1\/support\/tickets/);
   assert.match(gatewayReadme, /new ticket submission disabled/i);
   assert.match(gatewayReadme, /existing-ticket tracking remains available/i);
   assert.match(gatewayReadme, /explicit privacy acknowledgement/i);
@@ -40,12 +42,14 @@ test("production release is manual, read-only by default and guarded by exact re
   assert.match(releaseWorkflow, /enable_support_retention/);
   assert.match(releaseWorkflow, /ENABLE_SUPPORT_RETENTION:.*inputs\.enable_support_retention/);
   assert.match(releaseWorkflow, /SUPPORT_RETENTION_DAYS:.*inputs\.retention_days/);
+  assert.match(releaseWorkflow, /default: "30"/);
   assert.match(releaseWorkflow, /enable_workers_ai/);
 });
 
 test("production retention cleanup is explicit opt-in and scheduled handler is tested", () => {
   assert.match(workerSource, /async function cleanupExpiredRecords/);
   assert.match(workerSource, /SUPPORT_RETENTION_DAYS/);
+  assert.match(workerSource, /must be explicitly configured between 30 and 365/);
   assert.match(workerSource, /async scheduled\(_controller,env\)/);
   assert.match(releaseScript, /enableSupportRetention/);
 });
