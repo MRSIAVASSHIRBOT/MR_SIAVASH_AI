@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildVersionMetadata, mergeCronSchedules } from "./deploy-production-worker.mjs";
+import { buildVersionMetadata, mergeCronSchedules, configureCronSchedules } from "./deploy-production-worker.mjs";
 
 const settings = {
   compatibility_date: "2026-11-06",
@@ -73,4 +73,33 @@ test("cron schedule merge preserves existing schedules and adds retention once",
     { cron: "0 3 * * *" }
   ]);
   assert.deepEqual(mergeCronSchedules([{ cron: "0 3 * * *" }]), [{ cron: "0 3 * * *" }]);
+});
+
+test("explicit opt-out removes pre-existing AI and retention bindings", () => {
+  const previouslyEnabled = {
+    ...settings,
+    bindings: [
+      ...settings.bindings,
+      { name: "AI", type: "ai" },
+      { name: "AI_MODEL", type: "plain_text", text: "@cf/zai-org/glm-4.7-flash" },
+      { name: "SUPPORT_RETENTION_DAYS", type: "plain_text", text: "90" }
+    ]
+  };
+  const disabled = buildVersionMetadata(previouslyEnabled, {
+    expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f"
+  });
+  assert.equal(disabled.bindings.some(x => x.name === "AI"), false);
+  assert.equal(disabled.bindings.some(x => x.name === "AI_MODEL"), false);
+  assert.equal(disabled.bindings.some(x => x.name === "SUPPORT_RETENTION_DAYS"), false);
+});
+
+test("retention opt-out removes only its cleanup cron and preserves unrelated schedules", () => {
+  assert.deepEqual(configureCronSchedules([
+    { cron: "15 * * * *" },
+    { cron: "0 3 * * *" }
+  ], false), [{ cron: "15 * * * *" }]);
+  assert.deepEqual(configureCronSchedules([{ cron: "15 * * * *" }], true), [
+    { cron: "15 * * * *" },
+    { cron: "0 3 * * *" }
+  ]);
 });
