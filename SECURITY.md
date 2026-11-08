@@ -2,6 +2,8 @@
 
 ## Scope
 
+The deployed production Worker currently exposes public support-ticket create/read/reply endpoints; this describes the deployed bundle, not every route in the current repository source.
+
 The public website is a static GitHub Pages application. The production Worker, `mr-siavash-ai-gateway`, is deployed on its `workers.dev` hostname. A separate preview Worker, `mr-siavash-ai-gateway-preview`, runs current source against an isolated D1 database. A Cloudflare control-plane inspection on 2026-11-08 identified deployed version `f7d5a92e-2694-4af1-8b99-18d04742925d`.
 
 The production Worker currently contains health/readiness, a knowledge-fallback assistant endpoint, public support ticket creation/read/reply endpoints, and Access-protected administrator console/API routes. It does not yet contain the current repository's public `/v1/modules` route or scheduled retention handler. The current `main` source and isolated preview Worker contain those newer capabilities. Production has no Workers AI binding; no model-generated assistant response is active.
