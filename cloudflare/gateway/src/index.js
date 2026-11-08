@@ -59,8 +59,8 @@ function listModules(req,env,id,url){
 }
 async function cleanupExpiredRecords(env){
  if(!env.DB)throw new Error("D1 binding is required for scheduled cleanup.");
- const retentionDays=Number(env.SUPPORT_RETENTION_DAYS??90);
- if(!Number.isInteger(retentionDays)||retentionDays<30||retentionDays>365)throw new Error("SUPPORT_RETENTION_DAYS must be an integer between 30 and 365.");
+ const retentionDays=configuredSupportRetention(env);
+ if(retentionDays===null)throw new Error("SUPPORT_RETENTION_DAYS must be explicitly configured between 30 and 365 before scheduled cleanup.");
  const now=new Date(),nowIso=now.toISOString(),cutoff=new Date(now.getTime()-retentionDays*86400000).toISOString(),nowSeconds=Math.floor(now.getTime()/1000);
  return env.DB.batch([
   env.DB.prepare("DELETE FROM support_tickets WHERE updated_at < ?").bind(cutoff),
