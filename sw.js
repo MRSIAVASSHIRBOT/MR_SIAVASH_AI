@@ -1,7 +1,7 @@
 "use strict";
 
 const CACHE_PREFIX = "mr-siavash-ai-shell-";
-const CACHE_NAME = CACHE_PREFIX + "v22";
+const CACHE_NAME = CACHE_PREFIX + "v23";
 const MAX_MODULE_REGISTRY_BYTES = 64 * 1024;
 const SHELL_FILES = ["./", "./index.html", "./styles.css", "./experience.css", "./studio.css", "./ui-sounds.js", "./app.js", "./python.html", "./python-course.css", "./python-course.js", "./academy.html", "./academy.css", "./academy.js", "./support.js", "./support.css", "./favicon.svg", "./manifest.webmanifest", "./modules.json"];
 
@@ -92,21 +92,27 @@ self.addEventListener("fetch", event => {
   if (requestUrl.origin !== scopeUrl.origin || !requestUrl.pathname.startsWith(scopeUrl.pathname) || requestUrl.search) return;
 
   if (request.mode === "navigate") {
-    const appRootUrl = new URL("./", scopeUrl);
-    const indexUrl = new URL("./index.html", scopeUrl);
-    if (requestUrl.pathname !== appRootUrl.pathname && requestUrl.href !== indexUrl.href) return;
+    const indexUrl = new URL("./index.html", scopeUrl).href;
+    const navigationTargets = [
+      { requestUrl: new URL("./", scopeUrl).href, cacheUrl: indexUrl },
+      { requestUrl: indexUrl, cacheUrl: indexUrl },
+      { requestUrl: new URL("./python.html", scopeUrl).href, cacheUrl: new URL("./python.html", scopeUrl).href },
+      { requestUrl: new URL("./academy.html", scopeUrl).href, cacheUrl: new URL("./academy.html", scopeUrl).href }
+    ];
+    const target = navigationTargets.find(item => item.requestUrl === requestUrl.href);
+    if (!target) return;
     event.respondWith((async () => {
       try {
         const response = await fetch(request);
         const contentType = response && response.headers.get("content-type") || "";
         if (response.ok && contentType.includes("text/html")) {
           const cache = await caches.open(CACHE_NAME);
-          await cache.put(new URL("./index.html", self.registration.scope).href, response.clone());
+          await cache.put(target.cacheUrl, response.clone());
         }
         return response;
       } catch (error) {
         const cache = await caches.open(CACHE_NAME);
-        return (await cache.match(new URL("./index.html", self.registration.scope).href)) ||
+        return (await cache.match(target.cacheUrl)) ||
           new Response("نسخه آفلاین صفحه در دسترس نیست. یک‌بار با اتصال اینترنت وارد سایت شو.", {
             status: 503,
             headers: { "Content-Type": "text/plain; charset=utf-8" }
