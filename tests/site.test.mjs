@@ -162,7 +162,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -232,7 +232,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -405,7 +405,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
 });
 
 
@@ -1199,7 +1199,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1257,7 +1257,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"web-security"/);
   assert.match(academyCss, /#9c8cff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
 });
 
 
@@ -1286,8 +1286,8 @@ test("global search indexes every academy chapter and Python lesson with safe de
   assert.match(search, /aria-activedescendant/);
   assert.match(search, /textContent=item\.title/);
   assert.doesNotMatch(search, /\.innerHTML\s*=/);
-  assert.match(html, /src="\.\/site-search\.js" defer/);
-  assert.match(sw, /"\.\/site-search\.js"/);
+  assert.match(html, /src="\.\/bounded-json\.js" defer/);\n  assert.ok(html.indexOf("./bounded-json.js") < html.indexOf("./support.js"));\n  assert.ok(html.indexOf("./bounded-json.js") < html.indexOf("./site-search.js"));
+  assert.match(sw, /"\.\/bounded-json\.js"/);\n  assert.match(sw, /"\.\/site-search\.js"/);
   assert.match(sw, /"\.\/search-index\.json"/);
 });
 
@@ -1295,7 +1295,7 @@ test("support assistant is a local guide and does not submit unavailable tickets
   assert.match(html, /راهنمای محلی سایت · بدون ارسال پیام به سرور/);
   assert.match(html, /ثبت درخواست · به‌زودی/);
   assert.match(html, /پیگیری · به‌زودی/);
-  assert.match(support, /readJson\("\.\/search-index\.json"/);
+  assert.match(support, /window\.MRSIAVASHReadJson/);
   assert.doesNotMatch(support, /fetch\\(/);
   assert.match(support, /disableUnavailable/);
   assert.match(support, /ثبت آنلاین درخواست هنوز در نسخه/);
@@ -1403,5 +1403,5 @@ test("support UI accurately identifies its local, non-generative guide", () => {
   assert.match(html, />یافتن راهنما<\/button>/);
   assert.doesNotMatch(html, /ارتباط مستقیم با پشتیبانی|ارجاع به پشتیبانی انسانی|گفتگو با ربات/);
   assert.doesNotMatch(support, /handoffButton|\.\/v1\/|method:"POST"/);
-  assert.match(support, /fetch\(path,\{credentials:"omit",cache:"no-cache"\}\)/);
+  assert.match(support, /window\.MRSIAVASHReadJson/);
 });
