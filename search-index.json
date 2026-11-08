@@ -1,0 +1,701 @@
+{
+  "schema": "mr-siavash-ai-search-index",
+  "version": 1,
+  "items": [
+    {
+      "id": "course-html",
+      "type": "course",
+      "title": "HTML از پایه تا ساختار حرفه‌ای",
+      "description": "ساختار معنایی صفحات، فرم‌ها، جدول‌ها و اصول دسترس‌پذیری.",
+      "href": "./academy.html#course=html",
+      "terms": [
+        "html",
+        "دوره آموزشی",
+        "آکادمی"
+      ]
+    },
+    {
+      "id": "lesson-html-0",
+      "type": "lesson",
+      "title": "آشنایی با HTML و ساختار سند",
+      "description": "نقش HTML، تگ‌ها، عناصر و ساختار استاندارد یک سند را می‌شناسی. — HTML از پایه تا ساختار حرفه‌ای",
+      "href": "./academy.html#course=html&lesson=0",
+      "terms": [
+        "HTML از پایه تا ساختار حرفه‌ای",
+        "html",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-html-1",
+      "type": "lesson",
+      "title": "متن، عنوان و پیوندها",
+      "description": "سلسله‌مراتب عنوان‌ها، پاراگراف، تأکید و پیوندهای امن را تمرین می‌کنی. — HTML از پایه تا ساختار حرفه‌ای",
+      "href": "./academy.html#course=html&lesson=1",
+      "terms": [
+        "HTML از پایه تا ساختار حرفه‌ای",
+        "html",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-html-2",
+      "type": "lesson",
+      "title": "تصویر، فهرست و جدول",
+      "description": "تصاویر دارای متن جایگزین، فهرست‌های مرتب و جدول‌های دارای سرستون می‌سازی. — HTML از پایه تا ساختار حرفه‌ای",
+      "href": "./academy.html#course=html&lesson=2",
+      "terms": [
+        "HTML از پایه تا ساختار حرفه‌ای",
+        "html",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-html-3",
+      "type": "lesson",
+      "title": "فرم‌ها و اعتبارسنجی پایه",
+      "description": "ورودی‌های متنی، ایمیل، برچسب‌ها و اعتبارسنجی بومی مرورگر را می‌آموزی. — HTML از پایه تا ساختار حرفه‌ای",
+      "href": "./academy.html#course=html&lesson=3",
+      "terms": [
+        "HTML از پایه تا ساختار حرفه‌ای",
+        "html",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-html-4",
+      "type": "lesson",
+      "title": "Semantic HTML و دسترس‌پذیری",
+      "description": "از header، nav، main، article و label برای ساختار معنادار استفاده می‌کنی. — HTML از پایه تا ساختار حرفه‌ای",
+      "href": "./academy.html#course=html&lesson=4",
+      "terms": [
+        "HTML از پایه تا ساختار حرفه‌ای",
+        "html",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "course-css",
+      "type": "course",
+      "title": "CSS و طراحی رابط واکنش‌گرا",
+      "description": "از انتخابگرها تا Flexbox، Grid، طراحی موبایل و حرکت‌های ظریف.",
+      "href": "./academy.html#course=css",
+      "terms": [
+        "css",
+        "دوره آموزشی",
+        "آکادمی"
+      ]
+    },
+    {
+      "id": "lesson-css-0",
+      "type": "lesson",
+      "title": "اتصال CSS و انتخابگرها",
+      "description": "روش‌های اتصال stylesheet، انتخابگر عنصر، کلاس و شناسه و مفهوم cascade را یاد می‌گیری. — CSS و طراحی رابط واکنش‌گرا",
+      "href": "./academy.html#course=css&lesson=0",
+      "terms": [
+        "CSS و طراحی رابط واکنش‌گرا",
+        "css",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-css-1",
+      "type": "lesson",
+      "title": "رنگ، تایپوگرافی و مدل جعبه",
+      "description": "margin، padding، border، width و box-sizing را در چیدمان واقعی می‌بینی. — CSS و طراحی رابط واکنش‌گرا",
+      "href": "./academy.html#course=css&lesson=1",
+      "terms": [
+        "CSS و طراحی رابط واکنش‌گرا",
+        "css",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-css-2",
+      "type": "lesson",
+      "title": "چیدمان با Flexbox",
+      "description": "محور اصلی و فرعی، فاصله‌گذاری و تراز عناصر را با Flexbox کنترل می‌کنی. — CSS و طراحی رابط واکنش‌گرا",
+      "href": "./academy.html#course=css&lesson=2",
+      "terms": [
+        "CSS و طراحی رابط واکنش‌گرا",
+        "css",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-css-3",
+      "type": "lesson",
+      "title": "CSS Grid و طراحی واکنش‌گرا",
+      "description": "شبکه‌های چندستونه و breakpointهای متناسب با اندازه صفحه می‌سازی. — CSS و طراحی رابط واکنش‌گرا",
+      "href": "./academy.html#course=css&lesson=3",
+      "terms": [
+        "CSS و طراحی رابط واکنش‌گرا",
+        "css",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-css-4",
+      "type": "lesson",
+      "title": "حالت‌ها، انتقال و دسترس‌پذیری",
+      "description": "focus-visible، hover، transition و احترام به reduced motion را به‌کار می‌بری. — CSS و طراحی رابط واکنش‌گرا",
+      "href": "./academy.html#course=css&lesson=4",
+      "terms": [
+        "CSS و طراحی رابط واکنش‌گرا",
+        "css",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "course-javascript",
+      "type": "course",
+      "title": "JavaScript از مقدماتی تا کاربردی",
+      "description": "منطق برنامه‌نویسی، DOM، رویدادها، داده‌ها و ارتباط ناهمگام.",
+      "href": "./academy.html#course=javascript",
+      "terms": [
+        "javascript",
+        "دوره آموزشی",
+        "آکادمی"
+      ]
+    },
+    {
+      "id": "lesson-javascript-0",
+      "type": "lesson",
+      "title": "متغیرها و انواع داده",
+      "description": "const، let، رشته، عدد، Boolean و تبدیل نوع را با مثال بررسی می‌کنی. — JavaScript از مقدماتی تا کاربردی",
+      "href": "./academy.html#course=javascript&lesson=0",
+      "terms": [
+        "JavaScript از مقدماتی تا کاربردی",
+        "javascript",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-javascript-1",
+      "type": "lesson",
+      "title": "شرط‌ها، حلقه‌ها و توابع",
+      "description": "جریان کنترل، حلقه‌ها، پارامترها و return را برای حل مسئله به‌کار می‌بری. — JavaScript از مقدماتی تا کاربردی",
+      "href": "./academy.html#course=javascript&lesson=1",
+      "terms": [
+        "JavaScript از مقدماتی تا کاربردی",
+        "javascript",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-javascript-2",
+      "type": "lesson",
+      "title": "آرایه‌ها و اشیا",
+      "description": "ساختار داده، destructuring، map، filter و متدهای پایه را می‌آموزی. — JavaScript از مقدماتی تا کاربردی",
+      "href": "./academy.html#course=javascript&lesson=2",
+      "terms": [
+        "JavaScript از مقدماتی تا کاربردی",
+        "javascript",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-javascript-3",
+      "type": "lesson",
+      "title": "DOM و رویدادها",
+      "description": "عناصر صفحه را انتخاب می‌کنی، متن را امن تغییر می‌دهی و رویدادها را مدیریت می‌کنی. — JavaScript از مقدماتی تا کاربردی",
+      "href": "./academy.html#course=javascript&lesson=3",
+      "terms": [
+        "JavaScript از مقدماتی تا کاربردی",
+        "javascript",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-javascript-4",
+      "type": "lesson",
+      "title": "Async، Fetch و مدیریت خطا",
+      "description": "Promise، async/await، پاسخ HTTP و try/catch را می‌شناسی. — JavaScript از مقدماتی تا کاربردی",
+      "href": "./academy.html#course=javascript&lesson=4",
+      "terms": [
+        "JavaScript از مقدماتی تا کاربردی",
+        "javascript",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "course-git",
+      "type": "course",
+      "title": "Git و GitHub برای توسعه‌دهندگان",
+      "description": "مدیریت نسخه، تاریخچه تغییرات و همکاری امن در پروژه‌ها.",
+      "href": "./academy.html#course=git",
+      "terms": [
+        "git",
+        "دوره آموزشی",
+        "آکادمی"
+      ]
+    },
+    {
+      "id": "lesson-git-0",
+      "type": "lesson",
+      "title": "مفهوم کنترل نسخه",
+      "description": "تفاوت working tree، staging area و repository را می‌شناسی. — Git و GitHub برای توسعه‌دهندگان",
+      "href": "./academy.html#course=git&lesson=0",
+      "terms": [
+        "Git و GitHub برای توسعه‌دهندگان",
+        "git",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-git-1",
+      "type": "lesson",
+      "title": "Commit و تاریخچه",
+      "description": "تغییرات مرتبط را ثبت و تاریخچه را بررسی می‌کنی. — Git و GitHub برای توسعه‌دهندگان",
+      "href": "./academy.html#course=git&lesson=1",
+      "terms": [
+        "Git و GitHub برای توسعه‌دهندگان",
+        "git",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-git-2",
+      "type": "lesson",
+      "title": "Branch و ادغام",
+      "description": "برای هر قابلیت شاخه مستقل می‌سازی و تغییرات را ادغام می‌کنی. — Git و GitHub برای توسعه‌دهندگان",
+      "href": "./academy.html#course=git&lesson=2",
+      "terms": [
+        "Git و GitHub برای توسعه‌دهندگان",
+        "git",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-git-3",
+      "type": "lesson",
+      "title": "Remote و GitHub",
+      "description": "مخزن راه‌دور را متصل و تغییرات را push و pull می‌کنی. — Git و GitHub برای توسعه‌دهندگان",
+      "href": "./academy.html#course=git&lesson=3",
+      "terms": [
+        "Git و GitHub برای توسعه‌دهندگان",
+        "git",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-git-4",
+      "type": "lesson",
+      "title": "Pull Request و حل تعارض",
+      "description": "بازبینی کد، توضیح تغییرات و حل تعارض را در یک گردش‌کار تیمی تمرین می‌کنی. — Git و GitHub برای توسعه‌دهندگان",
+      "href": "./academy.html#course=git&lesson=4",
+      "terms": [
+        "Git و GitHub برای توسعه‌دهندگان",
+        "git",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "course-linux",
+      "type": "course",
+      "title": "Linux و خط فرمان",
+      "description": "کار با ترمینال، فایل‌ها، مجوزها، پردازه‌ها و سرویس‌های سیستم.",
+      "href": "./academy.html#course=linux",
+      "terms": [
+        "linux",
+        "دوره آموزشی",
+        "آکادمی"
+      ]
+    },
+    {
+      "id": "lesson-linux-0",
+      "type": "lesson",
+      "title": "محیط ترمینال و مسیرها",
+      "description": "ساختار فایل‌سیستم، مسیر مطلق و نسبی و راهنمای دستورها را می‌شناسی. — Linux و خط فرمان",
+      "href": "./academy.html#course=linux&lesson=0",
+      "terms": [
+        "Linux و خط فرمان",
+        "linux",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-linux-1",
+      "type": "lesson",
+      "title": "مدیریت فایل و متن",
+      "description": "فایل و پوشه می‌سازی، کپی و جابه‌جا می‌کنی و متن را می‌خوانی. — Linux و خط فرمان",
+      "href": "./academy.html#course=linux&lesson=1",
+      "terms": [
+        "Linux و خط فرمان",
+        "linux",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-linux-2",
+      "type": "lesson",
+      "title": "کاربران و مجوزها",
+      "description": "مالکیت، گروه و مجوزهای خواندن، نوشتن و اجرا را درک می‌کنی. — Linux و خط فرمان",
+      "href": "./academy.html#course=linux&lesson=2",
+      "terms": [
+        "Linux و خط فرمان",
+        "linux",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-linux-3",
+      "type": "lesson",
+      "title": "پردازه‌ها و سرویس‌ها",
+      "description": "پردازه‌ها و وضعیت سرویس‌ها را با ابزارهای استاندارد بررسی می‌کنی. — Linux و خط فرمان",
+      "href": "./academy.html#course=linux&lesson=3",
+      "terms": [
+        "Linux و خط فرمان",
+        "linux",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-linux-4",
+      "type": "lesson",
+      "title": "شبکه و عیب‌یابی پایه",
+      "description": "آدرس‌ها، مسیر شبکه و بررسی اتصال را در محیط مجاز تمرین می‌کنی. — Linux و خط فرمان",
+      "href": "./academy.html#course=linux&lesson=4",
+      "terms": [
+        "Linux و خط فرمان",
+        "linux",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "course-web-security",
+      "type": "course",
+      "title": "امنیت دفاعی برنامه‌های وب",
+      "description": "اصول امن‌سازی وب، اعتبارسنجی، نشست‌ها، کنترل دسترسی و بررسی دفاعی.",
+      "href": "./academy.html#course=web-security",
+      "terms": [
+        "web-security",
+        "دوره آموزشی",
+        "آکادمی"
+      ]
+    },
+    {
+      "id": "lesson-web-security-0",
+      "type": "lesson",
+      "title": "مدل تهدید و مرز اعتماد",
+      "description": "دارایی‌ها، ورودی‌های غیرقابل اعتماد، مرزهای اعتماد و ریسک را شناسایی می‌کنی. — امنیت دفاعی برنامه‌های وب",
+      "href": "./academy.html#course=web-security&lesson=0",
+      "terms": [
+        "امنیت دفاعی برنامه‌های وب",
+        "web-security",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-web-security-1",
+      "type": "lesson",
+      "title": "HTTP، کوکی و نشست",
+      "description": "چرخه درخواست، کوکی‌های امن، Secure، HttpOnly و SameSite را می‌آموزی. — امنیت دفاعی برنامه‌های وب",
+      "href": "./academy.html#course=web-security&lesson=1",
+      "terms": [
+        "امنیت دفاعی برنامه‌های وب",
+        "web-security",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-web-security-2",
+      "type": "lesson",
+      "title": "اعتبارسنجی ورودی و خروجی",
+      "description": "اعتبارسنجی سمت سرور و encode متناسب با context را از هم تفکیک می‌کنی. — امنیت دفاعی برنامه‌های وب",
+      "href": "./academy.html#course=web-security&lesson=2",
+      "terms": [
+        "امنیت دفاعی برنامه‌های وب",
+        "web-security",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-web-security-3",
+      "type": "lesson",
+      "title": "احراز هویت و کنترل دسترسی",
+      "description": "اصل حداقل دسترسی، مجوزدهی سمت سرور و محافظت از عملیات حساس را بررسی می‌کنی. — امنیت دفاعی برنامه‌های وب",
+      "href": "./academy.html#course=web-security&lesson=3",
+      "terms": [
+        "امنیت دفاعی برنامه‌های وب",
+        "web-security",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "lesson-web-security-4",
+      "type": "lesson",
+      "title": "سخت‌سازی و بازبینی دفاعی",
+      "description": "هدرهای امنیتی، مدیریت اسرار، ثبت رخداد و چک‌لیست بازبینی را اجرا می‌کنی. — امنیت دفاعی برنامه‌های وب",
+      "href": "./academy.html#course=web-security&lesson=4",
+      "terms": [
+        "امنیت دفاعی برنامه‌های وب",
+        "web-security",
+        "فصل",
+        "درس"
+      ]
+    },
+    {
+      "id": "python-0",
+      "type": "python-lesson",
+      "title": "پایتون چیست؟",
+      "description": "پایتون زبانی خوانا برای خودکارسازی، وب، تحلیل داده و هوش مصنوعی است.",
+      "href": "./python.html#lesson=0",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "python-1",
+      "type": "python-lesson",
+      "title": "دستورها و کامنت‌ها",
+      "description": "هر خط می‌تواند یک دستور باشد. برای توضیح کد از # استفاده می‌کنیم.",
+      "href": "./python.html#lesson=1",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "python-2",
+      "type": "python-lesson",
+      "title": "متغیرها و انواع داده",
+      "description": "متغیر، int، float، str، bool، انتساب و مقایسه.",
+      "href": "./python.html#lesson=2",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "python-3",
+      "type": "python-lesson",
+      "title": "ورودی و تبدیل نوع",
+      "description": "input، تبدیل نوع با int و float و مدیریت ValueError.",
+      "href": "./python.html#lesson=3",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "python-4",
+      "type": "python-lesson",
+      "title": "عملگرهای محاسباتی",
+      "description": "جمع، تفریق، ضرب، تقسیم، باقی‌مانده، توان و مقایسه.",
+      "href": "./python.html#lesson=4",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "python-5",
+      "type": "python-lesson",
+      "title": "شرط‌ها: if و elif و else",
+      "description": "شرط‌ها، شاخه‌بندی و تورفتگی در Python.",
+      "href": "./python.html#lesson=5",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "python-6",
+      "type": "python-lesson",
+      "title": "حلقه for و range",
+      "description": "پیمایش دنباله‌ها و بازه‌های range.",
+      "href": "./python.html#lesson=6",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "python-7",
+      "type": "python-lesson",
+      "title": "حلقه while",
+      "description": "حلقه شرطی، break، continue و جلوگیری از حلقه بی‌نهایت.",
+      "href": "./python.html#lesson=7",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "python-8",
+      "type": "python-lesson",
+      "title": "لیست‌ها",
+      "description": "ساختار مرتب و قابل تغییر، اندیس، append و len.",
+      "href": "./python.html#lesson=8",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "python-9",
+      "type": "python-lesson",
+      "title": "دیکشنری",
+      "description": "ساختار کلید و مقدار و متد get.",
+      "href": "./python.html#lesson=9",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "python-10",
+      "type": "python-lesson",
+      "title": "توابع",
+      "description": "تعریف تابع، پارامتر، return و تفاوت آن با print.",
+      "href": "./python.html#lesson=10",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "python-11",
+      "type": "python-lesson",
+      "title": "خطاها و پروژه پایانی",
+      "description": "ValueError، try/except و پروژه مدیریت هزینه.",
+      "href": "./python.html#lesson=11",
+      "terms": [
+        "پایتون",
+        "python",
+        "درس",
+        "فصل"
+      ]
+    },
+    {
+      "id": "page-home",
+      "type": "page",
+      "title": "صفحه اصلی",
+      "description": "معرفی MR_SIAVASH_AI و مسیرهای اصلی اکوسیستم.",
+      "view": "home",
+      "terms": [
+        "خانه",
+        "شروع",
+        "معرفی"
+      ]
+    },
+    {
+      "id": "page-modules",
+      "type": "page",
+      "title": "فهرست ماژول‌ها",
+      "description": "مرور و جست‌وجوی قابلیت‌ها و ماژول‌های اکوسیستم.",
+      "view": "modules",
+      "terms": [
+        "ماژول",
+        "ابزار",
+        "قابلیت"
+      ]
+    },
+    {
+      "id": "page-workspace",
+      "type": "page",
+      "title": "فضای کار",
+      "description": "مدیریت کارها و یادداشت‌ها در همین مرورگر.",
+      "view": "workspace",
+      "terms": [
+        "کار",
+        "وظیفه",
+        "یادداشت",
+        "workspace"
+      ]
+    },
+    {
+      "id": "page-identity",
+      "type": "page",
+      "title": "هویت دیجیتال",
+      "description": "نمایه‌ها و مسیرهای رسمی ارتباطی.",
+      "view": "identity",
+      "terms": [
+        "پروفایل",
+        "شبکه اجتماعی",
+        "ارتباط"
+      ]
+    },
+    {
+      "id": "page-about",
+      "type": "page",
+      "title": "درباره پروژه",
+      "description": "معماری، اصول و نقشه راه MR_SIAVASH_AI.",
+      "view": "about",
+      "terms": [
+        "معماری",
+        "نقشه راه",
+        "درباره"
+      ]
+    },
+    {
+      "id": "page-support",
+      "type": "action",
+      "title": "مرکز پشتیبانی",
+      "description": "گفتگو با راهنمای سایت یا ثبت سؤال، پیشنهاد، انتقاد و گزارش خطا.",
+      "action": "support",
+      "terms": [
+        "help",
+        "support",
+        "سؤال",
+        "شکایت",
+        "انتقاد",
+        "پیشنهاد",
+        "گزارش خطا"
+      ]
+    }
+  ]
+}
