@@ -5,6 +5,7 @@ import vm from "node:vm";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
+const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
 const manifestText = await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8");
@@ -142,7 +143,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v18"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \\+ "v19"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -212,7 +213,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v18"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \\+ "v19"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -385,7 +386,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v18"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \\+ "v19"/);
 });
 
 
