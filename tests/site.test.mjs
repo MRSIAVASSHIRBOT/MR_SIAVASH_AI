@@ -1296,18 +1296,23 @@ test("global search indexes every academy chapter and Python lesson with safe de
   assert.match(sw, /"\.\/search-index\.json"/);
 });
 
-test("support assistant is a local guide and does not submit unavailable tickets", () => {
+test("support guide stays local while ticket API remains gated behind explicit consent and retention", () => {
   assert.match(html, /راهنمای محلی سایت · بدون ارسال پیام به سرور/);
-  assert.match(html, /ثبت درخواست · به‌زودی/);
-  assert.match(html, /پیگیری · به‌زودی/);
+  assert.match(html, /data-support-api="disabled"/);
+  assert.match(html, /data-support-retention-days="0"/);
+  assert.match(html, /id="supportConsent"/);
+  assert.match(html, /privacy\.html/);
   assert.match(support, /readJson\("\.\/search-index\.json"/);
-  assert.match(boundedJson, /credentials:"omit"/);
-  assert.match(support, /disableUnavailable/);
-  assert.match(support, /ثبت آنلاین درخواست هنوز در نسخه/);
-  assert.match(support, /پیگیری آنلاین هنوز فعال نیست/);
-  assert.doesNotMatch(support, /mr-siavash-ai-gateway/);
-  assert.doesNotMatch(support, /Authorization/);
-  assert.doesNotMatch(support, /\/v1\/support/);
+  assert.match(support, /SUPPORT_API_ENABLED/);
+  assert.match(support, /credentials:"omit"/);
+  assert.match(support, /Authorization/);
+  assert.match(support, /\/v1\/support\/tickets/);
+  assert.match(support, /consent:true/);
+  assert.doesNotMatch(support, /localStorage|sessionStorage/);
+  const askStart=support.indexOf("async function ask");
+  const askEnd=support.indexOf("async function apiRequest",askStart);
+  assert.ok(askStart>=0&&askEnd>askStart);
+  assert.doesNotMatch(support.slice(askStart,askEnd), /apiRequest|fetch\(/);
 });
 
 
@@ -1420,4 +1425,12 @@ test("support and global search delegate public JSON reads to the shared bounded
   assert.match(boundedJson, /credentials:"omit"/);
   assert.equal(support.includes("fetch("), false);
   assert.equal(searchSource.includes("fetch("), false);
+});
+
+
+test("privacy notice describes disabled ticket intake and the explicit retention policy", async () => {
+  const privacy = await readFile(new URL("../privacy.html", import.meta.url), "utf8");
+  assert.match(privacy, /ثبت و پیگیری آنلاین تیکت در حال حاضر غیرفعال است/);
+  assert.match(privacy, /کلید خصوصی به‌صورت هش‌شده ذخیره می‌شود/);
+  assert.match(privacy, /۳۰، ۶۰، ۹۰ یا ۱۸۰ روز/);
 });
