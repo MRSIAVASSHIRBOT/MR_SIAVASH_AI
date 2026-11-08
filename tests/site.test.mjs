@@ -9,6 +9,7 @@ const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const experienceCss = await readFile(new URL("../experience.css", import.meta.url), "utf8");
 const experienceNextCss = await readFile(new URL("../experience-next.css", import.meta.url), "utf8");
 const studioCss = await readFile(new URL("../studio.css", import.meta.url), "utf8");
+const atelierCss = await readFile(new URL("../atelier.css", import.meta.url), "utf8");
 const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "utf8");
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
@@ -166,7 +167,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v31"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -240,7 +241,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v31"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -413,7 +414,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v31"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
 });
 
 
@@ -907,19 +908,17 @@ test("GitHub Pages deployment is restricted to successful main-branch non-PR run
 
 
 test("hero experience includes accessible 3D motion controls and reduced-motion support", () => {
-  assert.match(html, /class="hero-visual"[^>]*data-motion-paused="false"/);
+  assert.match(html, /class="hero-visual[^"]*"[^>]*data-motion-paused="false"/);
   assert.match(html, /id="motionToggle"[^>]*aria-pressed="false"/);
   assert.match(html, /توقف حرکت/);
   assert.match(app, /function initMotionControls\(\)/);
   assert.match(app, /visual\.dataset\.motionPaused = String\(paused\)/);
   assert.match(app, /button\.setAttribute\("aria-pressed", String\(paused\)\)/);
   assert.match(app, /initMotionControls\(\)/);
-  assert.match(css, /perspective:\s*1100px/);
-  assert.match(css, /@keyframes orbit-rotate-outer/);
-  assert.match(css, /@keyframes orbit-rotate-inner/);
-  assert.match(css, /animation-play-state:\s*paused/);
-  assert.match(css, /@media\s*\(prefers-reduced-motion:\s*reduce\)/);
-  assert.match(css, /\.orbit-outer,\.orbit-inner,\.orbit-node,\.orbit-core\s*\{\s*animation:none !important;/);
+  assert.match(atelierCss, /perspective:1000px/);
+  assert.match(atelierCss, /transform-style:preserve-3d/);
+  assert.match(atelierCss, /@media\(prefers-reduced-motion:reduce\)/);
+  assert.match(atelierCss, /\.hero-visual:hover \.atelier-paper/);
 });
 
 test("hero pointer tilt is bounded, frame-throttled, and reset on pause or pointer exit", () => {
@@ -1076,9 +1075,9 @@ test("coarse-pointer devices keep the hero scene static", () => {
 });
 
 test("decorative 3D illustration layers are hidden from assistive technology", () => {
-  assert.match(html, /class="orbit orbit-outer" aria-hidden="true"/);
-  assert.match(html, /class="orbit orbit-inner" aria-hidden="true"/);
-  assert.match(html, /class="orbit-core" aria-hidden="true"/);
+  assert.match(html, /class="hero-scene atelier-scene" aria-hidden="true"/);
+  assert.match(html, /class="atelier-paper"/);
+  assert.match(html, /class="atelier-orbit-label atelier-label-one"/);
 });
 
 
@@ -1207,7 +1206,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v31"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1265,7 +1264,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"web-security"/);
   assert.match(academyCss, /#9c8cff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v31"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
 });
 
 
@@ -1325,7 +1324,7 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(supportTickets, /consent: \$\("#supportConsent"\)\.checked/);
   assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
   assert.match(sw, /"\.\/support-tickets\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v31"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
 });
 
 test("local support guide retries loading its index after an initial offline failure", async () => {
@@ -1520,5 +1519,5 @@ test("emerald flagship experience layer overrides the conflicting studio palette
   assert.match(experienceNextCss, /:focus-visible/);
   assert.equal((experienceNextCss.match(/\{/g)||[]).length,(experienceNextCss.match(/\}/g)||[]).length);
   assert.match(sw, /"\.\/experience-next\.css"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v31"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
 });
