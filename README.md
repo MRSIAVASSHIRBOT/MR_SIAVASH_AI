@@ -106,7 +106,7 @@ The frontend remains static and does not itself provide authentication or cloud 
 ## Hybrid support and global search
 
 - Global search indexes site sections, module cards and the Python Academy course; use Ctrl+K.
-- The floating support center includes a site-grounded assistant, direct tickets, ticket follow-up using a one-time private key, and human handoff in the frontend/source implementation. The remote support service is not live until the Worker release is deployed.
+- The floating support center currently provides a browser-local, keyword-ranked guide over public site metadata. It is not an LLM chatbot and does not send chat text to a server. Ticket submission, ticket tracking, and human handoff are disabled in the deployed UI until their Worker routes are deployed and independently verified.
 - Gateway endpoints in source: POST /v1/assistant/chat; POST /v1/support/tickets; GET /v1/support/tickets/:code; POST /v1/support/tickets/:code/messages; administrator list/detail/reply/status routes under /v1/admin/support/tickets.
 - D1 migration 0003 adds support tickets, messages and hashed-IP rate-limit buckets. Read-only inspection on 2026-11-08 confirmed the three table definitions in production D1; this confirms schema presence, not live API availability.
 - AI generation is optional and runs only with an AI binding and configured AI_MODEL. Production currently has no AI binding; verified FAQ fallback is available in source.
