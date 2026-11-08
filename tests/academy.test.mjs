@@ -30,8 +30,8 @@ test("academy tracks progress locally and renders lesson content as text", () =>
   assert.match(js, /aria-pressed/);
   assert.match(js, /aria-expanded/);
   assert.match(js, /navigator\\.serviceWorker\\.register/);
-  assert.match(js, /aria-valuenow/);
-  assert.match(js, /پیشرفت در همین مرورگر ذخیره شد/);
+  assert.ok(js.includes("aria-valuenow"));
+  assert.ok(js.includes("پیشرفت در همین مرورگر ذخیره شد"));
 });
 
 test("academy navigation, global search, and offline shell are integrated", () => {
