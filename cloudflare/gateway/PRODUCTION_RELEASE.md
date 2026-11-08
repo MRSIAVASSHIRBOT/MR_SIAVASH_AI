@@ -33,6 +33,6 @@ The Worker scheduled handler removes support tickets after the selected 30, 60, 
 4. After reviewing the validation result, dispatch again with `deploy=true`.
 5. Keep `enable_workers_ai=false` unless AI usage is explicitly approved.
 6. Keep `enable_support_retention=false` unless the owner explicitly approves automatic deletion of inactive support tickets and chooses a retention period. Existing production support records are preserved while this option is disabled.
-6. Confirm the workflow's post-deployment smoke checks and inspect Cloudflare logs. The workflow rolls back automatically if the checks fail.
+7. Confirm the workflow's post-deployment smoke checks and inspect Cloudflare logs. The workflow rolls back automatically if the checks fail.
 
 A successful preview is necessary but does not replace production approval. The production workflow must never be triggered automatically by a push or Pages deployment.
