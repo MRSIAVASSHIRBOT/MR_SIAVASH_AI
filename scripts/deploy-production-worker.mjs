@@ -100,7 +100,7 @@ async function cloudflareRequest(path, { token, fetchImpl = fetch, ...options } 
   return payload.result;
 }
 
-async function smokeProduction(fetchImpl, { enableWorkersAI = false } = {}) {
+async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false } = {}) {
   const base = "https://" + WORKER + ".mrsiavashirbot.workers.dev";
   async function call(path, init, status) {
     const response = await fetchImpl(base + path, init);
@@ -123,8 +123,9 @@ async function smokeProduction(fetchImpl, { enableWorkersAI = false } = {}) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ subject: "", message: "" })
-  }, 400);
-  if (invalid.body.error?.code !== "invalid_ticket") throw new Error("Production ticket validation route did not reject an invalid payload.");
+  }, enableSupportRetention ? 400 : 503);
+  const expectedTicketError = enableSupportRetention ? "invalid_ticket" : "support_retention_required";
+  if (invalid.body.error?.code !== expectedTicketError) throw new Error("Production ticket intake did not match the selected retention policy.");
 
   const trusted = await fetchImpl(base + "/v1/modules", {
     method: "OPTIONS",
@@ -217,7 +218,7 @@ export async function releaseProductionWorker({
       });
     }
 
-    await smokeProduction(fetchImpl, { enableWorkersAI });
+    await smokeProduction(fetchImpl, { enableWorkersAI, enableSupportRetention });
     const finalSettings = await cloudflareRequest(prefix + "/settings", { token, fetchImpl });
     const obs = finalSettings.observability || {};
     if (obs.redact_query_string !== true || obs.logs?.enabled !== true || obs.traces?.enabled !== true) {
