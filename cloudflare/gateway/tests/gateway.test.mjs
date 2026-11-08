@@ -106,6 +106,20 @@ function supportDb() {
 }
 
 
+test("readiness reports public support only when a valid retention policy is configured", async () => {
+ const db={prepare(){return {first:async()=>({ok:1})};}};
+ const enabled=await worker.fetch(req("/v1/health/ready"),{DB:db,SUPPORT_RETENTION_DAYS:"90"});
+ const enabledBody=await enabled.json();
+ assert.equal(enabled.status,200);
+ assert.equal(enabledBody.features.publicSupport,true);
+ assert.equal(enabledBody.features.supportRetentionDays,90);
+ const disabled=await worker.fetch(req("/v1/health/ready"),{DB:db});
+ const disabledBody=await disabled.json();
+ assert.equal(disabled.status,200);
+ assert.equal(disabledBody.features.publicSupport,false);
+ assert.equal(disabledBody.features.supportRetentionDays,null);
+});
+
 test("support ticket creation requires explicit consent and a configured retention period", async () => {
  const noConsentStore=supportDb();
  const noConsent=await worker.fetch(req("/v1/support/tickets",{
