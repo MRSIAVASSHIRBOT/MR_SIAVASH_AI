@@ -111,7 +111,7 @@ test("support ticket credentials are stored as hashes and authorize private foll
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({ category: "question", subject: "پرسش آزمایشی", message: "سلام، این یک آزمون است." })
- }), { DB: store.db });
+ }), { DB: store.db, SUPPORT_RETENTION_DAYS: "90" });
  assert.equal(created.status, 201);
  const data = await created.json();
  const { id, code, token: secret } = data.ticket;
@@ -252,4 +252,11 @@ test("public support readiness is fail-closed until a valid retention policy is 
  const invalidBody=await invalid.json();
  assert.equal(invalidBody.features.publicSupport,false);
  assert.equal(invalidBody.features.supportRetentionDays,null);
+});
+
+test("new public support tickets are rejected server-side until retention is configured",async()=>{
+ const database={prepare(sql){if(sql.startsWith("INSERT INTO api_rate_limits"))return{bind(){return this;},first:async()=>({request_count:1})};throw new Error("ticket creation must stop before D1 writes");}};
+ const response=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({category:"question",subject:"آزمون",message:"پیام آزمایشی"})}),{DB:database});
+ assert.equal(response.status,503);
+ assert.equal((await response.json()).error.code,"support_retention_required");
 });
