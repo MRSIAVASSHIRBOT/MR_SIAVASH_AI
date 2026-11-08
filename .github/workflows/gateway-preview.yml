@@ -58,7 +58,8 @@ jobs:
               database_id: process.env.PREVIEW_D1_DATABASE_ID,
               migrations_dir: resolve(root, "cloudflare/gateway/migrations")
             }],
-            vars: { ALLOWED_ORIGINS: "https://mrsiavasshirbot.github.io", SUPPORT_RETENTION_DAYS: "90" },\n            triggers: { crons: ["0 3 * * *"] }
+            vars: { ALLOWED_ORIGINS: "https://mrsiavasshirbot.github.io", SUPPORT_RETENTION_DAYS: "90" },
+            triggers: { crons: ["0 3 * * *"] }
           };
           writeFileSync(resolve(process.env.RUNNER_TEMP, "wrangler-preview.json"), JSON.stringify(config, null, 2));
           NODE
