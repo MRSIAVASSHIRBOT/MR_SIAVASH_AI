@@ -19,6 +19,7 @@ test("academy exposes six structured courses and thirty chapters", () => {
   assert.match(html, /ui-sounds\.js/);
   assert.match(js, /Progress data too large/);
   assert.match(html, /id="learningPanel"/);
+  assert.match(html, /id="academyStatus" role="status"/);
   assert.match(html, /href="\.\/python\.html"/);
 });
 
@@ -28,6 +29,9 @@ test("academy tracks progress locally and renders lesson content as text", () =>
   assert.doesNotMatch(js, /\.innerHTML\s*=/);
   assert.match(js, /aria-pressed/);
   assert.match(js, /aria-expanded/);
+  assert.ok(js.includes("navigator.serviceWorker.register"));
+  assert.ok(js.includes("aria-valuenow"));
+  assert.ok(js.includes("پیشرفت در همین مرورگر ذخیره شد"));
 });
 
 test("academy navigation, global search, and offline shell are integrated", () => {
