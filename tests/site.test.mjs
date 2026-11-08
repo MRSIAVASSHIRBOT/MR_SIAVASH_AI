@@ -6,6 +6,8 @@ import vm from "node:vm";
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const experienceCss = await readFile(new URL("../experience.css", import.meta.url), "utf8");
+const studioCss = await readFile(new URL("../studio.css", import.meta.url), "utf8");
+const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "utf8");
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
@@ -1207,4 +1209,25 @@ test("experience stylesheet has balanced syntax and responsive accessibility con
   assert.match(experienceCss, /forced-colors/);
   assert.match(experienceCss, /:focus-visible/);
   assert.match(experienceCss, /content-visibility/);
+});
+
+
+test("flagship design system is layered after legacy styles and covers all breakpoints", () => {
+  assert.ok(html.indexOf("experience.css") < html.indexOf("studio.css"));
+  assert.match(studioCss, /--bg:#080b14/);
+  assert.match(studioCss, /#9c8cff/);
+  assert.match(studioCss, /@media\\(max-width:760px\\)/);
+  assert.match(studioCss, /@media\\(max-width:480px\\)/);
+  assert.match(studioCss, /prefers-reduced-motion:reduce/);
+  assert.match(studioCss, /forced-colors:active/);
+  assert.equal((studioCss.match(/\\{/g)||[]).length,(studioCss.match(/\\}/g)||[]).length);
+});
+test("interface sounds are opt-in, locally synthesized and never autoplay", () => {
+  assert.match(html, /id="soundToggle"/);
+  assert.match(uiSounds, /AudioContext/);
+  assert.match(uiSounds, /localStorage/);
+  assert.match(uiSounds, /if\\(!enabled\\)return/);
+  assert.match(uiSounds, /addEventListener\\("click"/);
+  assert.doesNotMatch(uiSounds, /autoplay|new Audio\\(/i);
+  assert.match(sw, /"\\.\\/ui-sounds\\.js"/);
 });
