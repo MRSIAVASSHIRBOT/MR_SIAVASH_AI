@@ -25,15 +25,7 @@ function tab(name){
  document.querySelectorAll("[data-support-tab]").forEach(button=>button.setAttribute("aria-selected",String(button.dataset.supportTab===name)));
  document.querySelectorAll("[data-support-pane]").forEach(pane=>{pane.classList.toggle("is-active",pane.dataset.supportPane===name);pane.hidden=pane.dataset.supportPane!==name;});
 }
-async function readJson(path,maxBytes){
- const response=await fetch(path,{credentials:"omit",cache:"no-cache"});
- if(!response.ok)throw new Error("راهنمای سایت در دسترس نیست.");
- const type=response.headers.get("content-type")||"";
- if(!/^application\/(?:json|[a-z0-9.+-]+\+json)(?:\s*;|$)/i.test(type))throw new Error("نوع داده راهنما معتبر نیست.");
- const text=await response.text();
- if(new TextEncoder().encode(text).byteLength>maxBytes)throw new Error("حجم راهنمای سایت بیش از حد مجاز است.");
- return JSON.parse(text);
-}
+const readJson=(path,maxBytes)=>window.MRSIAVASHReadJson(path,maxBytes);
 async function loadKnowledge(){
  if(loading)return loading;
  loading=(async()=>{
