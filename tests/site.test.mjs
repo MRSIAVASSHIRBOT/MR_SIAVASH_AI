@@ -1480,6 +1480,28 @@ test("public privacy notice describes ticket data, one-time credentials and inac
 });
 
 
+test("emerald design text tokens meet WCAG AA contrast on dark surfaces", () => {
+  const token = name => {
+    const match = experienceNextCss.match(new RegExp("--" + name + ":\\s*(#[0-9a-fA-F]{6})"));
+    assert.ok(match, "missing color token --" + name);
+    return match[1];
+  };
+  const luminance = hex => {
+    const channels = [1, 3, 5].map(index => parseInt(hex.slice(index, index + 2), 16) / 255);
+    const linear = channels.map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+    return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
+  };
+  const ratio = (foreground, background) => {
+    const values = [luminance(foreground), luminance(background)].sort((a, b) => b - a);
+    return (values[0] + 0.05) / (values[1] + 0.05);
+  };
+  for (const foreground of ["text", "muted", "dim", "green", "green-bright", "experience-muted"]) {
+    for (const background of ["bg", "bg-soft", "surface", "surface-2"]) {
+      assert.ok(ratio(token(foreground), token(background)) >= 4.5, "--" + foreground + " on --" + background + " must meet WCAG AA");
+    }
+  }
+});
+
 test("emerald flagship experience layer overrides the conflicting studio palette", async () => {
   const pythonHtml = await readFile(new URL("../python.html", import.meta.url), "utf8");
   const academyHtml = await readFile(new URL("../academy.html", import.meta.url), "utf8");
