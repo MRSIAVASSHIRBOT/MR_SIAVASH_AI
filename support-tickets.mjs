@@ -63,7 +63,7 @@ async function checkAvailability() {
     setFormEnabled(requestForm, intakeEnabled);
     setFormEnabled(trackForm, trackingEnabled);
     status(requestStatus, intakeEnabled
-      ? "سرویس ثبت درخواست آماده است. پیام‌ها در سرور ذخیره می‌شوند؛ اطلاعات محرمانه ارسال نکن."
+      ? `سرویس ثبت درخواست آماده است. درخواست‌های بدون به‌روزرسانی پس از ${health.features.supportRetentionDays} روز حذف می‌شوند؛ اطلاعات محرمانه ارسال نکن.`
       : "ثبت درخواست جدید تا زمان انتشار نسخه سازگار و فعال‌شدن سیاست نگهداری امن تیکت‌ها غیرفعال است.");
     status(trackResult, trackingEnabled
       ? "پیگیری درخواست‌های قبلی فعال است؛ کد پیگیری و کلید خصوصی را وارد کن."
