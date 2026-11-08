@@ -161,7 +161,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v25"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -231,7 +231,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v25"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -404,7 +404,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v25"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
 });
 
 
@@ -1198,7 +1198,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v25"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1256,7 +1256,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"web-security"/);
   assert.match(academyCss, /#9c8cff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v25"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
 });
 
 
@@ -1394,4 +1394,15 @@ test("local support guide retries loading its index after an initial offline fai
   assert.equal(fetchCalls, 4, "submitting after recovery should retry both public indexes");
   assert.ok(messages.children.some(node => String(node.textContent).includes("راهنمای پایتون")));
   assert.equal(button.disabled, false);
+});
+
+test("support UI accurately identifies its local, non-generative guide", () => {
+  assert.match(html, /راهنمای محلی سایت؛ بدون ارسال پیام به سرور یا ارتباط با اپراتور انسانی/);
+  assert.match(html, />راهنمای سایت<\/button>/);
+  assert.match(html, /پاسخ‌گویی بر پایه محتوای عمومی و منتشرشدهٔ سایت/);
+  assert.match(html, /سؤال یا عبارت مورد جست‌وجو/);
+  assert.match(html, />یافتن راهنما<\/button>/);
+  assert.doesNotMatch(html, /ارتباط مستقیم با پشتیبانی|ارجاع به پشتیبانی انسانی|گفتگو با ربات/);
+  assert.doesNotMatch(support, /handoffButton|\.\/v1\/|method:"POST"/);
+  assert.match(support, /fetch\(path,\{credentials:"omit",cache:"no-cache"\}\)/);
 });
