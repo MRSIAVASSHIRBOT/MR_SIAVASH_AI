@@ -46,6 +46,7 @@ test("production release is manual, read-only by default and guarded by exact re
 test("production retention cleanup is explicit opt-in and scheduled handler is tested", () => {
   assert.match(workerSource, /async function cleanupExpiredRecords/);
   assert.match(workerSource, /SUPPORT_RETENTION_DAYS/);
+  assert.match(workerSource, /must be explicitly configured between 30 and 365/);
   assert.match(workerSource, /async scheduled\(_controller,env\)/);
   assert.match(releaseScript, /enableSupportRetention/);
 });
