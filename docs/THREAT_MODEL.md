@@ -91,3 +91,10 @@ A feature touching private data, credentials, billing, external tools or consequ
 The D1 schema now separates an opaque internal user ID from external identity claims. The `(issuer, subject)` pair is unique and must be sourced only from a cryptographically verified identity token. Workspace tasks and idempotency records reference the internal user row, and deleting a user cascades to those records and linked identities. Migration 0002 backfills existing owner UUIDs before enforcing the foreign keys.
 
 Residual risks: the schema does not verify tokens, manage sessions, link accounts safely, or authorize HTTP requests. An implementation that trusts request-body owner IDs or omits owner predicates can still disclose another user's data. Issuer/audience/signature/key-rotation validation, account-linking confirmation, per-request authorization, and cross-account API tests remain mandatory. The migration is validated only in local in-memory SQLite; production D1 is unchanged.
+
+
+## Deployed gateway state and support-data boundary
+
+The production Worker currently serves health/readiness, a knowledge-fallback assistant endpoint, support-ticket create/read/reply routes, and Access-protected administrator routes. It does not yet contain the current source's public module catalog or scheduled retention handler. The preview Worker runs current source against an isolated D1 database and passes route/CORS smoke checks. Production has no Workers AI binding; the assistant is not model-generated.
+
+Production D1 already contains support records. Their contents were not inspected or exported. Support ticket text and optional contact email are personal data once submitted. The public UI keeps ticket submission and tracking disabled until the reviewed production Worker release and retention decision are complete. The source supports an inactivity-based cleanup period of 30–365 days, but production retention is disabled by default because activating it deletes existing tickets and their linked messages. The repository owner must explicitly approve the retention period before a production cron is configured.
