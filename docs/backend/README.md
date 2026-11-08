@@ -16,7 +16,7 @@ The Cloudflare Access application protects `/admin` and `/v1/admin/*`; the Worke
 
 ### Preview
 
-The isolated Worker `mr-siavash-ai-gateway-preview` is deployed from current repository source and uses the separate `mr-siavash-ai-preview` D1 database. Migrations 0001–0003 are recorded in its migration ledger. Preview smoke checks passed for liveness, D1 readiness, module catalog, knowledge fallback, support validation, administrator fail-closed behavior and CORS. Preview has no AI or administrator Access binding.
+The isolated preview Worker `mr-siavash-ai-gateway-preview` is deployed from current repository source and uses the separate `mr-siavash-ai-preview` D1 database. Migrations 0001–0003 are recorded in its migration ledger. Preview smoke checks passed for liveness, D1 readiness, module catalog, knowledge fallback, support validation, administrator fail-closed behavior and CORS. Preview has no AI or administrator Access binding.
 
 ## Current source routes
 
