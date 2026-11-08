@@ -1,9 +1,9 @@
 "use strict";
 
 const CACHE_PREFIX = "mr-siavash-ai-shell-";
-const CACHE_NAME = CACHE_PREFIX + "v19";
+const CACHE_NAME = CACHE_PREFIX + "v20";
 const MAX_MODULE_REGISTRY_BYTES = 64 * 1024;
-const SHELL_FILES = ["./", "./index.html", "./styles.css", "./app.js", "./python.html", "./python-course.css", "./python-course.js", "./support.js", "./support.css", "./favicon.svg", "./manifest.webmanifest", "./modules.json"];
+const SHELL_FILES = ["./", "./index.html", "./styles.css", "./experience.css", "./app.js", "./python.html", "./python-course.css", "./python-course.js", "./support.js", "./support.css", "./favicon.svg", "./manifest.webmanifest", "./modules.json"];
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
