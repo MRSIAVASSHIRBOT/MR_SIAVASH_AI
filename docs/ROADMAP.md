@@ -1,4 +1,6 @@
-# Product roadmap — parallel workstreams
+# 
+
+The deployed production Worker currently exposes public support-ticket create/read/reply endpoints; this describes the deployed bundle, not every route in the current repository source.Product roadmap — parallel workstreams
 
 The workstreams progress together behind shared release gates. A module is not production-ready merely because its card or UI exists. Shared integration rules are defined in docs/PLATFORM_CONTRACTS.md.
 
