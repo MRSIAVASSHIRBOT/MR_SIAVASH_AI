@@ -91,7 +91,7 @@ test("bounded JSON loader cancels a streamed body when its byte limit is exceede
 });
 
 test("bounded JSON loader enforces the fallback text byte limit", async () => {
-  const loader = createLoader(async () => response({ text: async () => "123456" }));
+  const loader = createLoader(async () => response({ text: "123456" }));
   await assert.rejects(loader("./large.json", 5), /too large/);
 });
 
@@ -111,7 +111,7 @@ test("bounded JSON loader aborts stalled requests and clears its timeout", async
 });
 
 test("bounded JSON loader rejects invalid media types and invalid limits", async () => {
-  const loader = createLoader(async () => response({ text: async () => "{}" , contentType: "text/html" }));
+  const loader = createLoader(async () => response({ text: "{}", contentType: "text/html" }));
   await assert.rejects(loader("./page.json", 4096), /Invalid JSON resource type/);
   await assert.rejects(loader("./page.json", 0), /Invalid bounded JSON request/);
 });
