@@ -26,7 +26,9 @@ The repository provides a static web application with:
 
 ### What is not connected yet
 
-AI model providers, remote agent execution, user accounts, private profiles, cloud synchronization, product APIs, billing, and server-side user-data storage are not implemented. A separate Cloudflare Worker has only the liveness/readiness endpoints uploaded; its live HTTP behavior has not yet been independently verified. Local favorites and tasks remain in the current browser. Do not enter secrets, passwords, private keys, or sensitive personal data into this static site.
+AI model inference, remote agent execution, user accounts, private profiles, cloud synchronization, product APIs, billing, and server-side user-data storage are not live product features. The separate Cloudflare Worker currently exposes only liveness/readiness endpoints; the repository's support, assistant and administrator routes remain source-only until a reviewed Worker release is deployed and independently verified.
+
+A Cloudflare Access self-hosted application is configured for the Worker paths `/admin` and `/v1/admin/*`, with an allow policy restricted to the designated administrator identity. The Worker source also validates the Access JWT and administrator allowlist. This Access configuration does not make routes live while the deployed Worker remains health-only. The production Worker has no Workers AI binding, so model-generated assistant responses are not active. Do not enter secrets, passwords, private keys, or sensitive personal data into the static site.
 
 ## Repository structure
 
@@ -46,10 +48,11 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 - tests/python-course.test.mjs — Python curriculum and safety regression checks
 - tests/service-worker.test.mjs — runtime regression tests for static-cache isolation and navigation boundaries
 - .github/workflows/deploy.yml — quality checks and GitHub Pages deployment
+- .github/workflows/gateway-smoke.yml — read-only deployed Worker liveness/readiness and CORS smoke checks
+- cloudflare/gateway/ — Worker source, D1 migrations, tests and release documentation; production currently remains health-only
 - docs/ARCHITECTURE.md — current boundaries and future integration plan
-- cloudflare/gateway/ — deployed Worker remains health-only; automated health/CORS smoke checks passed on 2026-11-07, but deployed code has not been updated to the current repository source
 - docs/decisions/0001-cloudflare-backend-boundary.md — Cloudflare backend decision record
-- SECURITY.md — security reporting and client-side security boundaries
+- SECURITY.md — security reporting and current security boundaries
 
 ## Run locally
 
@@ -64,6 +67,8 @@ Run repository checks:
     node --check app.js
     node --check sw.js
     node --test tests/*.test.mjs
+    node --check cloudflare/gateway/src/index.js
+    node --test cloudflare/gateway/tests/*.test.mjs
 
 ## Deploy with GitHub Pages
 
@@ -86,24 +91,22 @@ The workflow runs syntax and structure tests before uploading the static site. T
 
 No license has been granted yet. All rights are reserved by the repository owner unless a license is added.
 
+## Backend contract (design and source stage)
 
-## Backend contract (design-only)
-
-- docs/backend/openapi.yaml defines a proposed v1 API boundary.
+- docs/backend/openapi.yaml defines the v1 API boundary.
 - docs/THREAT_MODEL.md records the initial security threat model.
 - docs/backend/README.md explains the implementation gates.
 - docs/ROADMAP.md coordinates the workstreams and release stages.
 - docs/PLATFORM_CONTRACTS.md defines shared integration and production-readiness requirements.
 
-The frontend remains static and does not itself provide authentication or cloud synchronization. The support API and admin routes are implemented in `main`, but the deployed Worker still exposes health endpoints only. Production D1 already contains the support schema; Cloudflare Access is not enabled and the Worker has no AI binding. The support routes are not live until the Worker is deployed and administrator Access is configured. AI binding is additionally required only for model-generated answers; verified FAQ fallback remains available without it.
-
+The frontend remains static and does not itself provide authentication or cloud synchronization. Support, assistant and administrator routes exist in the repository source but are not deployed. Production D1 already contains the support schema. Cloudflare Access is configured for the administrator console and API paths, but the deployed Worker is still health-only. Workers AI is not bound to the production Worker.
 
 ## Hybrid support and global search
 
 - Global search indexes site sections, module cards and the Python Academy course; use Ctrl+K.
-- The floating support center includes a site-grounded assistant, direct tickets, ticket follow-up using a one-time private key, and human handoff.
-- Gateway endpoints: POST /v1/assistant/chat; POST /v1/support/tickets; GET /v1/support/tickets/:code; POST /v1/support/tickets/:code/messages; administrator list/detail/reply/status routes under /v1/admin/support/tickets.
-- D1 migration 0003 adds support tickets, messages and hashed-IP rate-limit buckets. Read-only inspection on 2026-11-08 confirmed the exact three table definitions in production D1; all three tables currently contain zero rows. This confirms schema presence, not live API availability.
-- AI generation is optional and runs only with an AI binding and configured AI_MODEL. Otherwise the assistant uses verified FAQ content and explicitly hands off unknown questions.
-- Admin APIs verify Cloudflare Access JWT signature, issuer, audience, expiry and administrator email allowlist. Configure the Access application and Worker variables before enabling the admin inbox.
+- The floating support center includes a site-grounded assistant, direct tickets, ticket follow-up using a one-time private key, and human handoff in the frontend/source implementation. The remote support service is not live until the Worker release is deployed.
+- Gateway endpoints in source: POST /v1/assistant/chat; POST /v1/support/tickets; GET /v1/support/tickets/:code; POST /v1/support/tickets/:code/messages; administrator list/detail/reply/status routes under /v1/admin/support/tickets.
+- D1 migration 0003 adds support tickets, messages and hashed-IP rate-limit buckets. Read-only inspection on 2026-11-08 confirmed the three table definitions in production D1; this confirms schema presence, not live API availability.
+- AI generation is optional and runs only with an AI binding and configured AI_MODEL. Production currently has no AI binding; verified FAQ fallback is available in source.
+- Admin APIs verify Cloudflare Access JWT signature, issuer, audience, expiry and administrator email allowlist. Cloudflare Access protects /admin and /v1/admin/* for the designated administrator identity.
 - A ticket token is displayed once and never persisted in browser storage. Store it privately to check replies later.

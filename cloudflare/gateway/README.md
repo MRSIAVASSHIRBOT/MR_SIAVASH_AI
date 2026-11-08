@@ -1,28 +1,35 @@
 # Cloudflare API Gateway foundation
 
-This directory contains the first isolated Worker service for MR_SIAVASH_AI. It is separate from the existing GShop Worker and does not change the current GitHub Pages frontend.
+This directory contains the isolated Worker service for MR_SIAVASH_AI. It is separate from the existing GShop Worker and does not change the current GitHub Pages frontend.
 
 ## Deployment status
 
-The Worker `mr-siavash-ai-gateway` was uploaded on 2026-11-06 and its workers.dev subdomain is enabled: `https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev`. Automated HTTP smoke checks recorded on 2026-11-07 verified liveness, D1 readiness and the deployed health-only CORS behavior. A fresh control-plane readback and script download on 2026-11-08 confirm that production still runs the original health-only bundle, not the current `main` source. The deployed bundle therefore does not expose support, ticket or assistant routes.
+The Worker `mr-siavash-ai-gateway` is deployed with its workers.dev subdomain enabled: `https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev`. The latest GitHub Actions runtime smoke workflow passed on 2026-11-08 for the deployed liveness/readiness and CORS checks. A control-plane inspection confirms that production still runs the original health-only bundle, not the current `main` source. Production therefore does not expose the support, ticket, assistant, module or administrator routes.
 
-The dedicated production D1 database is `mr-siavash-ai-prod` (`87c15170-7995-4929-b00c-20b5b491c05f`) in Cloudflare's WEUR region. Read-only inspection on 2026-11-08 confirmed the workspace, identity and support tables, including the exact schema for migration 0003. Counts for `support_tickets`, `support_messages`, `api_rate_limits`, `workspace_tasks`, `workspace_idempotency`, `users` and `auth_identities` were all zero. No custom domain or DNS record has been added.
+The dedicated production D1 database is `mr-siavash-ai-prod` (`87c15170-7995-4929-b00c-20b5b491c05f`) in Cloudflare's WEUR region. Read-only inspection on 2026-11-08 confirmed the workspace, identity and support tables, including the exact schema for migration 0003. Counts for `support_tickets`, `support_messages`, `api_rate_limits`, `workspace_tasks`, `workspace_idempotency`, `users` and `auth_identities` were all zero at that inspection. No custom domain or DNS record has been added. The D1 inventory's `num_tables` field was stale; use `sqlite_master` for schema verification.
 
-## Implemented in this stage
+## Implemented and verified in production
 
 - `GET /v1/health/live`: process-level liveness; does not depend on storage.
 - `GET /v1/health/ready`: readiness check requiring a D1 binding and a successful `SELECT 1 AS ok`.
 - Exact-origin CORS allowlist via the `ALLOWED_ORIGINS` environment variable. Wildcards and URL paths are ignored.
 - Stable JSON errors, per-response request IDs, no-store responses, and baseline browser security headers.
-- Unknown routes and unsupported methods fail closed.
+- Unknown routes and unsupported methods fail closed in the deployed health-only bundle.
+- Cloudflare observability query-string redaction is enabled and was verified by a settings readback on 2026-11-08. Persistent invocation logs remain enabled at 1.0 sampling; persistent traces remain enabled at 0.1 sampling.
 
+The repository source also implements `GET /v1/modules` as a public, read-only endpoint backed by the reviewed module metadata contract, with bounded category filtering and pagination. This route is source-only until a separately reviewed Worker deployment is completed and verified.
 
+## Administrator Access configuration
 
-The repository source also implements `GET /v1/modules` as a public, read-only endpoint backed by the reviewed module metadata contract, with bounded category filtering and pagination. This route is source-only until a separately reviewed Worker deployment is completed and verified; it is not available from the currently deployed health-only bundle.
+A Cloudflare Access self-hosted application named `MR_SIAVASH_AI Admin Console` is configured for both `/admin` and `/v1/admin/*` on the Worker hostname. Its only Allow policy matches the designated administrator email. The Worker's configured Access audience matches the Access application's audience; the Access team-domain, audience and administrator allowlist bindings are present in Worker settings. The application uses an eight-hour session, path-scoped cookies and HttpOnly cookies.
 
-## Explicitly not implemented
+This configuration is in place, but it does not deploy application routes. The Worker source independently validates Access JWT signature, issuer, audience, expiry and administrator email allowlist. Preserve both layers before exposing administrator functionality.
 
-The Cloudflare account contains the dedicated Worker resource, but its downloaded production script is still the original health-only implementation. The repository's GitHub Pages workflow does not deploy Worker code, so merged source changes (including strict CORS, support tickets, assistant and admin routes) must not be assumed live. Automated HTTP smoke checks verify only the old health/CORS boundary. Cloudflare Access is currently not enabled for the account, and the Worker settings expose no `AI` binding or Access environment variables. Do not configure the frontend to treat health routes as proof that support, authentication, AI or workspace APIs are live.
+## Explicitly not implemented in the deployed runtime
+
+The repository's GitHub Pages workflow does not deploy Worker code, and the repository does not yet contain a reproducible Wrangler manifest or Worker release workflow. The production script remains health-only. The Access application protects the future administrator paths, but those paths are not yet served by production.
+
+The production Worker has the dedicated D1 binding and the required Access configuration bindings (`CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`, `ADMIN_EMAILS`), plus `ALLOWED_ORIGINS`. It has no Workers AI binding, so model-generated assistant answers are not active. The assistant's verified FAQ fallback exists only in source until the Worker is deployed.
 
 The dedicated Worker and D1 database exist. No custom-domain route or DNS record has been created. The existing `gahop` Worker and GShop resources remain out of scope and unchanged.
 
@@ -40,9 +47,12 @@ The gateway tests use a small D1 mock and do not require Cloudflare credentials 
 ## Runtime bindings and release configuration
 
 - `DB`: dedicated D1 database for MR_SIAVASH_AI. Do not reuse `gshop-db`.
-- `ALLOWED_ORIGINS`: comma-separated exact origins for the deployed frontend, e.g. `https://<approved-host>`. Do not use `*`.
+- `ALLOWED_ORIGINS`: comma-separated exact origins for the deployed frontend. Do not use `*`.
+- `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`, `ADMIN_EMAILS`: configured in production Worker settings and matched to the Access app and its designated administrator policy.
+- `AI`: optional Workers AI binding. It is not configured in production.
+- `AI_MODEL`: optional model override; source default is `@cf/zai-org/glm-4.7-flash`.
 
-The repository does not yet contain a reproducible Wrangler manifest or Worker release workflow. Add those only after the target frontend origin and environment separation are confirmed. Production and preview must use separate D1 databases and secrets. Migration 0003 is already present in production D1; do not reapply it. Provision and validate a separate preview database before future migration changes.
+Production and preview must use separate D1 databases and secrets. Migration 0003 is already present in production D1; do not reapply it. Provision and validate a separate preview database before future migration changes. A production deployment must be a deliberate, separately reviewed release after the Worker manifest, environment separation, CI deployment controls and live API verification are ready.
 
 ## D1 migration foundation
 
@@ -50,20 +60,19 @@ Migration 0001 creates tenant-scoped workspace tasks and owner-scoped idempotenc
 
 ## Next implementation gates
 
-1. Provision a separate preview database and environment-specific Worker configuration; production D1 is already provisioned.
-2. Select a verified authentication/session provider and implement server-side token validation and authorization middleware.
-3. Add tenant-scoped workspace repositories with cross-user negative API tests and idempotency replay semantics.
-4. Add request limits, rate limiting, audit events, observability, retention cleanup, and backup/restore.
-5. Implement public module metadata and authenticated workspace APIs against the OpenAPI contract.
-6. Add AI provider adapters and bounded agent jobs only after identity, secrets, and approval controls pass review.
+1. Add a reproducible Wrangler manifest and a manual, protected Worker release workflow; keep production deployment separate from GitHub Pages deployment.
+2. Provision a separate preview database and environment-specific Worker configuration.
+3. Validate the deployed Access JWT path end-to-end against the configured audience and designated administrator identity.
+4. Deploy the reviewed Worker source only after release controls and route-level smoke tests are ready.
+5. Add tenant-scoped workspace repositories with cross-user negative API tests and idempotency replay semantics.
+6. Add retention cleanup, audit-event review, and backup/restore procedures.
+7. Add Workers AI only after its binding, budget, rate limits and failure behavior are reviewed.
 
-A successful liveness response is not a readiness signal. A successful readiness response only verifies the D1 dependency, not the full product. The originally deployed Worker version exposes health endpoints only. The repository `main` branch contains support and assistant routes, and production D1 already has the support schema, but those routes are not live until the Worker is deployed and the resulting endpoints are independently verified.
-
+A successful liveness response is not a readiness signal. A successful readiness response only verifies the D1 dependency, not the full product. The currently deployed Worker exposes health endpoints only. The repository `main` branch contains support and assistant routes, and production D1 already has the support schema, but those routes are not live until the Worker is deployed and the resulting endpoints are independently verified.
 
 ## CORS preflight policy
 
 Preflight requests are accepted only when the origin exactly matches `ALLOWED_ORIGINS`, the requested method is one of `GET`, `POST`, or `PATCH`, and every requested header is in the explicit `Content-Type`, `Authorization`, or `X-Request-ID` allowlist. Unsupported methods, untrusted or missing origins, and unapproved or malformed headers receive a `403` response without granting CORS access. CORS is a browser access policy, not authentication or authorization; non-browser clients must still be treated as untrusted.
-
 
 ## Hybrid assistant and human support (source-only)
 
@@ -71,14 +80,8 @@ Repository CI validates the support implementation and ticket lifecycle. Product
 
 The Worker source implements a site-grounded assistant, support ticket creation and private ticket conversations, plus Cloudflare Access-protected administrator list/detail/reply/status routes. Workers AI is optional: the Worker invokes it when an `AI` binding exists, using `@cf/zai-org/glm-4.7-flash` by default or a valid `@cf/` `AI_MODEL` override. Without the binding it uses verified FAQ content or explicitly recommends human support.
 
-Migration `0003_support_inbox.sql` creates ticket, message and hashed-IP rate-limit tables. Read-only inspection on 2026-11-08 confirmed that these exact table definitions already exist in `mr-siavash-ai-prod` and all three tables are empty. Do not reapply the migration. Before enabling these routes, deploy the reviewed Worker source and verify the production API. Never use `gshop-db`.
-
-Required settings: `DB`, exact-origin `ALLOWED_ORIGINS`, optional `AI` and optional `AI_MODEL` (default `@cf/zai-org/glm-4.7-flash`), and `CF_ACCESS_TEAM_DOMAIN`, `CF_ACCESS_AUD`, `ADMIN_EMAILS` for administrator access. Cloudflare Access is currently not enabled for the account; enable it and configure a path-scoped application for `/admin` and `/v1/admin/*`, restricted to the confirmed administrator identity, before deploying the admin experience. Admin endpoints independently verify JWT signature, issuer, audience, expiry and email allowlist.
+Migration `0003_support_inbox.sql` creates ticket, message and hashed-IP rate-limit tables. Read-only inspection on 2026-11-08 confirmed that these exact table definitions already exist in `mr-siavash-ai-prod` and all three tables were empty at that inspection. Do not reapply the migration. Before enabling these routes, deploy the reviewed Worker source and verify the production API. Never use `gshop-db`.
 
 Ticket credentials are random one-time bearer tokens; only SHA-256 hashes are stored. Raw client IPs are not stored. Email delivery, retention and erasure automation remain future work.
 
-
-Validation note: the current PR checks the exact allowlisted gateway origin in the static site's CSP and the gateway's credentialed CORS policy; no wildcard origin is accepted.
-
-
-The administrator dashboard is served by the Worker at `/admin`, on the same origin as the protected API. Configure a path-scoped Cloudflare Access application for `/admin` and `/v1/admin/*`; this avoids depending on third-party cookies from the GitHub Pages origin. The Worker also validates the Access JWT itself.
+The administrator dashboard is served by the Worker at `/admin`, on the same origin as the protected API. Cloudflare Access is configured for both `/admin` and `/v1/admin/*`; the Worker also validates the Access JWT itself.
