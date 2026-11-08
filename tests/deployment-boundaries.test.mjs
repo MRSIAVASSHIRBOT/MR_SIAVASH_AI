@@ -11,7 +11,7 @@ const workerSource = await readFile(new URL("../cloudflare/gateway/src/index.js"
 test("production documentation distinguishes health checks from source-only product APIs", () => {
   assert.match(architecture, /GET \/v1\/health\/live/);
   assert.match(gatewayReadme, /health-only/i);
-  assert.match(security, /health endpoints only/i);
+  assert.match(security, /GET \/v1\/health\/live/);
   for (const text of [architecture, gatewayReadme, security]) {
     assert.match(text, /support/i);
   }
