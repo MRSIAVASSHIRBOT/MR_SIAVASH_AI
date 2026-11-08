@@ -179,7 +179,7 @@ test("proposed backend contract is explicitly design-only and versioned", async 
   const backendGuide = await readFile(new URL("../docs/backend/README.md", import.meta.url), "utf8");
   assert.match(api, /openapi: 3\.1\.0/);
   assert.match(api, /version: 0\.1\.0/);
-  assert.match(api, /DESIGN CONTRACT ONLY/);
+  assert.match(api, /API design contract and partial route contract/);
   assert.match(api, /bearerAuth/);
   assert.match(api, /Idempotency-Key/);
   assert.match(api, /additionalProperties: false/);
@@ -691,7 +691,7 @@ test("module IDs remain stable to protect favorites and cross-module references"
 test("proposed backend contract has an executable CI validation gate", () => {
   assert.match(workflowText, /ruby scripts\/validate-openapi\.rb/);
   assert.match(openapiText, /openapi: 3\.1\.0/);
-  assert.match(openapiText, /DESIGN CONTRACT ONLY/);
+  assert.match(openapiText, /API design contract and partial route contract/);
   assert.match(openapiValidatorText, /unresolved reference/);
   assert.match(openapiValidatorText, /must require bearerAuth/);
   assert.match(openapiValidatorText, /Idempotency-Key/);
