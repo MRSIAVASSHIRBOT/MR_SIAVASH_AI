@@ -161,7 +161,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v21"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -231,7 +231,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v21"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -404,7 +404,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v21"/);
 });
 
 
@@ -1189,7 +1189,7 @@ test("experience stylesheet is included in both entry points and offline shell",
   const pythonHtml = await readFile(new URL("../python.html", import.meta.url), "utf8");
   assert.match(pythonHtml, /href="\.\/experience\.css"/);
   assert.match(sw, /"\.\/experience\.css"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v21"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
