@@ -13,6 +13,21 @@ on:
         required: true
         type: boolean
         default: false
+      enable_support_retention:
+        description: "Enable automatic deletion of inactive support tickets after the selected retention period"
+        required: true
+        type: boolean
+        default: false
+      retention_days:
+        description: "Support ticket inactivity retention period (used only when enabled)"
+        required: true
+        type: choice
+        options:
+          - "30"
+          - "60"
+          - "90"
+          - "180"
+        default: "90"
 
 permissions:
   contents: read
