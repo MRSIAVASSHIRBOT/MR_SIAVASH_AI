@@ -40,6 +40,24 @@ jobs:
           set -euo pipefail
           body="$(curl --fail --silent --show-error --max-time 15 "$BASE_URL/v1/modules")"
           node -e 'const x=JSON.parse(process.argv[1]);if(!Array.isArray(x.items)||x.items.length<1)process.exit(1)' "$body"
+      - name: Check grounded assistant fallback
+        env:
+          BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
+        run: |
+          set -euo pipefail
+          body="$(curl --fail --silent --show-error --max-time 20 --request POST "$BASE_URL/v1/assistant/chat" --header 'Content-Type: application/json' --data '{"message":"آموزش پایتون"}')"
+          node -e 'const x=JSON.parse(process.argv[1]);if(typeof x.answer!=="string"||!x.answer.trim()||!Array.isArray(x.sources)||x.mode!=="knowledge_fallback")process.exit(1)' "$body"
+      - name: Check support and administrator fail-closed behavior
+        env:
+          BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
+        run: |
+          set -euo pipefail
+          invalid_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request POST "$BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"subject":"","message":""}')"
+          test "$invalid_status" = "400"
+          admin_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "$BASE_URL/v1/admin/support/tickets")"
+          test "$admin_status" = "401"
+          ticket_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "$BASE_URL/v1/support/tickets/MS-0000000000000000")"
+          test "$ticket_status" = "404"
       - name: Check trusted and untrusted CORS boundaries
         env:
           BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
