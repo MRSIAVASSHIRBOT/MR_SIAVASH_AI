@@ -12,9 +12,10 @@ function createHarness(fetchImpl = async () => new Response("asset", {
 }), cachedResponse = null) {
   const listeners = new Map();
   const writes = [];
+  const matches = [];
   let skipWaitingCalls = 0;
   const cache = {
-    async match() { return cachedResponse; },
+    async match(key) { matches.push(key.url || String(key)); return cachedResponse; },
     async put(key, value) { writes.push({ key: key.url || String(key), value }); },
     async add() {},
     async addAll(urls) { writes.push({ precache: urls }); }
@@ -31,7 +32,7 @@ function createHarness(fetchImpl = async () => new Response("asset", {
     async delete() { return true; }
   };
   vm.runInNewContext(source, { self, caches, URL, Set, Response, TextEncoder, TextDecoder, Uint8Array, fetch: fetchImpl, console });
-  return { listeners, writes, get skipWaitingCalls() { return skipWaitingCalls; } };
+  return { listeners, writes, matches, get skipWaitingCalls() { return skipWaitingCalls; } };
 }
 
 function dispatchFetch(listeners, request) {
@@ -102,6 +103,40 @@ test("navigation caches only successful HTML responses for the app document", as
   await response;
   assert.equal(writes.length, 1);
   assert.equal(writes[0].key, "https://example.test/app/index.html");
+});
+
+test("academy and Python navigation refresh their own cached HTML documents", async () => {
+  for (const path of ["academy.html", "python.html"]) {
+    const { listeners, writes } = createHarness(async () => new Response("<html>learning page</html>", {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8" }
+    }));
+    const response = await dispatchFetch(listeners, {
+      method: "GET", mode: "navigate", url: "https://example.test/app/" + path
+    });
+    assert.equal(response.status, 200);
+    assert.equal(writes.length, 1);
+    assert.equal(writes[0].key, "https://example.test/app/" + path);
+  }
+});
+
+test("offline academy and Python navigation serve their matching precached documents", async () => {
+  for (const path of ["academy.html", "python.html"]) {
+    const cached = new Response("<html>cached " + path + "</html>", {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8" }
+    });
+    const { listeners, matches, writes } = createHarness(async () => {
+      throw new Error("offline");
+    }, cached);
+    const response = await dispatchFetch(listeners, {
+      method: "GET", mode: "navigate", url: "https://example.test/app/" + path
+    });
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), new RegExp("cached " + path));
+    assert.ok(matches.includes("https://example.test/app/" + path));
+    assert.equal(writes.length, 0);
+  }
 });
 
 test("navigation does not cache non-HTML responses", async () => {
