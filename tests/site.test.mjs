@@ -1399,7 +1399,7 @@ test("local support guide retries loading its index after an initial offline fai
 test("support UI accurately identifies its local, non-generative guide", () => {
   assert.match(html, /راهنمای محلی سایت؛ بدون ارسال پیام به سرور یا ارتباط با اپراتور انسانی/);
   assert.match(html, />راهنمای سایت<\/button>/);
-  assert.match(html, /پاسخ‌گویی بر پایه محتوای عمومی و منتشرشدهٔ سایت/);
+  assert.match(html, /راهنمای محلی سایت · بدون ارسال پیام به سرور؛ پاسخ بر پایه محتوای عمومی منتشرشده/);
   assert.match(html, /سؤال یا عبارت مورد جست‌وجو/);
   assert.match(html, />یافتن راهنما<\/button>/);
   assert.doesNotMatch(html, /ارتباط مستقیم با پشتیبانی|ارجاع به پشتیبانی انسانی|گفتگو با ربات/);
