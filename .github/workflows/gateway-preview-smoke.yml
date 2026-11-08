@@ -52,8 +52,13 @@ jobs:
           BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
         run: |
           set -euo pipefail
-          invalid_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request POST "$BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"subject":"","message":""}')"
+          invalid_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request POST "$BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"subject":"","message":"","consent":true}')"
           test "$invalid_status" = "400"
+          consent_body="$(mktemp)"
+          trap 'rm -f "$consent_body"' EXIT
+          consent_status="$(curl --silent --show-error --max-time 15 --output "$consent_body" --write-out '%{http_code}' --request POST "$BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"category":"question","subject":"Smoke check","message":"Consent gate check"}')"
+          test "$consent_status" = "400"
+          node -e 'const fs=require("node:fs");const x=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));if(x.error?.code!=="consent_required")process.exit(1)' "$consent_body"
           admin_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "$BASE_URL/v1/admin/support/tickets")"
           test "$admin_status" = "401"
           ticket_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "$BASE_URL/v1/support/tickets/MS-0000000000000000")"
