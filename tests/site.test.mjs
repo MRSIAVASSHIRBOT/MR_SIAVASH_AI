@@ -212,6 +212,9 @@ test("security and roadmap docs define production gates", async () => {
   assert.match(threat, /STRIDE review/);
   assert.match(threat, /cross-user isolation tests/);
   assert.match(threat, /secrets and tool permissions remain server-side/i);
+  assert.match(roadmap, /^# Product roadmap — parallel workstreams/m);
+  assert.doesNotMatch(roadmap, /^#\s*$/m);
+  assert.doesNotMatch(roadmap, /source\.Product roadmap/);
   assert.match(roadmap, /parallel workstreams/);
   assert.match(roadmap, /production Worker currently serves health\/readiness, a knowledge-fallback assistant endpoint, public support-ticket routes/);
   assert.match(roadmap, /manual-only production release workflow/);
