@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildVersionMetadata, mergeCronSchedules, configureCronSchedules } from "./deploy-production-worker.mjs";
+import { buildVersionMetadata, mergeCronSchedules, configureCronSchedules, releaseProductionWorker } from "./deploy-production-worker.mjs";
 
 const settings = {
   compatibility_date: "2026-11-06",
