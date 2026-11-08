@@ -7,6 +7,7 @@ import { supportGate, supportTrackingGate, validTicketCredentials } from "../sup
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const experienceCss = await readFile(new URL("../experience.css", import.meta.url), "utf8");
+const experienceNextCss = await readFile(new URL("../experience-next.css", import.meta.url), "utf8");
 const studioCss = await readFile(new URL("../studio.css", import.meta.url), "utf8");
 const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "utf8");
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
@@ -1474,4 +1475,26 @@ test("public privacy notice describes ticket data, one-time credentials and inac
   assert.match(privacy, /۳۰، ۶۰، ۹۰ یا ۱۸۰ روز/);
   assert.match(privacy, /رمز عبور، کلید API/);
   assert.match(privacy, /فضای ذخیره‌سازی مرورگر/);
+});
+
+
+test("emerald flagship experience layer overrides the conflicting studio palette", async () => {
+  const pythonHtml = await readFile(new URL("../python.html", import.meta.url), "utf8");
+  const academyHtml = await readFile(new URL("../academy.html", import.meta.url), "utf8");
+  assert.ok(html.indexOf("studio.css") < html.indexOf("experience-next.css"));
+  assert.ok(pythonHtml.indexOf("studio.css") < pythonHtml.indexOf("experience-next.css"));
+  assert.ok(academyHtml.indexOf("academy.css") < academyHtml.indexOf("experience-next.css"));
+  assert.match(experienceNextCss, /--experience-accent:#8debad/);
+  assert.match(experienceNextCss, /--bg:#07110b/);
+  assert.match(experienceNextCss, /\.hero-visual/);
+  assert.match(experienceNextCss, /\.module-card:hover/);
+  assert.match(experienceNextCss, /\.registry-status/);
+  assert.match(experienceNextCss, /@media\(max-width:760px\)/);
+  assert.match(experienceNextCss, /@media\(max-width:480px\)/);
+  assert.match(experienceNextCss, /prefers-reduced-motion:reduce/);
+  assert.match(experienceNextCss, /forced-colors:active/);
+  assert.match(experienceNextCss, /:focus-visible/);
+  assert.equal((experienceNextCss.match(/\{/g)||[]).length,(experienceNextCss.match(/\}/g)||[]).length);
+  assert.match(sw, /"\.\/experience-next\.css"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v30"/);
 });
