@@ -21,7 +21,6 @@ test("production release metadata pins the dedicated D1 and preserves Access bin
     expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f",
     commitSha: "a".repeat(40),
     enableSupportRetention: true,
-    retentionDays: 90
   });
   assert.equal(metadata.main_module, "index.js");
   assert.ok(metadata.bindings.some(x => x.name === "DB" && x.database_id === "87c15170-7995-4929-b00c-20b5b491c05f"));
@@ -29,7 +28,7 @@ test("production release metadata pins the dedicated D1 and preserves Access bin
     assert.ok(metadata.bindings.some(x => x.name === name), name);
   }
   assert.deepEqual(metadata.keep_bindings, ["secret_text", "secret_key", "secrets_store_secret", "mtls_certificate"]);
-  assert.equal(metadata.bindings.find(x => x.name === "SUPPORT_RETENTION_DAYS").text, "90");
+  assert.equal(metadata.bindings.find(x => x.name === "SUPPORT_RETENTION_DAYS").text, "30");
 });
 
 test("production release refuses a database mismatch or incomplete Access configuration", () => {
