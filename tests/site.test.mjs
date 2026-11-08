@@ -1306,10 +1306,10 @@ test("support assistant is a local guide and does not submit unavailable tickets
 
 test("support UI accurately identifies its local, non-generative guide", () => {
   assert.match(html, /راهنمای محلی سایت؛ بدون ارسال پیام به سرور یا ارتباط با اپراتور انسانی/);
-  assert.match(html, />راهنمای سایت<\\/button>/);
+  assert.match(html, />راهنمای سایت<\/button>/);
   assert.match(html, /پاسخ‌گویی بر پایه محتوای عمومی و منتشرشدهٔ سایت/);
   assert.match(html, /سؤال یا عبارت مورد جست‌وجو/);
-  assert.match(html, />یافتن راهنما<\\/button>/);
+  assert.match(html, />یافتن راهنما<\/button>/);
   assert.doesNotMatch(html, /ارتباط مستقیم با پشتیبانی|ارجاع به پشتیبانی انسانی|گفتگو با ربات/);
   assert.doesNotMatch(support, /handoffButton|\.\/v1\/|method:"POST"/);
   assert.match(support, /fetch\(path,\{credentials:"omit",cache:"no-cache"\}\)/);
