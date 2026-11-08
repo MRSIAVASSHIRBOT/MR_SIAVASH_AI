@@ -1,4 +1,6 @@
-# Product roadmap — parallel workstreams
+# 
+
+The deployed production Worker currently exposes public support-ticket create/read/reply endpoints; this describes the deployed bundle, not every route in the current repository source.Product roadmap — parallel workstreams
 
 The workstreams progress together behind shared release gates. A module is not production-ready merely because its card or UI exists. Shared integration rules are defined in docs/PLATFORM_CONTRACTS.md.
 
@@ -19,10 +21,17 @@ The workstreams progress together behind shared release gates. A module is not p
 Current site, local workspace, module catalog, PWA shell and repository checks. This is a prototype, not a hosted account platform.
 
 ### Stage B — backend contract and threat model
-The OpenAPI contract and threat model remain design artifacts. The deployed health-only Worker passed automated liveness, D1-readiness and CORS smoke checks on 2026-11-08. Production D1 contains the workspace, identity and support schemas; the checked application tables were empty at the last read-only inspection. Cloudflare Access is configured for `/admin` and `/v1/admin/*` with a single-administrator Allow policy, and its audience matches the Worker's configured audience. Query-string redaction is enabled; existing persistent invocation logs and traces remain at their previously configured sampling rates. The production Worker still exposes health endpoints only, has no Workers AI binding, and has no reproducible Wrangler manifest or Worker release workflow. Support, assistant, module metadata and administrator routes remain source-only. No user-facing product API, authentication, or cloud workspace endpoint is live. Aligning the production Worker source remains pending until a reproducible release workflow, isolated preview environment and route-level verification are ready.
+
+The OpenAPI contract and threat model remain design artifacts, while the Worker implementation is now running in an isolated preview environment. The production Worker currently serves health/readiness, a knowledge-fallback assistant endpoint, public support-ticket routes, and Access-protected administrator routes. Its deployed bundle is behind current `main`: public module metadata and scheduled retention are present in preview/source but not yet in production. Production D1 already contains support records; contents were not inspected. Do not reapply migrations 0001–0003 or clear existing data.
+
+Cloudflare Access is configured for `/admin` and `/v1/admin/*`; the Worker independently verifies Access JWT signature, issuer, audience, expiry and administrator allowlist. Query-string redaction is enabled and persistent invocation logs/traces remain enabled. Production has no Workers AI binding and no retention cron. The preview Worker runs current source with isolated D1; runtime smoke checks passed for health, readiness, module catalog, knowledge fallback, support validation, admin fail-closed behavior and CORS.
+
+A manual-only production release workflow is now present. It defaults to read-only binding validation, checks the exact production D1 and Access configuration, preserves secret bindings, verifies routes and CORS after deployment, and rolls back the prior Worker traffic split on failure. Workers AI and automatic support retention are opt-in. Retention is a destructive data-lifecycle choice and remains disabled until the owner explicitly selects a period. The public ticket UI stays disabled until the production release and retention decision are verified.
 
 ### Stage C — first real service
-Maintain automated runtime smoke checks for the deployed health/CORS boundary, then implement public module metadata and only later authenticated task persistence. Add integration and isolation tests before enabling cloud sync.
+
+Complete the production Worker release only after the owner approves the deployment and any retention/AI options. Then verify the nine-module API, ticket lifecycle, Access-protected admin session, observability, rollback and mobile/offline behavior. Only after that should the public ticket forms be enabled. User accounts and cloud workspace persistence remain blocked on choosing and reviewing an identity provider and cross-user isolation model.
+
 
 ### Stage D — independent modules
 Add AI, agent, developer, security, learning, creator and knowledge capabilities through versioned contracts and shared identity/permission boundaries.

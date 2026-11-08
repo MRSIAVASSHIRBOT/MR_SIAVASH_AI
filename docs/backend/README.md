@@ -1,33 +1,49 @@
-# Backend foundation — implementation gate
+# Backend and API boundary
 
-This directory contains API design artifacts and validation tooling; it is not a user-facing backend implementation and does not turn the static GitHub Pages site into an account service. The deployed health-only Cloudflare Worker has passed independent liveness, D1-readiness, and CORS runtime smoke checks. The workflow verifies the exact allowlisted origin and confirms that untrusted origins receive no CORS grant.
+MR_SIAVASH_AI uses a dedicated Cloudflare Worker and D1 database. This backend is separate from the static GitHub Pages frontend and from the GShop resources.
 
-## Contract
-- openapi.yaml defines the proposed v1 boundary for health, public module metadata and authenticated per-user workspace tasks.
-- scripts/validate-openapi.rb checks references, operation IDs, path parameters, authentication boundaries, request bodies, pagination limits and idempotency requirements in CI.
-- ../THREAT_MODEL.md defines the initial assets, trust boundaries, threats and production blockers.
-- User identity is always derived from a validated server-side session. Never accept a user ID from request JSON as an authorization decision.
+## Current environment state
 
-## Selected deployment boundary
+The deployed production Worker currently exposes public support-ticket create/read/reply endpoints; this describes the deployed bundle, not every route in the current repository source.
 
-ADR 0001 selects a dedicated Cloudflare Worker for the API while retaining GitHub Pages for the current frontend. The Cloudflare account has a dedicated `mr-siavash-ai-gateway` Worker resource and `mr-siavash-ai-prod` D1 database; the deployed bundle remains health-only. Automated runtime smoke checks passed for `GET /v1/health/live`, `GET /v1/health/ready`, exact-origin CORS and the absence of an allow-origin grant for untrusted origins. The deployed `ALLOWED_ORIGINS` binding is exactly `https://mrsiavasshirbot.github.io`. Runtime inspection found a source-parity difference: the deployed health-only bundle may answer OPTIONS with 204 for an untrusted origin but does not emit `Access-Control-Allow-Origin`; the current repository source rejects invalid preflights with 403. Both behaviors deny browser CORS access, and the smoke workflow checks the absence of a CORS grant. Cloudflare Access is configured for `/admin` and `/v1/admin/*` with a single-administrator policy; its audience matches the Worker's configured Access audience. The Worker's Access team-domain, audience and administrator allowlist bindings are present. The production Worker has no Workers AI binding. The repository does not yet have a reproducible Wrangler manifest or Worker deployment workflow. The Pages deployment does not publish Worker changes, so merged source must not be assumed to be live. Never reuse GShop's `gahop` Worker or `gshop-db` database.
+### Production
 
-## D1 schema foundation
+The production Worker is `mr-siavash-ai-gateway`; its dedicated D1 database is `mr-siavash-ai-prod`. A Cloudflare control-plane readback on 2026-11-08 identified deployed version `f7d5a92e-2694-4af1-8b99-18d04742925d`.
 
-`../../cloudflare/gateway/migrations/0001_workspace_tasks.sql` defines tenant-scoped tasks and owner-scoped idempotency records. Migration 0002 adds opaque internal users, unique verified `(issuer, subject)` mappings, and foreign keys from task/idempotency rows to users. It backfills existing owners before rebuilding those tables, preserving their rows and indexes. The schema stores no email address, raw token, session secret, or provider credential.
+The deployed bundle currently serves health/readiness, a knowledge-fallback assistant endpoint, public support ticket create/read/reply endpoints, and the Access-protected administrator console and support APIs. It does not yet expose the current repository's public `/v1/modules` endpoint or scheduled retention cleanup. The production Worker has no Workers AI binding, so the assistant endpoint does not perform model inference.
 
-`scripts/test-d1-migrations.py` applies every migration in order to an isolated in-memory SQLite database. It verifies backfill preservation, identity uniqueness, owner foreign keys, cascade deletion, constraints, query-plan index selection, and database integrity. This is a schema test only: it does not connect to Cloudflare or apply anything to the provisioned production D1 database. The auth adapter must map only a cryptographically verified `(issuer, subject)` identity to the internal owner UUID; clients must never supply `owner_id`. Foreign keys are integrity controls, not API authorization.
+Production D1 already contains the workspace, identity and support schema. Support records are present; their contents were not inspected. Migrations 0001–0003 are already applied. Do not reapply them or clear production data.
 
-## Implementation sequence
-1. Provision isolated preview and production Worker environments and verify the existing production resource bindings without applying migrations.
-2. Implement public health and module metadata first; expose no private data.
-3. Select and implement verified authentication with a documented account lifecycle.
-4. Add task persistence with tenant-scoped repository methods and negative cross-user tests.
-5. Add rate limits, request-size limits, audit events, observability and backup/restore.
-6. Only then connect AI providers through server-side secret storage and explicit tool permissions.
+The Cloudflare Access application protects `/admin` and `/v1/admin/*`; the Worker independently verifies Access JWT signature, issuer, audience, expiry and the administrator allowlist. End-to-end authorized browser verification remains outstanding.
 
-## Non-goals
-- No secrets in browser storage or public repository files.
-- No provider key passed to client-side JavaScript.
-- No mock login presented as real authentication.
-- No cloud sync claim until persistence and authorization are deployed and tested.
+### Preview
+
+The isolated preview Worker `mr-siavash-ai-gateway-preview` is deployed from current repository source and uses the separate `mr-siavash-ai-preview` D1 database. Migrations 0001–0003 are recorded in its migration ledger. Preview smoke checks passed for liveness, D1 readiness, module catalog, knowledge fallback, support validation, administrator fail-closed behavior and CORS. Preview has no AI or administrator Access binding.
+
+## Current source routes
+
+The current source implements health, module metadata, assistant, support-ticket and administrator routes. The production bundle is behind the source; consult [the gateway status](../../cloudflare/gateway/README.md) before claiming a route is live.
+
+## Privacy, retention and support
+
+Ticket creation stores the request text and optional contact email in D1. The ticket access token is returned once and only its SHA-256 hash is stored. The public website keeps ticket submission and tracking disabled until the reviewed production release and retention decision are complete.
+
+The Worker source includes a scheduled cleanup handler that deletes tickets after 30–365 configured days without an update, cascading to linked messages, and clears expired idempotency/rate-limit records. Preview uses 90 days. Production retention remains disabled until the owner explicitly opts in to a selected period; production D1 already contains support records.
+
+## Production release
+
+The manual-only [production release workflow](../../.github/workflows/gateway-production.yml) defaults to validation-only. A production traffic change requires `deploy=true`, the `cloudflare-production` GitHub environment and a scoped Cloudflare API token. The release client verifies the exact production D1 binding and Access configuration, preserves hidden secret bindings and observability settings, runs smoke checks, and rolls back to the previous traffic split on failure. Workers AI and automatic support retention are separate opt-ins.
+
+No account login, user identity lifecycle, authenticated cloud workspace, model-generated assistant or autonomous agent runtime is currently live. These require a separate identity-provider and privacy design; they must not be inferred from the existing D1 schema.
+
+## Contracts and tests
+
+- `openapi.yaml` — versioned API design contract.
+- `../THREAT_MODEL.md` — trust boundaries and security review.
+- `../PLATFORM_CONTRACTS.md` — shared module, identity, data, AI and agent contracts.
+- `../../cloudflare/gateway/tests/gateway.test.mjs` — route, support-token, AI fallback and retention tests.
+- `../../scripts/deploy-production-worker.test.mjs` — production release safety gates.
+- `../../.github/workflows/gateway-preview-smoke.yml` — live preview runtime checks.
+- `../../.github/workflows/gateway-smoke.yml` — production health/CORS/support-route checks.
+
+Never reuse GShop's `gahop` Worker or `gshop-db` database.

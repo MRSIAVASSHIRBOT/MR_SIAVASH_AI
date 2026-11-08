@@ -4,12 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
+  <meta name="referrer" content="no-referrer">
   <meta name="theme-color" content="#0b100e">
   <title>مرکز مدیریت پشتیبانی | MR_SIAVASH_AI</title>
   <link rel="stylesheet" href="./styles.css">
   <style>
-    .admin-status{display:inline-flex;align-items:center;gap:9px;margin:18px 0;padding:10px 14px;border:1px solid #8b743b;border-radius:10px;background:#241d10;color:#f0d99c;font-size:13px}
-    .admin-status::before{content:"";width:8px;height:8px;border-radius:50%;background:#d9ad4f}
+    .admin-status{display:inline-flex;align-items:center;gap:9px;margin:18px 0;padding:10px 14px;border:1px solid #315d40;border-radius:10px;background:#122419;color:#b7efc5;font-size:13px}
+    .admin-status::before{content:"";width:8px;height:8px;border-radius:50%;background:#78df60}
     .admin-note{max-width:720px;color:var(--muted);line-height:2}
   </style>
 </head>
@@ -18,10 +19,11 @@
     <section class="admin-support-intro">
       <div class="eyebrow">PRIVATE ADMIN AREA</div>
       <h1>مرکز مدیریت <span>پشتیبانی</span></h1>
-      <p class="admin-status" role="status">وضعیت فعلی: هنوز در محیط تولید فعال نشده</p>
-      <p class="admin-note">رابط و مسیرهای مدیریتی در مخزن آماده‌سازی شده‌اند و Cloudflare Access برای مسیرهای مدیریتی با سیاست دسترسی محدود پیکربندی شده است؛ اما نسخهٔ مستقرشدهٔ درگاه هنوز فقط سلامت سرویس و پایگاه‌داده را ارائه می‌کند. بنابراین مسیرهای صندوق پیام‌ها هنوز در محیط تولید وجود ندارند و این پنل قابل استفاده نیست.</p>
-      <p class="admin-note">پس از استقرار نسخهٔ بازبینی‌شدهٔ Worker، باید دسترسی مجاز و غیرمجاز و حفاظت سمت سرور دوباره آزموده شود. پیکربندی Access به‌تنهایی جایگزین استقرار و اعتبارسنجی API نیست.</p>
-      <a class="button button-primary" href="./index.html">بازگشت به MR_SIAVASH_AI ↗</a>
+      <p class="admin-status" role="status">پنل اصلی از طریق Cloudflare Access محافظت می‌شود.</p>
+      <p class="admin-note">برای مشاهدهٔ درخواست‌ها، پاسخ‌گویی و تغییر وضعیت تیکت‌ها وارد درگاه امن مدیریت شو. ورود فقط برای حساب مدیر مجاز است و API نیز هویت مدیر را در سمت سرور بررسی می‌کند.</p>
+      <p class="admin-note">اگر صفحهٔ ورود نمایش داده نشد یا دسترسی رد شد، تنظیمات Cloudflare Access و نشست مدیر باید بررسی شود. این صفحهٔ عمومی هیچ دادهٔ تیکتی را دریافت یا نمایش نمی‌دهد.</p>
+      <a class="button button-primary" rel="noopener" href="https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev/admin">ورود به پنل امن مدیریت ↗</a>
+      <p class="admin-note"><a href="./index.html">بازگشت به MR_SIAVASH_AI</a></p>
     </section>
   </main>
 </body>

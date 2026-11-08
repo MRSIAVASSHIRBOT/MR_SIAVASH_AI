@@ -206,3 +206,34 @@ test("public module metadata rejects invalid categories, limits and cursors", as
   assert.equal(response.status, 400, query);
  }
 });
+
+
+function retentionDb(){
+ const statements=[];
+ const db={
+  prepare(sql){
+   const statement={sql,values:[],bind(...values){this.values=values;return this;}};
+   return statement;
+  },
+  async batch(batch){statements.push(...batch);return batch.map(()=>({meta:{changes:0}}));}
+ };
+ return {db,statements};
+}
+test("scheduled cleanup expires inactive support tickets, idempotency rows and rate-limit buckets",async()=>{
+ const store=retentionDb();
+ await worker.scheduled({scheduledTime:Date.now()},{DB:store.db,SUPPORT_RETENTION_DAYS:"90"});
+ assert.equal(store.statements.length,3);
+ assert.match(store.statements[0].sql,/DELETE FROM support_tickets WHERE updated_at < \?/);
+ assert.match(store.statements[1].sql,/DELETE FROM workspace_idempotency WHERE expires_at <= \?/);
+ assert.match(store.statements[2].sql,/DELETE FROM api_rate_limits WHERE expires_at <= \?/);
+ const cutoff=Date.parse(store.statements[0].values[0]);
+ assert.ok(Number.isFinite(cutoff));
+ assert.ok(Math.abs((Date.now()-cutoff)-90*86400000)<5000);
+ assert.ok(Number.isFinite(Date.parse(store.statements[1].values[0])));
+ assert.ok(Number.isInteger(store.statements[2].values[0]));
+});
+test("scheduled cleanup rejects unsafe retention settings before touching D1",async()=>{
+ const store=retentionDb();
+ await assert.rejects(worker.scheduled({}, {DB:store.db,SUPPORT_RETENTION_DAYS:"7"}),/between 30 and 365/);
+ assert.equal(store.statements.length,0);
+});

@@ -41,10 +41,11 @@ jobs:
           node --check python-course.js
           node --check academy.js
           node --check cloudflare/gateway/src/index.js
+          node --check scripts/deploy-production-worker.mjs
       - name: Validate OpenAPI design contract
         run: ruby scripts/validate-openapi.rb
       - name: Run repository tests
-        run: node --test tests/*.test.mjs cloudflare/gateway/tests/*.test.mjs
+        run: node --test tests/*.test.mjs cloudflare/gateway/tests/*.test.mjs scripts/*.test.mjs
       - name: Validate D1 migrations in isolated SQLite
         run: python3 scripts/test-d1-migrations.py
 

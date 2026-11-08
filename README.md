@@ -14,7 +14,7 @@ The repository provides a static web application with:
 - A Persian beginner Python course with 12 lessons, practical code samples, expected outputs, knowledge checks, and browser-local progress. The site does not execute Python; learners run copied examples in Python 3.
 - A Persian multi-course academy with six learning paths and 30 chapters covering HTML, CSS, JavaScript, Git/GitHub, Linux, and defensive web security. Course progress is stored locally in the current browser.
 - Accessible global search with weighted Persian/Arabic normalization, module discovery, all 30 academy chapters and all 12 Python lessons, keyboard result navigation, and direct lesson deep links (Ctrl/Cmd + K).
-- A local support guide that searches the public site index without sending chat text to a server; online ticket submission and tracking remain visibly disabled until the Worker routes are deployed and verified.
+- A local support guide that searches the public site index without sending chat text to a server; online ticket submission and tracking remain disabled until the reviewed production release and retention decision are complete.
 - Browser-local workspace task manager with search, status filters, progress counts and confirmed bulk cleanup.
 - Non-destructive workspace recovery: unreadable or repaired snapshots block implicit overwrites until an explicit validated-backup import; cross-tab writes and storage-clear events cannot bypass the recovery lock.
 - Local workspace recovery repairs missing or duplicate task IDs and explicitly reports discarded invalid or over-capacity records instead of silently truncating task text.
@@ -27,9 +27,9 @@ The repository provides a static web application with:
 
 ### What is not connected yet
 
-AI model inference, remote agent execution, user accounts, private profiles, cloud synchronization, product APIs, billing, and server-side user-data storage are not live product features. The separate Cloudflare Worker currently exposes only liveness/readiness endpoints; the repository's support, assistant and administrator routes remain source-only until a reviewed Worker release is deployed and independently verified.
+Remote agent execution, consumer user accounts, private profiles, cloud synchronization, billing, and authenticated workspace persistence are not live product features. The production Worker already exposes health, knowledge-fallback assistant, support-ticket and Access-protected administrator routes, but it is behind current main and does not yet expose the public module catalog or scheduled retention handler.
 
-A Cloudflare Access self-hosted application is configured for the Worker paths `/admin` and `/v1/admin/*`, with an allow policy restricted to the designated administrator identity. The Worker source also validates the Access JWT and administrator allowlist. This Access configuration does not make routes live while the deployed Worker remains health-only. The production Worker has no Workers AI binding, so model-generated assistant responses are not active. Do not enter secrets, passwords, private keys, or sensitive personal data into the static site.
+A Cloudflare Access self-hosted application is configured for the Worker paths `/admin` and `/v1/admin/*`, with an allow policy restricted to the designated administrator identity. The Worker source also validates the Access JWT and administrator allowlist. Cloudflare Access is configured and the deployed Worker serves the protected administrator routes; end-to-end authorized browser-session verification remains outstanding. The production Worker has no Workers AI binding, so model-generated assistant responses are not active. Do not enter secrets, passwords, private keys, or sensitive personal data into the static site.
 
 ## Repository structure
 
@@ -52,7 +52,7 @@ A Cloudflare Access self-hosted application is configured for the Worker paths `
 - tests/service-worker.test.mjs — runtime regression tests for static-cache isolation and navigation boundaries
 - .github/workflows/deploy.yml — quality checks and GitHub Pages deployment
 - .github/workflows/gateway-smoke.yml — read-only deployed Worker liveness/readiness and CORS smoke checks
-- cloudflare/gateway/ — Worker source, D1 migrations, tests and release documentation; production currently remains health-only
+- cloudflare/gateway/ — Worker source, D1 migrations, tests, isolated preview and guarded production release documentation
 - docs/ARCHITECTURE.md — current boundaries and future integration plan
 - docs/decisions/0001-cloudflare-backend-boundary.md — Cloudflare backend decision record
 - SECURITY.md — security reporting and current security boundaries
@@ -102,14 +102,14 @@ No license has been granted yet. All rights are reserved by the repository owner
 - docs/ROADMAP.md coordinates the workstreams and release stages.
 - docs/PLATFORM_CONTRACTS.md defines shared integration and production-readiness requirements.
 
-The frontend remains static and does not itself provide authentication or cloud synchronization. Support, assistant and administrator routes exist in the repository source but are not deployed. Production D1 already contains the support schema. Cloudflare Access is configured for the administrator console and API paths, but the deployed Worker is still health-only. Workers AI is not bound to the production Worker.
+The frontend remains static and does not itself provide consumer authentication or cloud synchronization. The production Worker exposes assistant knowledge fallback, public support ticket routes and Access-protected administrator routes, but current main has additional module metadata and scheduled retention functionality not yet deployed. Production D1 already contains support records; their contents were not inspected. Workers AI is not bound to the production Worker.
 
 ## Local support guide and global search
 
 - Global search indexes site sections, module cards and the Python Academy course; use Ctrl+K.
-- The floating support center currently provides a browser-local, keyword-ranked guide over public site metadata. It is not an LLM chatbot and does not send chat text to a server. Ticket submission, ticket tracking, and human handoff are disabled in the deployed UI until their Worker routes are deployed and independently verified.
+- The floating support center currently provides a browser-local, keyword-ranked guide over public site metadata. It is not an LLM chatbot and does not send chat text to a server. Ticket submission and tracking remain disabled in the deployed UI until the reviewed production Worker release and explicit retention decision are complete.
 - Gateway endpoints in source: POST /v1/assistant/chat; POST /v1/support/tickets; GET /v1/support/tickets/:code; POST /v1/support/tickets/:code/messages; administrator list/detail/reply/status routes under /v1/admin/support/tickets.
-- D1 migration 0003 adds support tickets, messages and hashed-IP rate-limit buckets. Read-only inspection on 2026-11-08 confirmed the three table definitions in production D1; this confirms schema presence, not live API availability.
+- D1 migration 0003 adds support tickets, messages and hashed-IP rate-limit buckets. Read-only inspection on 2026-11-08 confirmed the production support tables and existing records; record contents were not inspected. Do not reset the database or enable automatic deletion without explicit approval.
 - AI generation is optional and runs only with an AI binding and configured AI_MODEL. Production currently has no AI binding; verified FAQ fallback is available in source.
 - Admin APIs verify Cloudflare Access JWT signature, issuer, audience, expiry and administrator email allowlist. Cloudflare Access protects /admin and /v1/admin/* for the designated administrator identity.
 - A ticket token is displayed once and never persisted in browser storage. Store it privately to check replies later.

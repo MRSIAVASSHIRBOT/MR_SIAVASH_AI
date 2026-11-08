@@ -98,43 +98,10 @@ A module cannot move to production until all applicable gates pass:
 
 ## 9. Current implementation boundary
 
-The current site remains a static browser application and the workspace is local to the browser profile. The deployed Cloudflare Worker exposes health endpoints only; automated runtime smoke checks passed for liveness, D1 readiness and the CORS boundary on 2026-11-08. The repository source also implements public module metadata, assistant, support-ticket and administrator routes, but those routes are not present in the deployed bundle. Cloudflare Access is configured for `/admin` and `/v1/admin/*` with a single-administrator Allow policy; the Access audience matches the Worker's configured audience, and the Worker's Access bindings are present. Query-string redaction is enabled. The production Worker has no Workers AI binding and the repository has no reproducible Wrangler manifest or Worker release workflow. The OpenAPI file and threat model remain design artifacts; no user accounts, authenticated workspace API, cloud sync, model-generated assistant or agent runtime is live.
+The current site remains a static browser application; its workspace is local to the browser profile. Production Worker version `f7d5a92e-2694-4af1-8b99-18d04742925d` currently serves health/readiness, knowledge-fallback assistant, public support-ticket routes and Access-protected administrator routes. The production bundle is behind current `main`: it does not yet expose `GET /v1/modules` or the scheduled retention handler. The isolated preview Worker runs current source and passed runtime checks for health, D1 readiness, module metadata, grounded knowledge fallback, support validation, administrator fail-closed behavior and CORS.
 
+Production has no Workers AI binding. The support API is present in the deployed bundle, but public ticket forms remain disabled until the reviewed Worker release and retention decision are complete. During normal operation, a browser storage-clear event resets both local views. While explicit workspace recovery is pending, incoming task writes and storage-clear events are ignored. Production D1 already contains support records; their contents were not inspected. Do not reapply migrations 0001–0003 or clear production data.
 
-### Browser-local cross-tab synchronization
+Cloudflare Access protects `/admin` and `/v1/admin/*`; the Worker independently verifies the Access JWT and administrator allowlist. Query-string redaction is enabled and persistent invocation logs/traces remain enabled. The manual-only production release workflow defaults to read-only binding validation and rolls back the previous traffic split if post-deployment checks fail. Workers AI and automatic support retention are explicit opt-ins.
 
-The static workspace listens for same-origin browser storage events for its task and favorites keys. Incoming snapshots are parsed and bounded before replacing in-memory state; malformed updates are ignored and the current view is preserved. During normal operation, a browser storage-clear event resets both local views. If workspace recovery is blocked because stored task data was unreadable or required repair, incoming task writes and storage-clear events are ignored so another tab cannot replace or discard the protected in-memory snapshot; a validated backup import remains the explicit recovery path. This is best-effort, same-origin synchronization only: localStorage provides last-write-wins behavior and does not provide transactions, conflict resolution, cross-device sync, or account isolation.
-
-
-### Workspace backup contract
-
-Workspace backup version 1 is defined in schemas/workspace-backup.schema.json and enforced by the browser importer. The root envelope and task records reject unknown fields; task count, text length, optional task ID, favorites count and favorite identifier format are bounded. Import validates the entire document before preparing any mutation, regenerates local task IDs, and merges unique task text. The browser-only importer remains a local portability feature, not an account or cloud synchronization API.
-
-
-### Static delivery security headers
-
-The static HTML entry point supplies a restrictive meta CSP and Referrer-Policy. The CSP permits only same-origin executable code, styles, connections, manifests and workers; it blocks objects, frames, inline script/style, and eval. Because the deployment uses GitHub Pages, response-header-only controls (including frame-ancestors, HSTS and X-Frame-Options) remain an infrastructure-level release gate and are not replaced by the meta policy.
-
-
-### Offline module-registry cache boundary
-
-The service worker may cache `modules.json` only when the response is successful JSON, no larger than 64 KiB, and has the exact versioned registry envelope (`schema`, `version`, and a bounded `modules` array). It validates both network and previously cached entries before use. An invalid or oversized network response never replaces the last valid cache; an invalid cached entry is not served as an offline fallback. The application remains responsible for full per-module runtime validation before rendering.
-
-
-### Gateway CORS preflight boundary
-
-The deployed health-only Worker was smoke-tested for exact-origin CORS. Its legacy preflight handler can return `204` for an untrusted origin, but it does not include `Access-Control-Allow-Origin`; the workflow verifies that no CORS grant is returned. The current repository source uses a stricter policy: it rejects untrusted origins, unsupported methods and unapproved headers with `403`, and allows only `GET`, `POST` or `PATCH` plus the explicit `Content-Type`, `Authorization` and `X-Request-ID` headers. These are CORS behaviors, not authentication or authorization controls; every protected route must independently validate identity and permissions.
-
-
-### D1 workspace persistence boundary
-
-The initial local-first migration creates `workspace_tasks` with an internal `owner_id`, bounded task text, boolean completion state, UTC timestamp fields, and a version counter. The owner identifier is an internal UUID resolved by the trusted authentication adapter from a verified identity; it is never accepted from request JSON, query parameters, or unverified token claims. Every task read, update, and delete must include the authenticated owner in its SQL predicate. The owner/update index supports bounded tenant-scoped listing.
-
-`workspace_idempotency` scopes each idempotency key to an owner and stores a bounded JSON response, request hash, and expiry. The application must reject key reuse with a different request hash, replay the original response for a matching unexpired key, and periodically delete expired records. The in-memory SQLite migration test validates schema constraints and representative owner-scoped query/index behavior; it does not prove that future repository methods enforce isolation. Cross-account API integration tests remain a release blocker. No migration is applied to production by this change.
-
-
-### Internal principal and external identity mapping
-
-D1 migration 0002 introduces an opaque internal `users.id` and an `auth_identities` mapping with a unique `(issuer, subject)` pair. The mapping may be created only from claims extracted from a cryptographically verified identity token after issuer, audience, expiry, and signing-key checks. No email, raw token, session secret, or provider credential is stored in these tables. Workspace task and idempotency owner columns reference `users.id` with deletion cascades; the migration backfills existing owner UUIDs before rebuilding those tables so existing rows are preserved.
-
-This schema does not select an identity provider or implement login, sessions, account linking, or authorization. Every protected request still needs independent server-side authentication and authorization, and every repository operation must scope by the principal resolved from the verified session. CI migration tests use in-memory SQLite only; they do not apply the migration to Cloudflare D1.
+No consumer user accounts, identity-provider login, private profiles, cloud workspace sync, model-generated assistant or agent runtime are live. The OpenAPI and threat-model documents remain contracts/design artifacts, not proof of those capabilities.
