@@ -47,8 +47,8 @@ function listModules(req,env,id,url){
  const category=url.searchParams.get("category");
  const rawLimit=url.searchParams.get("limit");
  const rawCursor=url.searchParams.get("cursor");
- const limitValue=rawLimit===null?20:/^\\d{1,2}$/.test(rawLimit)?Number(rawLimit):NaN;
- const offset=rawCursor===null?0:/^\\d{1,6}$/.test(rawCursor)?Number(rawCursor):NaN;
+ const limitValue=rawLimit===null?20:/^\d{1,2}$/.test(rawLimit)?Number(rawLimit):NaN;
+ const offset=rawCursor===null?0:/^\d{1,6}$/.test(rawCursor)?Number(rawCursor):NaN;
  if((category!==null&&!MODULE_CATEGORIES.has(category))||!Number.isInteger(limitValue)||limitValue<1||limitValue>50||!Number.isInteger(offset)||offset<0)
   return json(req,env,id,400,fail("invalid_module_query","پارامترهای فهرست ماژول‌ها نامعتبر هستند.",id));
  const modules=MODULE_KNOWLEDGE.filter(x=>category===null||x.category===category);
