@@ -105,16 +105,52 @@ function supportDb() {
  return { db, tickets, messages };
 }
 
+
+test("readiness reports public support only when a valid retention policy is configured", async () => {
+ const db={prepare(){return {first:async()=>({ok:1})};}};
+ const enabled=await worker.fetch(req("/v1/health/ready"),{DB:db,SUPPORT_RETENTION_DAYS:"90"});
+ const enabledBody=await enabled.json();
+ assert.equal(enabled.status,200);
+ assert.equal(enabledBody.features.publicSupport,true);
+ assert.equal(enabledBody.features.supportRetentionDays,90);
+ const disabled=await worker.fetch(req("/v1/health/ready"),{DB:db});
+ const disabledBody=await disabled.json();
+ assert.equal(disabled.status,200);
+ assert.equal(disabledBody.features.publicSupport,false);
+ assert.equal(disabledBody.features.supportRetentionDays,null);
+});
+
+test("support ticket creation requires explicit consent and a configured retention period", async () => {
+ const noConsentStore=supportDb();
+ const noConsent=await worker.fetch(req("/v1/support/tickets",{
+  method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({category:"question",subject:"پرسش",message:"متن درخواست",consent:false})
+ }),{DB:noConsentStore.db,SUPPORT_RETENTION_DAYS:"90"});
+ assert.equal(noConsent.status,400);
+ assert.equal((await noConsent.json()).error.code,"consent_required");
+ assert.equal(noConsentStore.tickets.size,0);
+
+ const noRetentionStore=supportDb();
+ const noRetention=await worker.fetch(req("/v1/support/tickets",{
+  method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({category:"question",subject:"پرسش",message:"متن درخواست",consent:true})
+ }),{DB:noRetentionStore.db});
+ assert.equal(noRetention.status,503);
+ assert.equal((await noRetention.json()).error.code,"support_unavailable");
+ assert.equal(noRetentionStore.tickets.size,0);
+});
+
 test("support ticket credentials are stored as hashes and authorize private follow-up", async () => {
  const store = supportDb();
  const created = await worker.fetch(req("/v1/support/tickets", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ category: "question", subject: "پرسش آزمایشی", message: "سلام، این یک آزمون است." })
- }), { DB: store.db });
+  body: JSON.stringify({ category: "question", subject: "پرسش آزمایشی", message: "سلام، این یک آزمون است.", consent: true })
+ }), { DB: store.db, SUPPORT_RETENTION_DAYS: "90" });
  assert.equal(created.status, 201);
  const data = await created.json();
  const { id, code, token: secret } = data.ticket;
+ assert.equal(data.ticket.retention_days,90);
  assert.match(code, /^MS-[A-F0-9]{16}$/);
  assert.match(secret, /^[a-f0-9]{64}$/);
  const stored = store.tickets.get(id);
