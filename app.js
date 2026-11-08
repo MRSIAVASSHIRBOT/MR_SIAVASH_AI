@@ -806,8 +806,12 @@
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k" &&
           !typing && !$("#moduleDialog").open) {
         event.preventDefault();
-        showView("modules");
-        $("#moduleSearch").focus();
+        const globalSearchButton = $("#globalSearchButton");
+        if (globalSearchButton) globalSearchButton.click();
+        else {
+          showView("modules");
+          $("#moduleSearch").focus();
+        }
       } else if (event.key === "/" && !typing && !$("#moduleDialog").open) {
         event.preventDefault();
         showView("modules");

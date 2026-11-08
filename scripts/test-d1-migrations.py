@@ -74,7 +74,7 @@ def main():
         )
     }
     require({
-        "users", "auth_identities", "workspace_tasks", "workspace_idempotency"
+        "users", "auth_identities", "workspace_tasks", "workspace_idempotency", "support_tickets", "support_messages", "api_rate_limits"
     } <= tables, "identity and workspace tables were not created")
 
     indexes = {
@@ -87,6 +87,9 @@ def main():
         "idx_auth_identities_user",
         "idx_workspace_tasks_owner_updated",
         "idx_workspace_idempotency_expiry",
+        "idx_support_tickets_status_updated",
+        "idx_support_messages_ticket_created",
+        "idx_api_rate_limits_expiry",
     ):
         require(index in indexes, f"required index is missing: {index}")
 
@@ -257,6 +260,41 @@ def main():
         ).fetchone()[0]
         require(remaining == 0, f"user deletion did not cascade to {table}")
 
+    support_ticket = "aaaaaaaa-1111-4111-8111-111111111111"
+    db.execute(
+        "INSERT INTO support_tickets "
+        "(id, ticket_code, access_token_hash, category, subject, created_at, updated_at) "
+        "VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (support_ticket, "MS-ABC1234567", "b" * 64, "question", "Support test", now, now),
+    )
+    db.execute(
+        "INSERT INTO support_messages (id, ticket_id, sender_role, body, created_at) "
+        "VALUES (?, ?, ?, ?, ?)",
+        ("bbbbbbbb-2222-4222-8222-222222222222", support_ticket, "user", "Help", now),
+    )
+    expect_integrity_error(
+        db,
+        "INSERT INTO support_messages (id, ticket_id, sender_role, body, created_at) VALUES (?, ?, ?, ?, ?)",
+        ("cccccccc-3333-4333-8333-333333333333", support_ticket, "owner", "Invalid role", now),
+        "invalid support sender role",
+    )
+    expect_integrity_error(
+        db,
+        "INSERT INTO support_tickets (id, ticket_code, access_token_hash, category, subject, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        ("dddddddd-4444-4444-8444-444444444444", "MS-BAD0000000", "c" * 64, "invalid", "Bad category", now, now),
+        "invalid support category",
+    )
+    db.execute("INSERT INTO api_rate_limits VALUES (?, ?, ?, ?)", ("d" * 64, 100, 1, 200))
+    require(
+        db.execute("SELECT count(*) FROM support_messages WHERE ticket_id = ?", (support_ticket,)).fetchone()[0] == 1,
+        "support message relation failed",
+    )
+    db.execute("DELETE FROM support_tickets WHERE id = ?", (support_ticket,))
+    require(
+        db.execute("SELECT count(*) FROM support_messages WHERE ticket_id = ?", (support_ticket,)).fetchone()[0] == 0,
+        "ticket deletion did not cascade to support messages",
+    )
+
     require(not db.execute("PRAGMA foreign_key_check").fetchall(),
             "foreign key integrity check failed")
     require(db.execute("PRAGMA integrity_check").fetchone()[0] == "ok",
@@ -267,7 +305,7 @@ def main():
         f"{len(files)} migration(s), {len(tables)} tables, "
         f"{len(indexes)} indexes; backfill, identity uniqueness, "
         "tenant filtering, foreign keys, cascades, constraints, "
-        "idempotency and query plan verified."
+        "idempotency, support ticket constraints, message cascades, rate limits and query plan verified."
     )
     db.close()
 
