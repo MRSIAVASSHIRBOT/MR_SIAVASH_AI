@@ -10,7 +10,7 @@ The deployed production Worker currently exposes public support-ticket create/re
 
 The production Worker is `mr-siavash-ai-gateway`; its dedicated D1 database is `mr-siavash-ai-prod`. A Cloudflare control-plane readback on 2026-11-08 identified deployed version `f7d5a92e-2694-4af1-8b99-18d04742925d`.
 
-The deployed bundle currently serves health/readiness, a knowledge-fallback assistant endpoint, public support ticket create/read/reply endpoints, and the Access-protected administrator console and support APIs. It does not yet expose the current repository's public `/v1/modules` endpoint or scheduled retention cleanup. The production Worker has no Workers AI binding, so the assistant endpoint does not perform model inference.
+The deployed bundle currently serves health/readiness, a knowledge-fallback assistant endpoint, public support ticket create/read/reply endpoints, and the Access-protected administrator console and support APIs. New ticket intake in the current source requires explicit privacy acknowledgement and a configured 30–365-day inactivity-retention period; existing ticket tracking is separate. It does not yet expose the current repository's public `/v1/modules` endpoint or scheduled retention cleanup. The production Worker has no Workers AI binding, so the assistant endpoint does not perform model inference.
 
 Production D1 already contains the workspace, identity and support schema. Support records are present; their contents were not inspected. Migrations 0001–0003 are already applied. Do not reapply them or clear production data.
 

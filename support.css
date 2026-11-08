@@ -76,3 +76,17 @@
 
 .support-form [role="status"]{color:var(--muted);font-size:12px;line-height:1.9;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.025)}
 .support-form :disabled{cursor:not-allowed;opacity:.55}
+
+.support-privacy-note{padding:11px 13px;border:1px solid rgba(120,223,160,.2);border-radius:10px;background:rgba(25,64,39,.28);color:#c8ddce;font-size:11px;line-height:1.9}
+.support-ticket-heading{font-weight:700;color:var(--text);font-size:14px}
+.support-ticket-meta{color:var(--muted);font-size:11px}
+.support-ticket-messages{display:grid;gap:8px;max-height:260px;overflow:auto}
+.support-ticket-message{padding:11px;border:1px solid var(--line);border-radius:10px;background:#101912}
+.support-ticket-message strong{color:var(--green-bright);font-size:11px}
+.support-ticket-message p{margin:6px 0 0;color:var(--text);font-size:12px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere}
+.support-ticket-reply{margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+#supportTicketCredential{display:grid;gap:7px;margin-top:10px}#supportTicketCredential[hidden]{display:none}
+
+.support-consent{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;color:var(--text);font-size:12px;line-height:1.9}
+.support-consent input{width:18px;min-width:18px;height:18px;min-height:18px;margin-top:3px;accent-color:var(--green-bright)}
+.support-consent a{color:var(--green-bright);text-decoration:underline;text-underline-offset:3px}

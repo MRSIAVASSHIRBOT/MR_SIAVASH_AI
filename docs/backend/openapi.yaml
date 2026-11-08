@@ -2,18 +2,20 @@ openapi: 3.1.0
 info:
   title: MR_SIAVASH_AI Platform API
   version: 0.1.0
-  summary: Proposed contract for the future MR_SIAVASH_AI backend.
+  summary: API contract for the MR_SIAVASH_AI Cloudflare gateway.
   description: |
-    DESIGN CONTRACT ONLY. No API server is currently deployed by this repository.
-    Implementations must pass authentication, authorization, validation, isolation,
-    rate-limit, audit, and integration tests before any endpoint is exposed.
+    API design contract and partial route contract. The production Worker serves health,
+    knowledge-fallback assistant, support ticket, and administrator routes; the isolated
+    preview runs current source. This document is not a complete inventory of deployed
+    routes. Verify environment status in cloudflare/gateway/README.md.
 servers:
   - url: https://api.example.invalid/v1
-    description: Placeholder only; replace after a real backend is provisioned.
+    description: Placeholder only; use cloudflare/gateway/README.md for verified environment URLs and deployment state.
 tags:
   - name: System
   - name: Modules
   - name: Workspace
+  - name: Support
 paths:
   /health:
     get:
@@ -179,6 +181,84 @@ paths:
           $ref: "#/components/responses/Unauthorized"
         "404":
           $ref: "#/components/responses/NotFound"
+  /support/tickets:
+    post:
+      tags: [Support]
+      operationId: createSupportTicket
+      summary: Create a support ticket with explicit privacy acknowledgement
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSupportTicketRequest"
+      responses:
+        "201":
+          description: Ticket created; the private bearer token is returned once.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CreateSupportTicketResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+  /support/tickets/{code}:
+    parameters:
+      - in: path
+        name: code
+        required: true
+        schema:
+          type: string
+          pattern: "^MS-[A-F0-9]{16}$"
+    get:
+      tags: [Support]
+      operationId: getMySupportTicket
+      summary: Read a ticket using its private one-time bearer credential
+      security:
+        - ticketToken: []
+      responses:
+        "200":
+          description: Ticket and conversation visible to the bearer-token holder.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupportTicketThread"
+        "404":
+          $ref: "#/components/responses/NotFound"
+  /support/tickets/{code}/messages:
+    parameters:
+      - in: path
+        name: code
+        required: true
+        schema:
+          type: string
+          pattern: "^MS-[A-F0-9]{16}$"
+    post:
+      tags: [Support]
+      operationId: replyToMySupportTicket
+      summary: Add a user reply using the ticket's private bearer credential
+      security:
+        - ticketToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupportReply"
+      responses:
+        "201":
+          description: Reply accepted.
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/RateLimited"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -186,9 +266,130 @@ components:
       scheme: bearer
       bearerFormat: JWT
       description: |
-        Placeholder auth scheme. Validate signature, issuer, audience, expiry,
+        Placeholder user-session scheme. Validate signature, issuer, audience, expiry,
         not-before, and key rotation server-side. Never trust client-supplied user IDs.
+    ticketToken:
+      type: http
+      scheme: bearer
+      bearerFormat: opaque
+      description: |
+        Ticket-specific random secret returned once at creation. Store only its hash;
+        send it in the Authorization header and never in a URL or browser storage.
   schemas:
+    CreateSupportTicketRequest:
+      type: object
+      additionalProperties: false
+      required: [category, subject, message, consent]
+      properties:
+        category:
+          type: string
+          enum: [question, suggestion, complaint, bug, other]
+        subject:
+          type: string
+          minLength: 1
+          maxLength: 120
+        message:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        contact_email:
+          type: [string, "null"]
+          format: email
+          maxLength: 254
+        website:
+          type: string
+          maxLength: 200
+          description: Honeypot field; must remain empty.
+        consent:
+          type: boolean
+          const: true
+          description: Required acknowledgement of the published support privacy and retention notice.
+    CreateSupportTicketResponse:
+      type: object
+      required: [ticket, notice, request_id]
+      properties:
+        ticket:
+          type: object
+          required: [id, code, token, status, retention_days]
+          properties:
+            id:
+              type: string
+              format: uuid
+            code:
+              type: string
+              pattern: "^MS-[A-F0-9]{16}$"
+            token:
+              type: string
+              pattern: "^[a-f0-9]{64}$"
+            status:
+              type: string
+              const: open
+            retention_days:
+              type: integer
+              minimum: 30
+              maximum: 365
+        notice:
+          type: string
+        request_id:
+          type: string
+    SupportReply:
+      type: object
+      additionalProperties: false
+      required: [message]
+      properties:
+        message:
+          type: string
+          minLength: 1
+          maxLength: 4000
+    SupportTicket:
+      type: object
+      required: [id, code, category, subject, status, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        code:
+          type: string
+          pattern: "^MS-[A-F0-9]{16}$"
+        category:
+          type: string
+          enum: [question, suggestion, complaint, bug, other]
+        subject:
+          type: string
+          maxLength: 120
+        status:
+          type: string
+          enum: [open, in_progress, waiting_user, resolved]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    SupportMessage:
+      type: object
+      required: [sender_role, body, created_at]
+      properties:
+        sender_role:
+          type: string
+          enum: [user, assistant, admin]
+        body:
+          type: string
+          maxLength: 4000
+        created_at:
+          type: string
+          format: date-time
+    SupportTicketThread:
+      type: object
+      required: [ticket, messages]
+      properties:
+        ticket:
+          $ref: "#/components/schemas/SupportTicket"
+        messages:
+          type: array
+          maxItems: 1000
+          items:
+            $ref: "#/components/schemas/SupportMessage"
     Health:
       type: object
       additionalProperties: false
@@ -308,7 +509,7 @@ components:
           maxLength: 500
         code:
           type: string
-          pattern: "^[A-Z0-9_]{2,64}$"
+          pattern: "^[a-z0-9_]{2,64}$"
         requestId:
           type: string
           maxLength: 80

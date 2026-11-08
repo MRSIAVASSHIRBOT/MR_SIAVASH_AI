@@ -10,7 +10,7 @@ test("CORS allows only exact origin and approved methods and headers",async()=>{
 test("unknown routes and unsupported methods fail closed",async()=>{assert.equal((await worker.fetch(req("/v1/nope"),{})).status,404);assert.equal((await worker.fetch(req("/v1/health/live",{method:"DELETE"}),{})).status,405);});
 test("assistant validates input and fails closed without database",async()=>{const r=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"سلام"})}),{});assert.equal(r.status,503);});
 test("admin dashboard and APIs reject requests without verified Access JWT",async()=>{const page=await worker.fetch(req("/admin"),{});assert.equal(page.status,401);const r=await worker.fetch(req("/v1/admin/support/tickets"),{DB:db()});assert.equal(r.status,401);assert.equal((await r.json()).error.code,"admin_auth_required");});
-test("ticket creation validates email before touching D1",async()=>{const r=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subject:"سؤال",message:"سلام",contact_email:"invalid"})}),{DB:db()});assert.equal(r.status,400);});
+test("ticket creation validates email before touching D1",async()=>{const r=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subject:"سؤال",message:"سلام",contact_email:"invalid"})}),{DB:db(),SUPPORT_RETENTION_DAYS:"90"});assert.equal(r.status,400);});
 test("public ticket reads require a bearer token",async()=>{const r=await worker.fetch(req("/v1/support/tickets/MS-ABC1234567"),{DB:db()});assert.equal(r.status,404);});
 test("request body limits are enforced",async()=>{const r=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"x".repeat(13000)})}),{DB:db()});assert.equal(r.status,413);});
 
@@ -110,13 +110,14 @@ test("support ticket credentials are stored as hashes and authorize private foll
  const created = await worker.fetch(req("/v1/support/tickets", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ category: "question", subject: "پرسش آزمایشی", message: "سلام، این یک آزمون است." })
- }), { DB: store.db });
+  body: JSON.stringify({ category: "question", subject: "پرسش آزمایشی", message: "سلام، این یک آزمون است.", consent: true })
+ }), { DB: store.db, SUPPORT_RETENTION_DAYS: "90" });
  assert.equal(created.status, 201);
  const data = await created.json();
  const { id, code, token: secret } = data.ticket;
  assert.match(code, /^MS-[A-F0-9]{16}$/);
  assert.match(secret, /^[a-f0-9]{64}$/);
+ assert.equal(data.ticket.retention_days,90);
  const stored = store.tickets.get(id);
  assert.ok(stored);
  assert.notEqual(stored.access_token_hash, secret);
@@ -236,4 +237,35 @@ test("scheduled cleanup rejects unsafe retention settings before touching D1",as
  const store=retentionDb();
  await assert.rejects(worker.scheduled({}, {DB:store.db,SUPPORT_RETENTION_DAYS:"7"}),/between 30 and 365/);
  assert.equal(store.statements.length,0);
+});
+
+test("public support readiness is fail-closed until a valid retention policy is configured",async()=>{
+ const database=()=>({prepare(sql){if(sql==="SELECT 1 AS ok")return{first:async()=>({ok:1})};throw new Error("unexpected SQL");}});
+ const disabled=await worker.fetch(req("/v1/health/ready"),{DB:database()});
+ const disabledBody=await disabled.json();
+ assert.equal(disabledBody.features.publicSupport,false);
+ assert.equal(disabledBody.features.supportRetentionDays,null);
+ const enabled=await worker.fetch(req("/v1/health/ready"),{DB:database(),SUPPORT_RETENTION_DAYS:"90"});
+ const enabledBody=await enabled.json();
+ assert.equal(enabledBody.features.publicSupport,true);
+ assert.equal(enabledBody.features.supportRetentionDays,90);
+ const invalid=await worker.fetch(req("/v1/health/ready"),{DB:database(),SUPPORT_RETENTION_DAYS:"7"});
+ const invalidBody=await invalid.json();
+ assert.equal(invalidBody.features.publicSupport,false);
+ assert.equal(invalidBody.features.supportRetentionDays,null);
+});
+
+test("new public support tickets are rejected server-side until retention is configured",async()=>{
+ const database={prepare(sql){if(sql.startsWith("INSERT INTO api_rate_limits"))return{bind(){return this;},first:async()=>({request_count:1})};throw new Error("ticket creation must stop before D1 writes");}};
+ const response=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({category:"question",subject:"آزمون",message:"پیام آزمایشی",consent:true})}),{DB:database});
+ assert.equal(response.status,503);
+ assert.equal((await response.json()).error.code,"support_retention_required");
+});
+
+test("ticket creation requires explicit consent before writing data",async()=>{
+ const store=supportDb();
+ const response=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({category:"question",subject:"پرسش",message:"متن درخواست",consent:false})}),{DB:store.db,SUPPORT_RETENTION_DAYS:"90"});
+ assert.equal(response.status,400);
+ assert.equal((await response.json()).error.code,"consent_required");
+ assert.equal(store.tickets.size,0);
 });

@@ -22,7 +22,7 @@ The deployed version contains:
 - `GET /v1/support/tickets/:code` and `POST /v1/support/tickets/:code/messages`, protected by a one-time bearer token.
 - `GET /admin` and administrator support list/detail/reply/status routes under `/v1/admin/support/tickets`.
 
-The deployed bundle does **not** yet contain `GET /v1/modules` or the scheduled retention handler. The current `main` source and isolated preview Worker contain both. The static website deliberately keeps public ticket submission and tracking disabled until the reviewed production release, retention decision and post-deployment checks are complete.
+The deployed bundle does **not** yet contain `GET /v1/modules` or the scheduled retention handler. The current `main` source and isolated preview Worker contain both. The static website keeps new ticket submission disabled until the reviewed production release enables an explicit 30–365 day retention policy. Existing ticket tracking remains available when D1 is healthy. The Worker enforces this intake gate server-side; the UI gate is not the security boundary.
 
 The production Access application is configured for `/admin` and `/v1/admin/*` with a single-administrator allow policy. The Worker also validates the Access JWT signature, issuer, audience, expiry and administrator allowlist. Authorized browser-session verification is still a manual acceptance test.
 
@@ -65,7 +65,7 @@ The Worker source contains a scheduled cleanup handler. It deletes support ticke
 
 Preview uses 90 days. Production retention is an explicit opt-in in the manual release workflow and defaults to disabled. This matters because production D1 already contains support records. Do not enable a retention cron or delete existing records without the repository owner's explicit selection of the retention period.
 
-Ticket tokens are returned once and stored only as SHA-256 hashes. The browser must never put ticket tokens in URLs, logs, localStorage or analytics. Do not collect passwords, payment data, API keys or authentication codes.
+Ticket creation requires an explicit privacy acknowledgement and an active 30–365-day retention setting. The public interface enables new intake only after the Worker confirms both. Existing-ticket tracking remains available when D1 is healthy. Ticket tokens are returned once and stored only as SHA-256 hashes; the browser sends them in the Authorization header and never puts them in URLs, logs, localStorage or analytics. Do not collect passwords, payment data, API keys or authentication codes.
 
 ## Production release boundary
 

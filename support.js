@@ -88,19 +88,12 @@ async function ask(event){
  }catch(error){message("راهنمای محلی فعلاً بارگذاری نشد. لطفاً اتصال را بررسی و دوباره تلاش کن.");}
  finally{button.disabled=false;input.focus();}
 }
-function disableUnavailable(formId,statusId,text){
- const form=$(formId),status=$(statusId);if(!form)return;
- form.querySelectorAll("input,select,textarea,button").forEach(control=>{control.disabled=true;});
- if(status)status.textContent=text;
-}
 function init(){
  const support=$("#supportDialog");if(!support)return;
  $("#supportLauncher").addEventListener("click",()=>support.showModal());
  $("#supportClose").addEventListener("click",()=>support.close());
  document.querySelectorAll("[data-support-tab]").forEach(button=>button.addEventListener("click",()=>tab(button.dataset.supportTab)));
  $("#assistantForm").addEventListener("submit",ask);
- disableUnavailable("#supportRequestForm","#supportRequestStatus","ثبت آنلاین درخواست هنوز در نسخهٔ مستقرشده فعال نیست. لطفاً فعلاً اطلاعات تماس یا پیام خصوصی وارد نکن.");
- disableUnavailable("#ticketTrackForm","#ticketTrackResult","پیگیری آنلاین هنوز فعال نیست؛ API پشتیبانی در محیط تولید مستقر نشده است.");
  loadKnowledge().catch(()=>{});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();

@@ -100,7 +100,7 @@ async function cloudflareRequest(path, { token, fetchImpl = fetch, ...options } 
   return payload.result;
 }
 
-async function smokeProduction(fetchImpl, { enableWorkersAI = false } = {}) {
+async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false } = {}) {
   const base = "https://" + WORKER + ".mrsiavashirbot.workers.dev";
   async function call(path, init, status) {
     const response = await fetchImpl(base + path, init);
@@ -119,12 +119,19 @@ async function smokeProduction(fetchImpl, { enableWorkersAI = false } = {}) {
 
   const unknown = await call("/v1/support/tickets/MS-0000000000000000", {}, 404);
   if (unknown.body.error?.code !== "ticket_not_found") throw new Error("Production public ticket route is not responding with the expected private-not-found result.");
+  const consent = await call("/v1/support/tickets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ category: "question", subject: "Release smoke check", message: "Consent gate verification" })
+  }, 400);
+  if (consent.body.error?.code !== "consent_required") throw new Error("Production support intake did not enforce explicit privacy consent.");
   const invalid = await call("/v1/support/tickets", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ subject: "", message: "" })
-  }, 400);
-  if (invalid.body.error?.code !== "invalid_ticket") throw new Error("Production ticket validation route did not reject an invalid payload.");
+    body: JSON.stringify({ subject: "", message: "", consent: true })
+  }, enableSupportRetention ? 400 : 503);
+  const expectedTicketError = enableSupportRetention ? "invalid_ticket" : "support_retention_required";
+  if (invalid.body.error?.code !== expectedTicketError) throw new Error("Production ticket intake did not match the selected retention policy.");
 
   const trusted = await fetchImpl(base + "/v1/modules", {
     method: "OPTIONS",
@@ -217,7 +224,7 @@ export async function releaseProductionWorker({
       });
     }
 
-    await smokeProduction(fetchImpl, { enableWorkersAI });
+    await smokeProduction(fetchImpl, { enableWorkersAI, enableSupportRetention });
     const finalSettings = await cloudflareRequest(prefix + "/settings", { token, fetchImpl });
     const obs = finalSettings.observability || {};
     if (obs.redact_query_string !== true || obs.logs?.enabled !== true || obs.traces?.enabled !== true) {
