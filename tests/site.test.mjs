@@ -1406,3 +1406,36 @@ test("support UI accurately identifies its local, non-generative guide", () => {
   assert.doesNotMatch(support, /handoffButton|\.\/v1\/|method:"POST"/);
   assert.match(support, /fetch\(path,\{credentials:"omit",cache:"no-cache"\}\)/);
 });
+
+
+test("local support guide enforces byte limits while streaming public indexes", async () => {
+  const match = support.match(/async function readBoundedText\\(response,maxBytes\\)\\{[\\s\\S]*?\\n\\}/);
+  assert.ok(match, "bounded response reader must be present");
+  const readBoundedText = vm.runInNewContext("(" + match[0] + ")", { TextEncoder, TextDecoder });
+  let reads = 0;
+  let cancelled = false;
+  const oversized = {
+    headers: { get() { return null; } },
+    body: {
+      getReader() {
+        return {
+          async read() { reads++; return { done: false, value: new Uint8Array(8) }; },
+          async cancel() { cancelled = true; },
+          releaseLock() {}
+        };
+      }
+    },
+    text() { assert.fail("streaming responses must not fall back to unbounded text()"); }
+  };
+  await assert.rejects(readBoundedText(oversized, 4), /بیش از حد مجاز/);
+  assert.equal(reads, 1, "reader must stop at the first chunk that exceeds the limit");
+  assert.equal(cancelled, true, "oversized response stream must be cancelled");
+
+  let preflightReaderOpened = false;
+  const declaredOversized = {
+    headers: { get(name) { return name === "content-length" ? "9" : null; } },
+    body: { getReader() { preflightReaderOpened = true; throw new Error("must not open"); } }
+  };
+  await assert.rejects(readBoundedText(declaredOversized, 4), /بیش از حد مجاز/);
+  assert.equal(preflightReaderOpened, false, "declared oversized responses must be rejected before reading");
+});
