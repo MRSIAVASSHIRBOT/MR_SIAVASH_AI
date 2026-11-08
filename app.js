@@ -235,6 +235,12 @@
       return;
     }
     const viewName = hash.slice(1);
+    if (viewName === "support") {
+      showView("home", { updateHistory: false, scroll: false });
+      const supportDialog = $("#supportDialog");
+      if (supportDialog && !supportDialog.open) supportDialog.showModal();
+      return;
+    }
     if (["home", "modules", "workspace", "identity", "about"].includes(viewName)) {
       if ($("#moduleDialog").open) $("#moduleDialog").close();
       showView(viewName, { updateHistory: false, scroll: false });
