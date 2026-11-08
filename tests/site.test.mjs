@@ -66,6 +66,7 @@ test("navigation buttons have real section targets", () => {
   const targets = [...html.matchAll(/data-view="([^"]+)"/g)].map(match => match[1]);
   for (const target of targets) assert.ok(views.has(target), "missing view: " + target);
   assert.ok(views.has("identity"), "digital identity view must be present");
+  assert.match(html, /href="\.\/studio\.html"/, "digital studio must be reachable from the main site");
 });
 
 test("digital identity page exposes public social profiles and GitHub tools safely", () => {
@@ -167,12 +168,15 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v33"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
   assert.match(sw, /"\.\/python-course\.js"/);
   assert.match(sw, /"\.\/python-course\.css"/);
+  assert.match(sw, /"\.\/studio\.html"/);
+  assert.match(sw, /"\.\/studio-portfolio\.css"/);
+  assert.match(sw, /"\.\/studio-portfolio\.js"/);
   assert.match(sw, /request\.mode === "navigate"/);
   assert.match(sw, /request\.method !== "GET"/);
 });
