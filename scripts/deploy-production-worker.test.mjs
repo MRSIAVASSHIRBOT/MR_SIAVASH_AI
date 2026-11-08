@@ -151,5 +151,5 @@ test("production release smoke follows the explicit support-retention selection"
   assert.match(source, /consent_required/);
   assert.match(source, /ready\.body\.features\?\.publicSupport !== enableSupportRetention/);
   assert.match(source, /supportRetentionDays !== retentionDays/);
-  assert.match(source, /smokeProduction\(fetchImpl, \{ enableWorkersAI, enableSupportRetention \}\)/);
+  assert.match(source, /smokeProduction\(fetchImpl, \{ enableWorkersAI, enableSupportRetention, retentionDays \}\)/);
 });
