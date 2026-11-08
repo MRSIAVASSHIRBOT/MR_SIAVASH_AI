@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import vm from "node:vm";
-import { supportGate, validTicketCredentials } from "../support-tickets.mjs";
+import { supportGate, supportTrackingGate, validTicketCredentials } from "../support-tickets.mjs";
 
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
@@ -1313,6 +1313,7 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.doesNotMatch(support, /mr-siavash-ai-gateway|Authorization|\/v1\/support/);
   assert.match(supportTickets, /supportGate\(health\)/);
   assert.match(supportTickets, /features\.publicSupport/);
+  assert.match(supportTickets, /supportTrackingGate\(health\)/);
   assert.match(supportTickets, /credentials: "omit"/);
   assert.match(supportTickets, /Authorization: "Bearer "/);
   assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
@@ -1452,4 +1453,11 @@ test("public ticket tracking validates one-time code and bearer-token formats", 
   assert.equal(validTicketCredentials("MS-0123456789ABCDEF", "a".repeat(63)), false);
   assert.equal(validTicketCredentials("MS-0123456789ABCDEF", "g".repeat(64)), false);
   assert.equal(validTicketCredentials("https://example.test/?token=secret", "a".repeat(64)), false);
+});
+
+test("ticket tracking remains available without enabling new ticket intake", () => {
+  const healthy = { status: "ready", dependencies: { database: "ready" } };
+  assert.equal(supportTrackingGate(healthy), true);
+  assert.equal(supportGate(healthy), false);
+  assert.equal(supportTrackingGate({ ...healthy, status: "not_ready" }), false);
 });
