@@ -1179,9 +1179,12 @@ test("global search and support center are wired without inline script execution
   assert.doesNotMatch(support, /innerHTML\s*=/);
 });
 
-test("global search indexes hidden sections and the support center", () => {
-  assert.equal(support.includes("s.textContent"), true);
-  assert.match(support, /مرکز پشتیبانی/);
+test("global search indexes primary destinations and the support center", async () => {
+  const index = JSON.parse(await readFile(new URL("../search-index.json", import.meta.url), "utf8"));
+  const search = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
+  assert.ok(index.items.some(item => item.title === "مرکز پشتیبانی" && item.action === "support"));
+  assert.match(search, /mr-siavash-ai-search-index/);
+  assert.match(search, /ALLOWED_VIEWS/);
 });
 
 
