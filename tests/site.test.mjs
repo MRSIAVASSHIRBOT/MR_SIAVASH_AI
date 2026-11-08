@@ -1185,10 +1185,16 @@ test("global search indexes hidden sections and the support center", () => {
 });
 
 
-test("experience stylesheet is included in both entry points and offline shell", async () => {
+test("flagship styles and interface audio are loaded on both entry points and offline shell", async () => {
   const pythonHtml = await readFile(new URL("../python.html", import.meta.url), "utf8");
+  assert.match(html, /href="\.\/studio\.css"/);
+  assert.match(html, /src="\.\/ui-sounds\.js"/);
   assert.match(pythonHtml, /href="\.\/experience\.css"/);
+  assert.match(pythonHtml, /href="\.\/studio\.css"/);
+  assert.match(pythonHtml, /src="\.\/ui-sounds\.js"/);
   assert.match(sw, /"\.\/experience\.css"/);
+  assert.match(sw, /"\.\/studio\.css"/);
+  assert.match(sw, /"\.\/ui-sounds\.js"/);
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v21"/);
 });
 
