@@ -1,6 +1,8 @@
 # Cloudflare Gateway
 
-The production Worker and isolated preview Worker are dedicated Cloudflare services for MR_SIAVASH_AI. They are isolated from GShop and use separate production and preview D1 databases.\n\nThe deployed production Worker currently exposes public support ticket creation/read/reply endpoints; this describes the deployed bundle, not every route in the current repository source.
+The production Worker and isolated preview Worker are dedicated Cloudflare services for MR_SIAVASH_AI. They are isolated from GShop and use separate production and preview D1 databases.
+
+The active production deployment is tracked separately from source uploads; a successful version upload does not mean that version is receiving live traffic.
 
 ## Cloudflare resources
 
@@ -32,15 +34,7 @@ Production version 5 has no Workers AI binding or scheduled handler, and the liv
 
 ## Preview state
 
-The isolated preview Worker is deployed from current repository source and uses only the dedicated preview D1 database. Migrations 0001–0003 are recorded in the preview `d1_migrations` table. Runtime smoke checks passed for:
-- liveness and D1 readiness;
-- public module metadata;
-- grounded knowledge fallback;
-- support-ticket validation and private-not-found behavior;
-- administrator fail-closed behavior;
-- exact-origin CORS.
-
-Preview intentionally has no Access audience/administrator bindings and no Workers AI binding. Its admin routes must remain fail-closed. Preview retention is configured for 90 days with a daily 03:00 UTC cron; the preview database is isolated from production.
+The preview Worker uses only the dedicated preview D1 database; migrations 0001–0003 are recorded there. Control-plane inspection shows preview traffic was rolled back to version 3 (`ee5ca3d5-280c-4b97-88fc-fcbbf8429496`) after a version 4 deployment attempt (`febed03d-580a-4246-8e7e-9ba39555d3c8`) failed its deployment verification. The GitHub preview smoke run for main commit `b060beeecd13196d1143187a518962379a696c22` passed immediately before that attempt, so it does not prove version 4 remained active. The preview schedule is daily at 03:00 UTC with a 90-day policy. Preview has no Access administrator bindings or Workers AI binding; admin routes must remain fail-closed.
 
 ## Current source API
 
