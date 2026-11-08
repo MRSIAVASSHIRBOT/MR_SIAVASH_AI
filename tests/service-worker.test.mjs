@@ -126,6 +126,7 @@ test("install precaches the complete shell before activating the worker", async 
   const precache = harness.writes.find(entry => Array.isArray(entry.precache));
   assert.ok(precache);
   assert.ok(precache.precache.includes("https://example.test/app/modules.json"));
+  assert.ok(precache.precache.includes("https://example.test/app/privacy.html"));
   assert.ok(precache.precache.includes("https://example.test/app/bounded-json.js"));
   assert.ok(precache.precache.includes("https://example.test/app/site-search.js"));
   assert.ok(precache.precache.includes("https://example.test/app/search-index.json"));
@@ -140,7 +141,7 @@ test("install precaches the complete shell before activating the worker", async 
   assert.ok(precache.precache.includes("https://example.test/app/academy.html"));
   assert.ok(precache.precache.includes("https://example.test/app/academy.css"));
   assert.ok(precache.precache.includes("https://example.test/app/academy.js"));
-  assert.equal(precache.precache.length, 21);
+  assert.equal(precache.precache.length, 22);
 });
 
 test("install does not activate a worker when atomic shell precache fails", async () => {
@@ -347,4 +348,18 @@ test("offline course navigation returns a bounded 503 when its own page is not c
   });
   assert.equal(response.status, 503);
   assert.match(await response.text(), /نسخه آفلاین صفحه در دسترس نیست/);
+});
+
+
+test("offline shell includes the public privacy notice", async () => {
+  const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \\+ "v28"/);
+  assert.match(sw, /"\\.\\/privacy\\.html"/);
+});
+
+
+test("offline shell includes the public privacy notice", async () => {
+  const source = await readFile(new URL("../sw.js", import.meta.url), "utf8");
+  assert.ok(source.includes('CACHE_NAME = CACHE_PREFIX + "v28"'));
+  assert.ok(source.includes('"./privacy.html"'));
 });
