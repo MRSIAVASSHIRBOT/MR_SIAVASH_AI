@@ -12,6 +12,7 @@ The repository provides a static web application with:
 - Responsive Persian / RTL interface and hash-based navigation.
 - Searchable module catalog with category filters and saved modules.
 - A Persian beginner Python course with 12 lessons, practical code samples, expected outputs, knowledge checks, and browser-local progress. The site does not execute Python; learners run copied examples in Python 3.
+- A Persian multi-course academy with six learning paths and 30 chapters covering HTML, CSS, JavaScript, Git/GitHub, Linux, and defensive web security. Course progress is stored locally in the current browser.
 - Accessible module detail dialogs and keyboard shortcuts (Ctrl/Cmd + K, /).
 - Browser-local workspace task manager with search, status filters, progress counts and confirmed bulk cleanup.
 - Non-destructive workspace recovery: unreadable or repaired snapshots block implicit overwrites until an explicit validated-backup import; cross-tab writes and storage-clear events cannot bypass the recovery lock.
@@ -33,6 +34,7 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 - styles.css — visual system and responsive layouts
 - app.js — navigation, registry validation, favorites, local workspace and data portability
 - python.html, python-course.js, python-course.css — standalone interactive Python beginner course
+- academy.html, academy.js, academy.css — searchable multi-course learning academy and local progress tracker
 - modules.json — versioned, validated module catalog (public static metadata)
 - Workspace tasks and favorites synchronize between same-origin tabs through validated browser storage events (last-write-wins; no cloud sync)
 - schemas/module-registry.schema.json — formal JSON Schema 2020-12 contract for module metadata
@@ -40,6 +42,7 @@ AI model providers, remote agent execution, user accounts, private profiles, clo
 - manifest.webmanifest — installable web-app metadata
 - sw.js — static-shell offline cache
 - tests/site.test.mjs — dependency-free Node.js structure and safety checks
+- tests/academy.test.mjs — academy curriculum, rendering, and progress safety checks
 - tests/python-course.test.mjs — Python curriculum and safety regression checks
 - tests/service-worker.test.mjs — runtime regression tests for static-cache isolation and navigation boundaries
 - .github/workflows/deploy.yml — quality checks and GitHub Pages deployment
