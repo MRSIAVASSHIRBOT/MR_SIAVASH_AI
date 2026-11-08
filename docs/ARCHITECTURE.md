@@ -25,12 +25,25 @@ The current repository is a static, browser-executed front end. It must not clai
 | Digital Identity | User profile and privacy preferences | Roadmap |
 | Personal Workspace | Local tasks, favorites and backup | Browser-only prototype |
 
-## Future backend boundary
+## Backend and production boundary
 
-The selected first backend target is a dedicated Cloudflare Worker maintained under `cloudflare/gateway/`. The current GitHub Pages frontend remains in place. The health-only Worker is deployed at `https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev` with a dedicated production D1 binding; it exposes liveness and D1-backed readiness checks only. Authentication, user APIs, and cloud sync are not implemented. Its control-plane configuration has been read back, but an independent HTTP runtime smoke test remains outstanding. See [ADR 0001](decisions/0001-cloudflare-backend-boundary.md) and the gateway README. GShop resources are isolated and must not be reused.
+The selected backend is a dedicated Cloudflare Worker at `https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev`, isolated from GShop resources. The deployed Worker currently exposes only:
 
+- `GET /v1/health/live` — process liveness.
+- `GET /v1/health/ready` — D1-backed readiness.
+
+Automated HTTP smoke checks on 2026-11-08 passed for these health endpoints and the exact-origin/untrusted-origin CORS boundary. A successful health check does **not** mean product APIs are deployed.
+
+The repository contains source and tests for public module metadata, assistant chat, support tickets and administrator routes, but those routes are **not present in the deployed Worker bundle**. The GitHub Pages workflow deploys only the static website; it does not publish Worker code. Consequently, remote assistant responses, ticket submission/follow-up, the admin inbox, authentication, private accounts and cloud workspace sync must all be treated as unavailable in production until a separate Worker release and endpoint-level verification are completed.
+
+Cloudflare Access is not enabled for the account. Do not describe the administrator dashboard as protected by an active Access application. Before enabling it, configure a path-scoped Access application for `/admin` and `/v1/admin/*`, verify the administrator identity and JWT audience, and test denied as well as authorized requests. The support routes also require a reviewed privacy/retention policy and production verification before collecting real user messages or contact details.
+
+See [the gateway deployment notes](../cloudflare/gateway/README.md), [ADR 0001](decisions/0001-cloudflare-backend-boundary.md), and [SECURITY.md](../SECURITY.md). GShop resources must not be reused.
+
+## Future backend requirements
 
 Before production integrations, establish:
+
 - Authentication and session lifecycle.
 - Authorization checks on every protected server operation.
 - Server-side secret storage; never expose provider credentials to browser JavaScript.
@@ -45,21 +58,20 @@ The workspace backup format is JSON with schema identifier mr-siavash-ai-workspa
 
 ## Deployment
 
-GitHub Actions runs JavaScript syntax checks, OpenAPI contract validation and repository tests before publishing the static root to GitHub Pages. Third-party Actions are pinned to full commit SHAs and Dependabot monitors those pins weekly. The repository owner must enable GitHub Pages with the GitHub Actions source in repository settings.
-
+GitHub Actions runs JavaScript syntax checks, OpenAPI contract validation and repository tests before publishing the static root to GitHub Pages. Third-party Actions are pinned to full commit SHAs and Dependabot monitors those pins weekly. The repository owner must enable GitHub Pages with the GitHub Actions source in repository settings. The current workflow does not deploy the Cloudflare Worker.
 
 ## API contract boundary
 
-The proposed API is documented in docs/backend/openapi.yaml. It separates public module metadata and health checks from authenticated user workspace operations. The API contract is not a running service.
+The proposed API is documented in `docs/backend/openapi.yaml`. It separates public module metadata and health checks from authenticated user workspace operations. The API contract is not proof that a production endpoint is running; compare every route against the deployed Worker and verify it over HTTP.
 
-Before implementation, use docs/THREAT_MODEL.md and enforce user ownership in server-side repository queries. The authenticated principal must come from a verified session, never from a client-supplied user identifier.
-
+Before implementation, use `docs/THREAT_MODEL.md` and enforce user ownership in server-side repository queries. The authenticated principal must come from a verified session, never from a client-supplied user identifier.
 
 ## Shared integration contracts
 
-See docs/PLATFORM_CONTRACTS.md for module manifests, identity and authorization boundaries, AI provider adapters, constrained agent execution, observability, and production release gates. These are design requirements until implemented and tested end to end.
+See `docs/PLATFORM_CONTRACTS.md` for module manifests, identity and authorization boundaries, AI provider adapters, constrained agent execution, observability, and production release gates. These are design requirements until implemented and tested end to end.
 
+## D1 principal, workspace and support persistence
 
-## D1 principal and workspace persistence
+The versioned D1 migrations establish tenant-scoped workspace tasks and idempotency records, then add opaque internal users and unique external identity mappings. Migration 0002 backfills existing owner UUIDs and rebuilds task/idempotency tables with foreign keys and deletion cascades. Migration 0003 adds support ticket, message and rate-limit tables. Read-only production inspection on 2026-11-08 confirmed these schemas exist; this is schema presence only, not evidence that their HTTP routes are deployed or that user data is being collected.
 
-The versioned D1 migrations establish tenant-scoped workspace tasks and idempotency records, then add opaque internal users and unique external identity mappings. Migration 0002 backfills existing owner UUIDs and rebuilds task/idempotency tables with foreign keys and deletion cascades. The migration validator exercises both migrations in order against in-memory SQLite, including data preservation. This is schema groundwork only: the Worker still has no authentication/session middleware, account APIs, or cloud workspace endpoints, and no production migration has been applied.
+The migration validator exercises migrations in order against isolated SQLite, including data preservation and referential integrity. The Worker still has no production authentication/session middleware or cloud workspace endpoints. Do not apply existing production migrations again; preview and production databases must remain separate.
