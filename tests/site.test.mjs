@@ -165,7 +165,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -181,7 +181,7 @@ test("proposed backend contract is explicitly design-only and versioned", async 
   const backendGuide = await readFile(new URL("../docs/backend/README.md", import.meta.url), "utf8");
   assert.match(api, /openapi: 3\.1\.0/);
   assert.match(api, /version: 0\.1\.0/);
-  assert.match(api, /DESIGN CONTRACT ONLY/);
+  assert.match(api, /API design contract and partial route contract/);
   assert.match(api, /bearerAuth/);
   assert.match(api, /Idempotency-Key/);
   assert.match(api, /additionalProperties: false/);
@@ -239,7 +239,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -412,7 +412,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
 });
 
 
@@ -696,7 +696,7 @@ test("module IDs remain stable to protect favorites and cross-module references"
 test("proposed backend contract has an executable CI validation gate", () => {
   assert.match(workflowText, /ruby scripts\/validate-openapi\.rb/);
   assert.match(openapiText, /openapi: 3\.1\.0/);
-  assert.match(openapiText, /DESIGN CONTRACT ONLY/);
+  assert.match(openapiText, /API design contract and partial route contract/);
   assert.match(openapiValidatorText, /unresolved reference/);
   assert.match(openapiValidatorText, /must require bearerAuth/);
   assert.match(openapiValidatorText, /Idempotency-Key/);
@@ -1206,7 +1206,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1264,7 +1264,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"web-security"/);
   assert.match(academyCss, /#9c8cff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
 });
 
 
@@ -1307,6 +1307,8 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(html, />پیگیری<\/button>/);
   assert.match(html, /support-tickets\.mjs/);
   assert.match(html, /support-privacy-note/);
+  assert.match(html, /id="supportConsent"/);
+  assert.match(html, /privacy\.html/);
   assert.match(html, /type="password"/);
   assert.match(support, /readJson\("\.\/search-index\.json"/);
   assert.match(boundedJson, /credentials:"omit"/);
@@ -1314,11 +1316,13 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(supportTickets, /supportGate\(health\)/);
   assert.match(supportTickets, /features\?\.publicSupport/);
   assert.match(supportTickets, /supportTrackingGate\(health\)/);
+  assert.match(supportTickets, /اطلاعیهٔ حریم خصوصی/);
   assert.match(supportTickets, /credentials: "omit"/);
   assert.match(supportTickets, /Authorization: "Bearer "/);
+  assert.match(supportTickets, /consent: \$\("#supportConsent"\)\.checked/);
   assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
   assert.match(sw, /"\.\/support-tickets\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
 });
 
 test("local support guide retries loading its index after an initial offline failure", async () => {
@@ -1460,4 +1464,12 @@ test("ticket tracking remains available without enabling new ticket intake", () 
   assert.equal(supportTrackingGate(healthy), true);
   assert.equal(supportGate(healthy), false);
   assert.equal(supportTrackingGate({ ...healthy, status: "not_ready" }), false);
+});
+
+test("public privacy notice describes ticket data, one-time credentials and inactivity retention", async () => {
+  const privacy = await readFile(new URL("../privacy.html", import.meta.url), "utf8");
+  assert.match(privacy, /کلید خصوصی به‌صورت هش‌شده ذخیره می‌شود/);
+  assert.match(privacy, /۳۰، ۶۰، ۹۰ یا ۱۸۰ روز/);
+  assert.match(privacy, /رمز عبور، کلید API/);
+  assert.match(privacy, /فضای ذخیره‌سازی مرورگر/);
 });
