@@ -207,6 +207,11 @@ body{
 .python-mark{box-shadow:0 28px 75px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.12)}
 .academy-orbit{filter:drop-shadow(0 0 28px rgba(104,219,139,.12))}
 .course-card:hover{transform:translateY(-6px) scale(1.008)}
+:where(button,a,input,select,textarea,[tabindex]):focus-visible{
+  outline:2px solid #c4f8cf;outline-offset:4px;
+  box-shadow:0 0 0 6px rgba(128,231,162,.2);
+}
+.signature-rail:focus-within{border-color:rgba(172,239,190,.42)}
 :where(.module-dialog,.search-dialog,.support-dialog){backdrop-filter:blur(24px) saturate(145%)}
 @keyframes signature-wordlight{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
 @keyframes signature-orbit-a{to{transform:translate(-50%,-50%) rotateX(67deg) rotateZ(343deg)}}
