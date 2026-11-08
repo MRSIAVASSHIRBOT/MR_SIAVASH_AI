@@ -39,6 +39,7 @@ A Cloudflare Access self-hosted application is configured for the Worker paths `
 - python.html, python-course.js, python-course.css — standalone interactive Python beginner course
 - academy.html, academy.js, academy.css — searchable multi-course learning academy and local progress tracker
 - modules.json — versioned, validated module catalog (public static metadata)
+- bounded-json.js — shared same-origin JSON loader with timeout, content-type validation, and streamed byte limits
 - search-index.json and site-search.js — bounded, validated global search index and accessible result navigation
 - Workspace tasks and favorites synchronize between same-origin tabs through validated browser storage events (last-write-wins; no cloud sync)
 - schemas/module-registry.schema.json — formal JSON Schema 2020-12 contract for module metadata
