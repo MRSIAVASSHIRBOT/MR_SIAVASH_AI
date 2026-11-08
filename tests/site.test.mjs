@@ -161,7 +161,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v23"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v24"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -231,7 +231,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v23"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v24"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -404,7 +404,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v23"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v24"/);
 });
 
 
@@ -1195,7 +1195,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v23"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v24"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1253,5 +1253,36 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"web-security"/);
   assert.match(academyCss, /#9c8cff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v23"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v24"/);
+});
+
+
+test("global search indexes every academy chapter and Python lesson with safe deep links", async () => {
+  const index = JSON.parse(await readFile(new URL("../search-index.json", import.meta.url), "utf8"));
+  const search = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
+  const academy = await readFile(new URL("../academy.js", import.meta.url), "utf8");
+  const python = await readFile(new URL("../python-course.js", import.meta.url), "utf8");
+  const academyLessons = index.items.filter(item => item.type === "lesson");
+  const pythonLessons = index.items.filter(item => item.type === "python-lesson");
+  assert.equal(index.schema, "mr-siavash-ai-search-index");
+  assert.equal(index.version, 1);
+  assert.equal(academyLessons.length, 30);
+  assert.equal(pythonLessons.length, 12);
+  assert.equal(new Set(index.items.map(item => item.id)).size, index.items.length);
+  for (const item of [...academyLessons, ...pythonLessons]) {
+    assert.ok(item.href.startsWith("./"));
+    assert.doesNotMatch(item.href, /^(?:https?:)?\\/\\//i);
+    assert.ok(item.title.length > 0 && item.description.length > 0);
+  }
+  assert.match(academy, /params\.get\("course"\)/);
+  assert.match(academy, /params\.get\("lesson"\)/);
+  assert.match(python, /params\.get\("lesson"\)/);
+  assert.match(search, /ArrowDown/);
+  assert.match(search, /ArrowUp/);
+  assert.match(search, /aria-activedescendant/);
+  assert.match(search, /textContent=item\.title/);
+  assert.doesNotMatch(search, /\.innerHTML\\s*=/);
+  assert.match(html, /src="\.\/site-search\.js" defer/);
+  assert.match(sw, /"\.\/site-search\.js"/);
+  assert.match(sw, /"\.\/search-index\.json"/);
 });
