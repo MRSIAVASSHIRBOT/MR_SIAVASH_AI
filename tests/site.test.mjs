@@ -1466,12 +1466,14 @@ test("ticket tracking remains available without enabling new ticket intake", () 
   assert.equal(supportTrackingGate(healthy), true);
   assert.equal(supportGate(healthy), false);
   assert.equal(supportTrackingGate({ ...healthy, status: "not_ready" }), false);
+  assert.ok(supportTickets.includes("health.features.supportRetentionDays"));
 });
 
 test("public privacy notice describes ticket data, one-time credentials and inactivity retention", async () => {
   const privacy = await readFile(new URL("../privacy.html", import.meta.url), "utf8");
   assert.match(privacy, /کلید خصوصی به‌صورت هش‌شده ذخیره می‌شود/);
-  assert.match(privacy, /۳۰، ۶۰، ۹۰ یا ۱۸۰ روز/);
+  assert.match(privacy, /مدت انتخاب‌شده برای ثبت آنلاین این سایت ۳۰ روز است/);
+  assert.match(privacy, /۳۰ روز بدون به‌روزرسانی/);
   assert.match(privacy, /رمز عبور، کلید API/);
   assert.match(privacy, /فضای ذخیره‌سازی مرورگر/);
 });
