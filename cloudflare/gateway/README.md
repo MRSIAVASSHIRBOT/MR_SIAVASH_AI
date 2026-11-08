@@ -65,7 +65,7 @@ The Worker source contains a scheduled cleanup handler. It deletes support ticke
 
 Preview uses 90 days. Production retention is an explicit opt-in in the manual release workflow and defaults to disabled. This matters because production D1 already contains support records. Do not enable a retention cron or delete existing records without the repository owner's explicit selection of the retention period.
 
-Ticket tokens are returned once and stored only as SHA-256 hashes. The browser must never put ticket tokens in URLs, logs, localStorage or analytics. Do not collect passwords, payment data, API keys or authentication codes.
+Ticket creation requires an explicit privacy acknowledgement and an active 30–365-day retention setting. The public interface enables new intake only after the Worker confirms both. Existing-ticket tracking remains available when D1 is healthy. Ticket tokens are returned once and stored only as SHA-256 hashes; the browser sends them in the Authorization header and never puts them in URLs, logs, localStorage or analytics. Do not collect passwords, payment data, API keys or authentication codes.
 
 ## Production release boundary
 
