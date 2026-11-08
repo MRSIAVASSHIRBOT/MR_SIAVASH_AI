@@ -35,6 +35,8 @@ export function buildVersionMetadata(settings, { expectedDatabaseId, commitSha, 
   }
   const bindings = rawBindings
     .filter(item => !PRESERVED_SECRET_TYPES.includes(item.type))
+    .filter(item => enableWorkersAI || !(item.type === "ai" || item.name === "AI_MODEL"))
+    .filter(item => enableSupportRetention || item.name !== "SUPPORT_RETENTION_DAYS")
     .map(item => {
       if (item.type === "d1") return { type: "d1", name: item.name, database_id: item.database_id || item.id };
       if (item.type === "plain_text") return {
@@ -75,6 +77,12 @@ export function mergeCronSchedules(currentSchedules, cron = RETENTION_CRON) {
   const crons = [...new Set(current.map(item => item?.cron).filter(value => typeof value === "string" && value.trim()))];
   if (!crons.includes(cron)) crons.push(cron);
   return crons.map(value => ({ cron: value }));
+}
+
+export function configureCronSchedules(currentSchedules, enableSupportRetention, cron = RETENTION_CRON) {
+  const current = Array.isArray(currentSchedules) ? currentSchedules : [];
+  const preserved = current.filter(item => item?.cron !== cron);
+  return enableSupportRetention ? mergeCronSchedules(preserved, cron) : preserved.map(item => ({ cron: item.cron }));
 }
 
 async function cloudflareRequest(path, { token, fetchImpl = fetch, ...options } = {}) {
@@ -202,7 +210,7 @@ export async function releaseProductionWorker({
     });
     deployed = true;
 
-    const desiredSchedules = enableSupportRetention ? mergeCronSchedules(previousSchedules) : previousSchedules;
+    const desiredSchedules = configureCronSchedules(previousSchedules, enableSupportRetention);
     if (enableSupportRetention) {
       await cloudflareRequest(prefix + "/schedules", {
         token, fetchImpl, method: "PUT", body: JSON.stringify(desiredSchedules)
