@@ -1,6 +1,6 @@
-# 
+# Product roadmap — parallel workstreams
 
-The deployed production Worker currently exposes public support-ticket create/read/reply endpoints; this describes the deployed bundle, not every route in the current repository source.Product roadmap — parallel workstreams
+> Runtime status verified 2026-11-08: the isolated preview Worker runs the current source and passes health, D1 readiness, module catalog, assistant fallback, support validation, administrator fail-closed, and CORS smoke checks. Production still runs an older Worker version: it serves health/readiness, knowledge-fallback assistant, public support-ticket create/read/reply, and Access-protected administrator routes, but does not yet serve the current nine-module API or scheduled retention handler. The production release workflow is manual-only and defaults to read-only validation.
 
 The workstreams progress together behind shared release gates. A module is not production-ready merely because its card or UI exists. Shared integration rules are defined in docs/PLATFORM_CONTRACTS.md.
 
