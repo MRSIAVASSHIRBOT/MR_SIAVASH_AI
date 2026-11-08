@@ -27,18 +27,17 @@ The current repository is a static, browser-executed front end. It must not clai
 
 ## Backend and production boundary
 
-The selected backend is a dedicated Cloudflare Worker at `https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev`, isolated from GShop resources. The deployed Worker currently exposes only:
+MR_SIAVASH_AI has separate production and preview Cloudflare environments. Production Worker `mr-siavash-ai-gateway` is bound to `mr-siavash-ai-prod`; preview Worker `mr-siavash-ai-gateway-preview` is bound to the isolated `mr-siavash-ai-preview` database.
 
-- `GET /v1/health/live` — process liveness.
-- `GET /v1/health/ready` — D1-backed readiness.
+A Cloudflare control-plane readback on 2026-11-08 identified production Worker version `f7d5a92e-2694-4af1-8b99-18d04742925d`. That deployed bundle exposes health/readiness, a knowledge-fallback assistant endpoint, public support-ticket create/read/reply endpoints, and Access-protected administrator console/API routes. It does not yet contain the current repository's `GET /v1/modules` route or the scheduled data-retention handler. The preview Worker runs current `main` source and its runtime smoke workflow passed health, D1 readiness, module catalog, grounded fallback, support validation, admin fail-closed and CORS checks.
 
-Automated HTTP smoke checks on 2026-11-08 passed for these health endpoints and the exact-origin/untrusted-origin CORS boundary. A successful health check does **not** mean product APIs are deployed.
+The production Worker has no Workers AI binding; its assistant endpoint therefore uses verified knowledge fallback rather than model inference. The public site keeps ticket submission/tracking disabled until the reviewed production release and retention decision are complete. Production D1 already contains support records; their contents were not inspected, and no records were changed. Do not reapply migrations 0001–0003.
 
-The repository contains source and tests for public module metadata, assistant chat, support tickets and administrator routes, but those routes are **not present in the deployed Worker bundle**. The GitHub Pages workflow deploys only the static website; it does not publish Worker code. Consequently, remote assistant responses, ticket submission/follow-up, the admin inbox, authentication, private accounts and cloud workspace sync must all be treated as unavailable in production until a separate Worker release and endpoint-level verification are completed.
+Cloudflare Access is configured for `/admin` and `/v1/admin/*` with a single-administrator allow policy. The Worker independently validates Access JWT signature, issuer, audience, expiry and administrator allowlist. Authorized browser-session verification remains a manual acceptance test.
 
-Cloudflare Access is configured for the Worker paths `/admin` and `/v1/admin/*`, with a single-administrator allow policy. The Worker's Access team-domain, audience and administrator allowlist bindings are present, and its source independently validates the Access JWT signature, issuer, audience, expiry and administrator allowlist. This identity layer does **not** make the administrator dashboard available while the deployed Worker bundle remains health-only. After a reviewed Worker release, verify both authorized and denied requests end to end. The support routes also require a reviewed privacy/retention policy and production verification before collecting real user messages or contact details.
+The repository now contains a manual-only production release workflow. Its default action is read-only binding validation; production traffic changes require `deploy=true` and the `cloudflare-production` environment secret. The release client preserves current bindings and hidden secret types, verifies the dedicated production D1 ID and Access configuration, runs post-deployment route/readiness/CORS checks, verifies query-string redaction and persistent telemetry settings, and rolls back the prior traffic split and cron schedule on failure. Workers AI and support-ticket retention are separate explicit opt-ins. Production retention remains disabled until the owner chooses a period because enabling it deletes inactive support records after the selected window.
 
-See [the gateway deployment notes](../cloudflare/gateway/README.md), [ADR 0001](decisions/0001-cloudflare-backend-boundary.md), and [SECURITY.md](../SECURITY.md). GShop resources must not be reused.
+User accounts, identity-provider login, private profiles, cloud workspace sync, model-generated assistant responses and autonomous agent execution are not live. Their implementation requires separate identity, privacy, tenant-isolation and budget decisions.
 
 ## Future backend requirements
 
