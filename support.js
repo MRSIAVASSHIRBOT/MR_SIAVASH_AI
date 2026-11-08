@@ -108,7 +108,6 @@ function init(){
  $("#assistantForm").addEventListener("submit",ask);
  disableUnavailable("#supportRequestForm","#supportRequestStatus","ثبت آنلاین درخواست هنوز در نسخهٔ مستقرشده فعال نیست. لطفاً فعلاً اطلاعات تماس یا پیام خصوصی وارد نکن.");
  disableUnavailable("#ticketTrackForm","#ticketTrackResult","پیگیری آنلاین هنوز فعال نیست؛ API پشتیبانی در محیط تولید مستقر نشده است.");
- $("#handoffButton").hidden=true;
  loadKnowledge().catch(()=>{});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
