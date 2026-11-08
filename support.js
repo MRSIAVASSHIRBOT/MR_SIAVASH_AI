@@ -120,7 +120,12 @@ async function refreshSupportReadiness(){
  setFormEnabled("#ticketTrackForm",SUPPORT_TRACKING_READY);
  setFormEnabled("#supportRequestForm",SUPPORT_INTAKE_READY);
  statusText($("#ticketTrackResult"),SUPPORT_TRACKING_READY?"کد پیگیری و کلید خصوصی تیکت قبلی را وارد کن.":"پیگیری آنلاین در حال حاضر به پایگاه دادهٔ آماده نیاز دارد.");
- if(!SUPPORT_INTAKE_READY)statusText($("#supportRequestStatus"),"ثبت تیکت جدید تا انتشار نسخهٔ تأییدشده و فعال‌سازی دورهٔ نگهداری غیرفعال است.");
+ if(SUPPORT_INTAKE_READY){
+  statusText($("#supportRequestStatus"),"");
+  statusText($("#supportPrivacyNotice"),"با ثبت درخواست، متن پیام و ایمیل اختیاری ذخیره می‌شود. درخواست پس از "+SUPPORT_RETENTION_DAYS+" روز بدون به‌روزرسانی حذف خواهد شد. اطلاعات حساس ارسال نکن.");
+ }else{
+  statusText($("#supportRequestStatus"),"ثبت تیکت جدید تا انتشار نسخهٔ تأییدشده و فعال‌سازی دورهٔ نگهداری غیرفعال است.");
+ }
 }
 
 function formatDate(value){
