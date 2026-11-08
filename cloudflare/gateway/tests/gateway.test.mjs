@@ -136,6 +136,7 @@ test("support ticket credentials are stored as hashes and authorize private foll
  assert.equal(created.status, 201);
  const data = await created.json();
  const { id, code, token: secret } = data.ticket;
+ assert.equal(data.ticket.retention_days,90);
  assert.match(code, /^MS-[A-F0-9]{16}$/);
  assert.match(secret, /^[a-f0-9]{64}$/);
  const stored = store.tickets.get(id);
