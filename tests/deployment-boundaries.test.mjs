@@ -23,7 +23,8 @@ test("production documentation distinguishes deployed routes from current source
   }
   assert.match(gatewayReadme, /does \*\*not\*\* yet contain `GET \/v1\/modules`/);
   assert.match(gatewayReadme, /public support ticket creation\/read\/reply endpoints/);
-  assert.match(gatewayReadme, /ticket submission and tracking disabled/i);
+  assert.match(gatewayReadme, /new ticket submission disabled/i);
+  assert.match(gatewayReadme, /existing ticket tracking remains available/i);
 });
 
 test("production release is manual, read-only by default and guarded by exact resource checks", () => {
