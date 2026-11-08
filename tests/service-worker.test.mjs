@@ -126,6 +126,7 @@ test("install precaches the complete shell before activating the worker", async 
   const precache = harness.writes.find(entry => Array.isArray(entry.precache));
   assert.ok(precache);
   assert.ok(precache.precache.includes("https://example.test/app/modules.json"));
+  assert.ok(precache.precache.includes("https://example.test/app/bounded-json.js"));
   assert.ok(precache.precache.includes("https://example.test/app/site-search.js"));
   assert.ok(precache.precache.includes("https://example.test/app/search-index.json"));
   assert.ok(precache.precache.includes("https://example.test/app/python.html"));
@@ -139,7 +140,7 @@ test("install precaches the complete shell before activating the worker", async 
   assert.ok(precache.precache.includes("https://example.test/app/academy.html"));
   assert.ok(precache.precache.includes("https://example.test/app/academy.css"));
   assert.ok(precache.precache.includes("https://example.test/app/academy.js"));
-  assert.equal(precache.precache.length, 20);
+  assert.equal(precache.precache.length, 21);
 });
 
 test("install does not activate a worker when atomic shell precache fails", async () => {

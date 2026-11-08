@@ -11,6 +11,8 @@ const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "ut
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
+const boundedJson = await readFile(new URL("../bounded-json.js", import.meta.url), "utf8");
+const searchSource = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
 const manifestText = await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8");
 const moduleRegistryText = await readFile(new URL("../modules.json", import.meta.url), "utf8");
 const moduleRegistry = JSON.parse(moduleRegistryText);
@@ -161,7 +163,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -231,7 +233,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -404,7 +406,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
 });
 
 
@@ -1198,7 +1200,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1256,7 +1258,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"web-security"/);
   assert.match(academyCss, /#9c8cff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v26"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v27"/);
 });
 
 
@@ -1285,7 +1287,10 @@ test("global search indexes every academy chapter and Python lesson with safe de
   assert.match(search, /aria-activedescendant/);
   assert.match(search, /textContent=item\.title/);
   assert.doesNotMatch(search, /\.innerHTML\s*=/);
-  assert.match(html, /src="\.\/site-search\.js" defer/);
+  assert.match(html, /src="\.\/bounded-json\.js" defer/);
+  assert.ok(html.indexOf("./bounded-json.js") < html.indexOf("./support.js"));
+  assert.ok(html.indexOf("./bounded-json.js") < html.indexOf("./site-search.js"));
+  assert.match(sw, /"\.\/bounded-json\.js"/);
   assert.match(sw, /"\.\/site-search\.js"/);
   assert.match(sw, /"\.\/search-index\.json"/);
 });
@@ -1295,7 +1300,7 @@ test("support assistant is a local guide and does not submit unavailable tickets
   assert.match(html, /ثبت درخواست · به‌زودی/);
   assert.match(html, /پیگیری · به‌زودی/);
   assert.match(support, /readJson\("\.\/search-index\.json"/);
-  assert.match(support, /credentials:"omit"/);
+  assert.match(boundedJson, /credentials:"omit"/);
   assert.match(support, /disableUnavailable/);
   assert.match(support, /ثبت آنلاین درخواست هنوز در نسخه/);
   assert.match(support, /پیگیری آنلاین هنوز فعال نیست/);
@@ -1367,18 +1372,16 @@ test("local support guide retries loading its index after an initial offline fai
     }]
   };
   const modules = { schema: "mr-siavash-ai-module-registry", version: 1, modules: [] };
-  const fetch = async path => {
-    fetchCalls++;
-    if (fetchCalls <= 2) throw new Error("simulated offline failure");
-    return {
-      ok: true,
-      headers: { get: name => name === "content-type" ? "application/json" : null },
-      text: async () => JSON.stringify(path.includes("search-index") ? index : modules)
-    };
+  const window = {
+    MRSIAVASHReadJson: async path => {
+      fetchCalls++;
+      if (fetchCalls <= 2) throw new Error("simulated offline failure");
+      return path.includes("search-index") ? index : modules;
+    }
   };
   vm.runInNewContext(support, {
     document,
-    fetch,
+    window,
     URL,
     TextEncoder,
     location: { href: "https://example.test/" }
@@ -1404,38 +1407,16 @@ test("support UI accurately identifies its local, non-generative guide", () => {
   assert.match(html, />یافتن راهنما<\/button>/);
   assert.doesNotMatch(html, /ارتباط مستقیم با پشتیبانی|ارجاع به پشتیبانی انسانی|گفتگو با ربات/);
   assert.doesNotMatch(support, /handoffButton|\.\/v1\/|method:"POST"/);
-  assert.match(support, /fetch\(path,\{credentials:"omit",cache:"no-cache"\}\)/);
+  assert.ok(support.includes("window.MRSIAVASHReadJson"));
 });
 
 
-test("local support guide enforces byte limits while streaming public indexes", async () => {
-  const match = support.match(/async function readBoundedText\(response,maxBytes\)\{[\s\S]*?\n\}/);
-  assert.ok(match, "bounded response reader must be present");
-  const readBoundedText = vm.runInNewContext("(" + match[0] + ")", { TextEncoder, TextDecoder });
-  let reads = 0;
-  let cancelled = false;
-  const oversized = {
-    headers: { get() { return null; } },
-    body: {
-      getReader() {
-        return {
-          async read() { reads++; return { done: false, value: new Uint8Array(8) }; },
-          async cancel() { cancelled = true; },
-          releaseLock() {}
-        };
-      }
-    },
-    text() { assert.fail("streaming responses must not fall back to unbounded text()"); }
-  };
-  await assert.rejects(readBoundedText(oversized, 4), /بیش از حد مجاز/);
-  assert.equal(reads, 1, "reader must stop at the first chunk that exceeds the limit");
-  assert.equal(cancelled, true, "oversized response stream must be cancelled");
-
-  let preflightReaderOpened = false;
-  const declaredOversized = {
-    headers: { get(name) { return name === "content-length" ? "9" : null; } },
-    body: { getReader() { preflightReaderOpened = true; throw new Error("must not open"); } }
-  };
-  await assert.rejects(readBoundedText(declaredOversized, 4), /بیش از حد مجاز/);
-  assert.equal(preflightReaderOpened, false, "declared oversized responses must be rejected before reading");
+test("support and global search delegate public JSON reads to the shared bounded loader", () => {
+  assert.ok(support.includes("window.MRSIAVASHReadJson"));
+  assert.ok(searchSource.includes("window.MRSIAVASHReadJson"));
+  assert.match(boundedJson, /reader.cancel/);
+  assert.match(boundedJson, /controller.abort/);
+  assert.match(boundedJson, /credentials:"omit"/);
+  assert.equal(support.includes("fetch("), false);
+  assert.equal(searchSource.includes("fetch("), false);
 });
