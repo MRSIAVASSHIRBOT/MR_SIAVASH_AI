@@ -4,11 +4,13 @@ This workflow deploys only the isolated preview Worker. It never targets the pro
 
 ## One-time Cloudflare preparation
 
-Create a dedicated D1 database named `mr-siavash-ai-preview` in the same Cloudflare account. Do not reuse `mr-siavash-ai-prod` or any GShop resource. Configure the GitHub Actions environment named `gateway-preview` with:
+A dedicated D1 database named `mr-siavash-ai-preview` has been provisioned in the WEUR region, isolated from production and GShop.
 
-- Variable `CF_ACCOUNT_ID`: Cloudflare account ID.
-- Variable `PREVIEW_D1_DATABASE_ID`: UUID of the dedicated preview D1 database.
-- Secret `CF_API_TOKEN`: narrowly scoped token with Workers Scripts edit and D1 read/write permissions for this account.
+- Cloudflare account ID (non-secret): `ae50292f7e60c0d6d0052727e61c4033`.
+- Preview D1 database ID (non-secret): `a764f930-430f-4898-a0b6-b57f5caf9c78`.
+- Configure the GitHub Actions environment named `gateway-preview` with one secret: `CF_API_TOKEN`, a narrowly scoped token with Workers Scripts edit and D1 read/write permissions for this account.
+
+The preview Worker `mr-siavash-ai-gateway-preview` has already been uploaded and its `workers.dev` subdomain enabled. Migrations 0001–0003 were applied to the isolated preview database and the seven application tables were verified through `sqlite_master`. The GitHub smoke workflow checks the public runtime on subsequent `main` updates.
 
 The workflow applies the repository migrations to preview only, deploys the current Worker source to the dedicated `workers.dev` preview name, then checks liveness, D1 readiness, public module metadata and exact-origin CORS. It does not configure an AI binding or expose administrator routes; those remain fail-closed until a separately reviewed identity/Access configuration is added to preview.
 
