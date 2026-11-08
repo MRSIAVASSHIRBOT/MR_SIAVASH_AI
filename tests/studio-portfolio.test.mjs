@@ -21,12 +21,12 @@ test("studio exposes clear visitor journeys and all primary sections", () => {
 });
 
 test("studio HTML has valid local anchors and no accidental escaped newline text", () => {
-  assert.doesNotMatch(html, /\\\\n/);
-  const ids = [...html.matchAll(/\\sid="([^"]+)"/g)].map(match => match[1]);
+  assert.doesNotMatch(html, /\\n/);
+  const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
   assert.equal(new Set(ids).size, ids.length, "duplicate HTML id");
-  const localAnchors = [...html.matchAll(/\\shref="#([^"]+)"/g)].map(match => match[1]);
+  const localAnchors = [...html.matchAll(/\shref="#([^"]+)"/g)].map(match => match[1]);
   for (const id of localAnchors) assert.ok(ids.includes(id), "missing anchor target: " + id);
-  const externalBlankLinks = [...html.matchAll(/<a\\b[^>]*target="_blank"[^>]*>/g)].map(match => match[0]);
+  const externalBlankLinks = [...html.matchAll(/<a\b[^>]*target="_blank"[^>]*>/g)].map(match => match[0]);
   for (const link of externalBlankLinks) assert.match(link, /rel="[^"]*noopener/);
 });
 
@@ -87,7 +87,7 @@ test("studio registers and is included in the offline shell", () => {
 });
 
 test("studio styles have responsive, keyboard, reduced-motion, forced-colors and print fallbacks", () => {
-  assert.equal((css.match(/\\{/g) || []).length, (css.match(/\\}/g) || []).length);
+  assert.equal((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length);
   assert.match(css, /@media\(max-width:640px\)/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /forced-colors:active/);
