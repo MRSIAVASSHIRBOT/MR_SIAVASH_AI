@@ -66,6 +66,7 @@ test("navigation buttons have real section targets", () => {
   const targets = [...html.matchAll(/data-view="([^"]+)"/g)].map(match => match[1]);
   for (const target of targets) assert.ok(views.has(target), "missing view: " + target);
   assert.ok(views.has("identity"), "digital identity view must be present");
+  assert.match(html, /href="\.\/studio\.html"/, "digital studio must be reachable from the main site");
 });
 
 test("digital identity page exposes public social profiles and GitHub tools safely", () => {
@@ -167,12 +168,15 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v33"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
   assert.match(sw, /"\.\/python-course\.js"/);
   assert.match(sw, /"\.\/python-course\.css"/);
+  assert.match(sw, /"\.\/studio\.html"/);
+  assert.match(sw, /"\.\/studio-portfolio\.css"/);
+  assert.match(sw, /"\.\/studio-portfolio\.js"/);
   assert.match(sw, /request\.mode === "navigate"/);
   assert.match(sw, /request\.method !== "GET"/);
 });
@@ -241,7 +245,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v33"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -414,7 +418,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v33"/);
 });
 
 
@@ -1206,7 +1210,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v33"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1264,7 +1268,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"web-security"/);
   assert.match(academyCss, /#9c8cff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v33"/);
 });
 
 
@@ -1324,7 +1328,7 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(supportTickets, /consent: \$\("#supportConsent"\)\.checked/);
   assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
   assert.match(sw, /"\.\/support-tickets\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v33"/);
 });
 
 test("local support guide retries loading its index after an initial offline failure", async () => {
@@ -1519,5 +1523,5 @@ test("emerald flagship experience layer overrides the conflicting studio palette
   assert.match(experienceNextCss, /:focus-visible/);
   assert.equal((experienceNextCss.match(/\{/g)||[]).length,(experienceNextCss.match(/\}/g)||[]).length);
   assert.match(sw, /"\.\/experience-next\.css"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v32"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v33"/);
 });

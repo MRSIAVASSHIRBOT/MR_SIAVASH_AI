@@ -696,6 +696,100 @@
         "پیشنهاد",
         "گزارش خطا"
       ]
+    },
+    {
+      "id": "page-studio",
+      "type": "page",
+      "title": "استودیو و رزومه MR_SIAVASH_AI",
+      "description": "معرفی حرفه‌ای، پروژه‌های منتخب، مسیرهای یادگیری، آزمایشگاه مهندسی و یادداشت‌های توسعه.",
+      "href": "./studio.html",
+      "terms": [
+        "رزومه",
+        "نمونه کار",
+        "پروژه",
+        "portfolio",
+        "engineering studio"
+      ]
+    },
+    {
+      "id": "page-projects",
+      "type": "page",
+      "title": "پروژه‌های منتخب",
+      "description": "MR_SIAVASH_HUB_AI، MR_SIAVASH_AI و Gshop با پیوند به مخزن‌های اصلی.",
+      "href": "./studio.html#projects",
+      "terms": [
+        "github",
+        "نمونه کار",
+        "مخزن",
+        "case study"
+      ]
+    },
+    {
+      "id": "page-learning-paths",
+      "type": "page",
+      "title": "مسیرهای یادگیری",
+      "description": "مسیرهای Python، HTML، CSS، Linux و امنیت دفاعی.",
+      "href": "./studio.html#learning",
+      "terms": [
+        "از کجا شروع کنم",
+        "مسیر آموزشی",
+        "یادگیری"
+      ]
+    },
+    {
+      "id": "page-engineering-lab",
+      "type": "page",
+      "title": "آزمایشگاه مهندسی",
+      "description": "نمای مفهومی معماری و قطعه‌کدهای آموزشی امن.",
+      "href": "./studio.html#lab",
+      "terms": [
+        "معماری",
+        "کد",
+        "playground",
+        "آزمایشگاه"
+      ]
+    },
+    {
+      "id": "page-research-notes",
+      "type": "page",
+      "title": "یادداشت‌های توسعه و پژوهش",
+      "description": "اصول طراحی، تصمیم‌های معماری و یادداشت‌های مهندسی.",
+      "href": "./studio.html#journal",
+      "terms": [
+        "پژوهش",
+        "تحقیق",
+        "یادداشت",
+        "development log"
+      ]
+    },
+    {
+      "id": "page-service-status",
+      "type": "page",
+      "title": "وضعیت و گزارش‌های پروژه",
+      "description": "پیوند به گزارش‌های CI، انتشار، مسائل و بازبینی‌های GitHub.",
+      "href": "./studio.html#status",
+      "terms": [
+        "وضعیت",
+        "status",
+        "ci",
+        "deployment",
+        "تست"
+      ]
+    },
+    {
+      "id": "page-reference-library",
+      "type": "page",
+      "title": "کتابخانه منابع معتبر",
+      "description": "مستندات رسمی Python، MDN، GitHub، OWASP و Cloudflare برای مطالعه و پژوهش.",
+      "href": "./studio.html#resources",
+      "terms": [
+        "مستندات",
+        "منابع",
+        "documentation",
+        "OWASP",
+        "MDN",
+        "Python docs"
+      ]
     }
   ]
 }

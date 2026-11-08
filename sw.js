@@ -1,9 +1,9 @@
 "use strict";
 
 const CACHE_PREFIX = "mr-siavash-ai-shell-";
-const CACHE_NAME = CACHE_PREFIX + "v32";
+const CACHE_NAME = CACHE_PREFIX + "v33";
 const MAX_MODULE_REGISTRY_BYTES = 64 * 1024;
-const SHELL_FILES = ["./", "./index.html", "./styles.css", "./experience.css", "./studio.css", "./experience-next.css", "./atelier.css", "./ui-sounds.js", "./app.js", "./site-search.js", "./search-index.json", "./python.html", "./python-course.css", "./python-course.js", "./academy.html", "./academy.css", "./academy.js", "./bounded-json.js", "./support.js", "./support-tickets.mjs", "./support.css", "./privacy.html", "./favicon.svg", "./manifest.webmanifest", "./modules.json"];
+const SHELL_FILES = ["./", "./index.html", "./styles.css", "./experience.css", "./studio.css", "./experience-next.css", "./atelier.css", "./ui-sounds.js", "./app.js", "./site-search.js", "./search-index.json", "./python.html", "./python-course.css", "./python-course.js", "./academy.html", "./academy.css", "./academy.js", "./bounded-json.js", "./support.js", "./support-tickets.mjs", "./support.css", "./privacy.html", "./favicon.svg", "./manifest.webmanifest", "./modules.json", "./studio.html", "./studio-portfolio.css", "./studio-portfolio.js"];
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
@@ -97,7 +97,8 @@ self.addEventListener("fetch", event => {
       { requestUrl: new URL("./", scopeUrl).href, cacheUrl: indexUrl },
       { requestUrl: indexUrl, cacheUrl: indexUrl },
       { requestUrl: new URL("./python.html", scopeUrl).href, cacheUrl: new URL("./python.html", scopeUrl).href },
-      { requestUrl: new URL("./academy.html", scopeUrl).href, cacheUrl: new URL("./academy.html", scopeUrl).href }
+      { requestUrl: new URL("./academy.html", scopeUrl).href, cacheUrl: new URL("./academy.html", scopeUrl).href },
+      { requestUrl: new URL("./studio.html", scopeUrl).href, cacheUrl: new URL("./studio.html", scopeUrl).href }
     ];
     const target = navigationTargets.find(item => item.requestUrl === requestUrl.href);
     if (!target) return;

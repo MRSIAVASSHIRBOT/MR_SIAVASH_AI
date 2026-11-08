@@ -38,3 +38,15 @@ Add AI, agent, developer, security, learning, creator and knowledge capabilities
 
 ### Stage E — production readiness
 Complete accessibility, security, reliability, privacy, observability, backup/restore and incident-response reviews.
+
+## Digital studio experience — 2026-11-09
+
+The feature branch adds a dedicated studio page for a truthful public profile, selected repositories, learning entry paths, a conceptual architecture view, safe copy-only code snippets, development principles, CI/release links, and locally saved project bookmarks. These are static/public surfaces; they do not imply hosted accounts, cloud synchronization, arbitrary code execution, live uptime monitoring, or unverified skill credentials.
+
+Acceptance gates:
+- Portfolio links point to the owner's known public repositories; project status labels remain descriptive rather than fabricated metrics.
+- Saved projects are restricted to a small allowlist and remain local to the current browser.
+- Code snippets are displayed and copied only; no user-supplied code is executed.
+- New page assets are included in the atomic offline shell and syntax-checked in CI.
+- Search index validates and exposes studio sections.
+- Responsive layout, keyboard focus, reduced-motion and forced-colors behavior remain covered.
