@@ -24,7 +24,7 @@ test("scheduled cleanup applies the configured 30-day inactivity window",async()
  };
  await worker.scheduled({}, {DB,SUPPORT_RETENTION_DAYS:"30"});
  assert.equal(statements.length,3);
- assert.match(statements[0].sql,/DELETE FROM support_tickets WHERE updated_at < \\?/);
+ assert.match(statements[0].sql,/DELETE FROM support_tickets WHERE updated_at < \?/);
  const cutoff=Date.parse(statements[0].values[0]);
  assert.ok(Number.isFinite(cutoff));
  assert.ok(Math.abs((Date.now()-cutoff)-30*86400000)<5000);
