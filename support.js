@@ -1,5 +1,9 @@
 (()=>{"use strict";
 const $=selector=>document.querySelector(selector);
+const API_BASE="https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev";
+const root=document.documentElement||{dataset:{}};
+const SUPPORT_RETENTION_DAYS=Number(root.dataset.supportRetentionDays||0);
+const SUPPORT_API_ENABLED=root.dataset.supportApi==="enabled"&&Number.isInteger(SUPPORT_RETENTION_DAYS)&&SUPPORT_RETENTION_DAYS>=30&&SUPPORT_RETENTION_DAYS<=365;
 const normalise=value=>String(value||"").normalize("NFKC").toLocaleLowerCase("fa")
  .replace(/[يى]/g,"ی").replace(/ك/g,"ک")
  .replace(/[\u064b-\u065f\u0670\u0640]/g,"")
@@ -88,6 +92,105 @@ async function ask(event){
  }catch(error){message("راهنمای محلی فعلاً بارگذاری نشد. لطفاً اتصال را بررسی و دوباره تلاش کن.");}
  finally{button.disabled=false;input.focus();}
 }
+async function apiRequest(path,{method="GET",body,token:secret}={}){
+ const headers={Accept:"application/json"};
+ if(body!==undefined)headers["Content-Type"]="application/json";
+ if(secret)headers.Authorization="Bearer "+secret;
+ const response=await fetch(API_BASE+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body),credentials:"omit",cache:"no-store",referrerPolicy:"no-referrer"});
+ const data=await response.json().catch(()=>({}));
+ if(!response.ok)throw new Error(data.error?.message||"درخواست پشتیبانی انجام نشد؛ دوباره تلاش کن.");
+ return data;
+}
+function statusText(element,text){if(element)element.textContent=text;}
+function formatDate(value){
+ const date=new Date(value);
+ return Number.isNaN(date.getTime())?"":date.toLocaleString("fa-IR");
+}
+function appendText(parent,tag,className,text){
+ const element=document.createElement(tag);
+ if(className)element.className=className;
+ element.textContent=text;
+ parent.append(element);
+ return element;
+}
+function renderTicketCredentials(target,ticket){
+ target.replaceChildren();
+ appendText(target,"p","ticket-secret-notice","درخواست ثبت شد. کد پیگیری و کلید خصوصی را جداگانه و در جای امن نگه دار؛ کلید خصوصی فقط همین یک‌بار نمایش داده می‌شود.");
+ for(const [label,value] of [["کد پیگیری",ticket.code],["کلید خصوصی",ticket.token]]){
+  const row=document.createElement("div");row.className="ticket-secret-row";
+  appendText(row,"strong","",label);
+  const input=document.createElement("input");input.type="text";input.readOnly=true;input.value=value;input.autocomplete="off";input.setAttribute("aria-label",label);
+  const copy=document.createElement("button");copy.type="button";copy.className="button button-quiet";copy.textContent="کپی";
+  copy.addEventListener("click",async()=>{
+   try{await navigator.clipboard.writeText(value);copy.textContent="کپی شد";}
+   catch{input.focus();input.select();copy.textContent="متن انتخاب شد";}
+  });
+  row.append(input,copy);target.append(row);
+ }
+ appendText(target,"p","support-privacy-note","درخواست پس از "+(ticket.retention_days||SUPPORT_RETENTION_DAYS)+" روز بدون به‌روزرسانی حذف می‌شود.");
+}
+const STATUS_LABELS={open:"باز",in_progress:"در حال بررسی",waiting_user:"منتظر پاسخ شما",resolved:"پاسخ داده شد"};
+async function loadTicket(code,secret,target){
+ const data=await apiRequest("/v1/support/tickets/"+encodeURIComponent(code),{token:secret});
+ target.replaceChildren();
+ const ticket=data.ticket||{};
+ appendText(target,"h3","ticket-result-title",ticket.subject||"درخواست پشتیبانی");
+ appendText(target,"p","ticket-result-status","وضعیت: "+(STATUS_LABELS[ticket.status]||ticket.status||"نامشخص"));
+ const messages=document.createElement("div");messages.className="ticket-message-list";
+ for(const item of (Array.isArray(data.messages)?data.messages:[])){
+  const role=item.sender_role==="admin"?"پشتیبانی":item.sender_role==="assistant"?"راهنمای سایت":"شما";
+  const card=document.createElement("article");card.className="ticket-message";
+  appendText(card,"strong","",role);
+  appendText(card,"p","",item.body||"");
+  if(item.created_at)appendText(card,"time","",formatDate(item.created_at));
+  messages.append(card);
+ }
+ target.append(messages);
+ const reply=document.createElement("form");reply.className="support-form ticket-reply-form";
+ const label=appendText(reply,"label","","ارسال پیام جدید");
+ const textarea=document.createElement("textarea");textarea.id="ticketReplyInput";textarea.rows=3;textarea.maxLength=4000;textarea.required=true;label.htmlFor=textarea.id;
+ const button=document.createElement("button");button.type="submit";button.className="button button-primary";button.textContent="ارسال پاسخ";
+ const result=appendText(reply,"p","","");
+ reply.append(textarea,button);
+ reply.addEventListener("submit",async event=>{
+  event.preventDefault();const text=textarea.value.trim();if(!text)return;
+  button.disabled=true;statusText(result,"در حال ارسال...");
+  try{await apiRequest("/v1/support/tickets/"+encodeURIComponent(code)+"/messages",{method:"POST",token:secret,body:{message:text}});await loadTicket(code,secret,target);}
+  catch(error){statusText(result,error.message);}
+  finally{button.disabled=false;}
+ });
+ target.append(reply);
+}
+async function submitTicket(event){
+ event.preventDefault();
+ const form=event.currentTarget,status=$("#supportRequestStatus"),button=form.querySelector('button[type="submit"]');
+ if(!$("#supportConsent").checked){statusText(status,"برای ثبت درخواست، تأیید اطلاعیهٔ حریم خصوصی لازم است.");return;}
+ const payload={
+  category:$("#supportCategory").value,
+  subject:$("#supportSubject").value.trim(),
+  contact_email:$("#supportEmail").value.trim(),
+  message:$("#supportMessage").value.trim(),
+  website:$("#supportWebsite").value.trim(),
+  consent:true
+ };
+ button.disabled=true;statusText(status,"در حال ثبت درخواست...");
+ try{
+  const data=await apiRequest("/v1/support/tickets",{method:"POST",body:payload});
+  if(data.ticket?.code&&data.ticket?.token)renderTicketCredentials(status,data.ticket);
+  else statusText(status,"درخواست دریافت شد.");
+  form.reset();
+ }catch(error){statusText(status,error.message);}
+ finally{button.disabled=false;}
+}
+async function trackTicket(event){
+ event.preventDefault();
+ const form=event.currentTarget,code=$("#ticketCodeInput").value.trim().toUpperCase(),secret=$("#ticketTokenInput").value.trim(),target=$("#ticketTrackResult"),button=form.querySelector('button[type="submit"]');
+ if(!/^MS-[A-F0-9]{16}$/.test(code)||!/^[a-f0-9]{64}$/i.test(secret)){statusText(target,"کد پیگیری یا کلید خصوصی معتبر نیست.");return;}
+ button.disabled=true;statusText(target,"در حال دریافت گفتگو...");
+ try{await loadTicket(code,secret,target);}
+ catch(error){statusText(target,error.message);}
+ finally{button.disabled=false;}
+}
 function disableUnavailable(formId,statusId,text){
  const form=$(formId),status=$(statusId);if(!form)return;
  form.querySelectorAll("input,select,textarea,button").forEach(control=>{control.disabled=true;});
@@ -97,10 +200,23 @@ function init(){
  const support=$("#supportDialog");if(!support)return;
  $("#supportLauncher").addEventListener("click",()=>support.showModal());
  $("#supportClose").addEventListener("click",()=>support.close());
+ support.addEventListener("close",()=>{
+  const created=$("#supportRequestStatus"),tracked=$("#ticketTrackResult"),tokenInput=$("#ticketTokenInput");
+  if(created)created.replaceChildren();
+  if(tracked)tracked.replaceChildren();
+  if(tokenInput)tokenInput.value="";
+ });
  document.querySelectorAll("[data-support-tab]").forEach(button=>button.addEventListener("click",()=>tab(button.dataset.supportTab)));
  $("#assistantForm").addEventListener("submit",ask);
- disableUnavailable("#supportRequestForm","#supportRequestStatus","ثبت آنلاین درخواست هنوز در نسخهٔ مستقرشده فعال نیست. لطفاً فعلاً اطلاعات تماس یا پیام خصوصی وارد نکن.");
- disableUnavailable("#ticketTrackForm","#ticketTrackResult","پیگیری آنلاین هنوز فعال نیست؛ API پشتیبانی در محیط تولید مستقر نشده است.");
+ if(SUPPORT_API_ENABLED){
+  $("#supportRequestForm").addEventListener("submit",submitTicket);
+  $("#ticketTrackForm").addEventListener("submit",trackTicket);
+  statusText($("#supportPrivacyNotice"),"با ثبت درخواست، متن پیام و ایمیل اختیاری ذخیره می‌شود. درخواست پس از "+SUPPORT_RETENTION_DAYS+" روز بدون به‌روزرسانی حذف خواهد شد. اطلاعات حساس ارسال نکن.");
+  statusText($("#supportRequestStatus"),"");
+ }else{
+  disableUnavailable("#supportRequestForm","#supportRequestStatus","ثبت آنلاین تا انتشار نسخهٔ جدید درگاه و فعال‌سازی دورهٔ نگهداری امن غیرفعال است. لطفاً فعلاً اطلاعات تماس یا پیام خصوصی وارد نکن.");
+  disableUnavailable("#ticketTrackForm","#ticketTrackResult","پیگیری آنلاین پس از انتشار نسخهٔ جدید درگاه و فعال‌سازی سیاست نگهداری در دسترس خواهد بود.");
+ }
  loadKnowledge().catch(()=>{});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
