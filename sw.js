@@ -94,20 +94,33 @@ self.addEventListener("fetch", event => {
   if (request.mode === "navigate") {
     const appRootUrl = new URL("./", scopeUrl);
     const indexUrl = new URL("./index.html", scopeUrl);
-    if (requestUrl.pathname !== appRootUrl.pathname && requestUrl.href !== indexUrl.href) return;
+    const shellNavigationUrls = new Set([
+      appRootUrl.href,
+      indexUrl.href,
+      new URL("./academy.html", scopeUrl).href,
+      new URL("./python.html", scopeUrl).href
+    ]);
+    if (!shellNavigationUrls.has(requestUrl.href)) return;
+
+    // Keep each static learning page independently available offline. The
+    // application root continues to use index.html as its canonical document.
+    const documentUrl = requestUrl.pathname === appRootUrl.pathname
+      ? indexUrl.href
+      : requestUrl.href;
+
     event.respondWith((async () => {
       try {
         const response = await fetch(request);
         const contentType = response && response.headers.get("content-type") || "";
-        if (response.ok && contentType.includes("text/html")) {
+        if (response && response.ok && contentType.includes("text/html")) {
           const cache = await caches.open(CACHE_NAME);
-          await cache.put(new URL("./index.html", self.registration.scope).href, response.clone());
+          await cache.put(documentUrl, response.clone());
         }
         return response;
       } catch (error) {
         const cache = await caches.open(CACHE_NAME);
-        return (await cache.match(new URL("./index.html", self.registration.scope).href)) ||
-          new Response("نسخه آفلاین صفحه در دسترس نیست. یک‌بار با اتصال اینترنت وارد سایت شو.", {
+        return (await cache.match(documentUrl)) ||
+          new Response("نسخه آفلاین این صفحه در دسترس نیست. یک‌بار با اتصال اینترنت وارد سایت شو.", {
             status: 503,
             headers: { "Content-Type": "text/plain; charset=utf-8" }
           });
