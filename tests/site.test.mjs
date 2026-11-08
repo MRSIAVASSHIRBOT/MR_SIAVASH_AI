@@ -1409,7 +1409,7 @@ test("support UI accurately identifies its local, non-generative guide", () => {
 
 
 test("local support guide enforces byte limits while streaming public indexes", async () => {
-  const match = support.match(/async function readBoundedText\\(response,maxBytes\\)\\{[\\s\\S]*?\\n\\}/);
+  const match = support.match(/async function readBoundedText\(response,maxBytes\)\{[\s\S]*?\n\}/);
   assert.ok(match, "bounded response reader must be present");
   const readBoundedText = vm.runInNewContext("(" + match[0] + ")", { TextEncoder, TextDecoder });
   let reads = 0;
