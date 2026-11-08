@@ -6,6 +6,8 @@ import vm from "node:vm";
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const experienceCss = await readFile(new URL("../experience.css", import.meta.url), "utf8");
+const studioCss = await readFile(new URL("../studio.css", import.meta.url), "utf8");
+const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "utf8");
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
@@ -159,7 +161,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v21"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -229,7 +231,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v21"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -402,7 +404,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v21"/);
 });
 
 
@@ -1183,18 +1185,24 @@ test("global search indexes hidden sections and the support center", () => {
 });
 
 
-test("experience stylesheet is included in both entry points and offline shell", async () => {
+test("flagship styles and interface audio are loaded on both entry points and offline shell", async () => {
   const pythonHtml = await readFile(new URL("../python.html", import.meta.url), "utf8");
+  assert.match(html, /href="\.\/studio\.css"/);
+  assert.match(html, /src="\.\/ui-sounds\.js"/);
   assert.match(pythonHtml, /href="\.\/experience\.css"/);
+  assert.match(pythonHtml, /href="\.\/studio\.css"/);
+  assert.match(pythonHtml, /src="\.\/ui-sounds\.js"/);
   assert.match(sw, /"\.\/experience\.css"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v20"/);
+  assert.match(sw, /"\.\/studio\.css"/);
+  assert.match(sw, /"\.\/ui-sounds\.js"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v21"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
   assert.match(html, /class="hero-proof-row"/);
   assert.match(html, /class="hero-readout"/);
   assert.match(html, /class="experience-strip"/);
-  assert.match(html, /نسخه ۰\.۷/);
+  assert.match(html, /نسخه ۱\.۰/);
 });
 
 test("experience stylesheet has balanced syntax and responsive accessibility contracts", () => {
@@ -1207,4 +1215,26 @@ test("experience stylesheet has balanced syntax and responsive accessibility con
   assert.match(experienceCss, /forced-colors/);
   assert.match(experienceCss, /:focus-visible/);
   assert.match(experienceCss, /content-visibility/);
+});
+
+
+test("flagship design system is layered after legacy styles and covers all breakpoints", () => {
+  assert.ok(html.indexOf("experience.css") < html.indexOf("studio.css"));
+  assert.match(studioCss, /--bg:#080b14/);
+  assert.match(studioCss, /#9c8cff/);
+  assert.match(studioCss, /@media\(max-width:760px\)/);
+  assert.match(studioCss, /@media\(max-width:480px\)/);
+  assert.match(studioCss, /prefers-reduced-motion:reduce/);
+  assert.match(studioCss, /forced-colors:active/);
+  assert.equal((studioCss.match(/\{/g)||[]).length,(studioCss.match(/\}/g)||[]).length);
+});
+test("interface sounds are opt-in, locally synthesized and never autoplay", () => {
+  assert.match(html, /id="soundToggle"/);
+  assert.match(uiSounds, /AudioContext/);
+  assert.match(uiSounds, /localStorage/);
+  assert.match(uiSounds, /if\(!enabled\)return/);
+  assert.match(uiSounds, /addEventListener\("click"/);
+  assert.match(uiSounds, /let enabled=false/);
+  assert.doesNotMatch(uiSounds, /<audio\\b[^>]*autoplay/i);
+  assert.ok(sw.includes('"./ui-sounds.js"'));
 });

@@ -194,6 +194,8 @@
   function showView(viewName, options = {}) {
     const target = $("#view-" + viewName);
     if (!target) return;
+    const currentView = $(".view.is-active");
+    if (currentView && currentView !== target && window.MRSound) window.MRSound.play("navigate");
     $$(".view").forEach(view => {
       const active = view === target;
       view.classList.toggle("is-active", active);
