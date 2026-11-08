@@ -169,3 +169,40 @@ test("assistant rate limits are enforced before invoking Workers AI", async () =
  assert.equal(response.status, 429);
  assert.equal(called, false);
 });
+
+
+test("public module metadata matches the versioned API contract without requiring D1", async () => {
+ const response = await worker.fetch(req("/v1/modules"), {});
+ assert.equal(response.status, 200);
+ const data = await response.json();
+ assert.equal(data.items.length, 9);
+ assert.equal(data.items.find(x => x.id === "workspace").availability, "available");
+ assert.equal(data.items.find(x => x.id === "secure").availability, "planned");
+ assert.equal(data.nextCursor, null);
+});
+test("public module metadata filters by category and paginates with a bounded cursor", async () => {
+ const first = await worker.fetch(req("/v1/modules?category=ai&limit=1"), {});
+ const firstData = await first.json();
+ assert.equal(first.status, 200);
+ assert.equal(firstData.items.length, 1);
+ assert.equal(firstData.items[0].id, "ai-hub");
+ assert.equal(firstData.nextCursor, "1");
+ const second = await worker.fetch(req("/v1/modules?category=ai&limit=1&cursor=1"), {});
+ const secondData = await second.json();
+ assert.equal(second.status, 200);
+ assert.equal(secondData.items[0].id, "agents");
+ assert.equal(secondData.nextCursor, null);
+});
+test("public module metadata rejects invalid categories, limits and cursors", async () => {
+ for (const query of [
+  "?category=unknown",
+  "?limit=0",
+  "?limit=51",
+  "?limit=1.5",
+  "?cursor=-1",
+  "?cursor=999999"
+ ]) {
+  const response = await worker.fetch(req("/v1/modules" + query), {});
+  assert.equal(response.status, 400, query);
+ }
+});
