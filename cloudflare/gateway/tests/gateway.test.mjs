@@ -256,7 +256,15 @@ test("public support readiness is fail-closed until a valid retention policy is 
 
 test("new public support tickets are rejected server-side until retention is configured",async()=>{
  const database={prepare(sql){if(sql.startsWith("INSERT INTO api_rate_limits"))return{bind(){return this;},first:async()=>({request_count:1})};throw new Error("ticket creation must stop before D1 writes");}};
- const response=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({category:"question",subject:"آزمون",message:"پیام آزمایشی"})}),{DB:database});
+ const response=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({category:"question",subject:"آزمون",message:"پیام آزمایشی",consent:true})}),{DB:database});
  assert.equal(response.status,503);
  assert.equal((await response.json()).error.code,"support_retention_required");
+});
+
+test("ticket creation requires explicit consent before writing data",async()=>{
+ const store=supportDb();
+ const response=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({category:"question",subject:"پرسش",message:"متن درخواست",consent:false})}),{DB:store.db,SUPPORT_RETENTION_DAYS:"90"});
+ assert.equal(response.status,400);
+ assert.equal((await response.json()).error.code,"consent_required");
+ assert.equal(store.tickets.size,0);
 });
