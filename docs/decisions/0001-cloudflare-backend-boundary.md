@@ -1,51 +1,43 @@
 # ADR 0001 — Dedicated Cloudflare backend boundary
 
-- Status: Accepted; health-only Worker and dedicated production D1 provisioned
+- Status: Accepted; dedicated production and preview Worker/D1 resources provisioned
 - Date: 2026-11-06
 - Decision owners: repository owner and maintainers
 
 ## Context
 
-MR_SIAVASH_AI currently ships as a static GitHub Pages application. Its OpenAPI document, threat model, and platform contracts are design artifacts; they do not provide a running API, authentication, cloud persistence, or remote agent execution.
+MR_SIAVASH_AI began as a static GitHub Pages application. It now has a dedicated Cloudflare Worker and D1 database, separate from GShop. The production Worker has a partially deployed product API, while the preview Worker runs current repository source.
 
-The Cloudflare account already contains production resources for GShop, including a Worker named `gahop`, a Pages project, and a D1 database named `gshop-db`. Those resources serve a separate product and must not become implicit dependencies of MR_SIAVASH_AI.
+The Cloudflare account also contains GShop resources, including Worker `gahop` and D1 database `gshop-db`. Those resources are a separate product and must never become dependencies of MR_SIAVASH_AI.
 
 ## Decision
 
-Create a dedicated Cloudflare Worker service for MR_SIAVASH_AI, maintained in this repository under `cloudflare/gateway/`. Keep the current GitHub Pages frontend in place during the first backend stages. Do not migrate hosting merely to add an API. The health-only Worker and its dedicated production D1 database have now been provisioned; product APIs remain out of scope until their security gates pass.
+Keep GitHub Pages for the static frontend and use a dedicated Cloudflare Worker for API execution. Use separate production and preview D1 databases. Keep the release boundary explicit: merging source or deploying Pages does not deploy Worker code.
 
-Use a dedicated D1 database for MR_SIAVASH_AI when persistence is provisioned. Keep GShop's Worker, D1 database, Pages project, DNS records, and secrets isolated and unchanged.
-
-The initial Worker boundary is deliberately narrow:
-- liveness is independent of dependencies;
-- readiness checks the dedicated D1 binding;
-- CORS uses exact configured origins and never a wildcard;
-- responses are non-cacheable and carry request IDs and baseline security headers;
-- unknown routes and unsupported methods are rejected;
-- no private or mutating product endpoint is exposed before authentication and authorization exist.
+The production Worker currently serves health/readiness, knowledge-fallback assistant, public support ticket routes and Access-protected administrator routes. The deployed bundle is behind current `main`; public module metadata and scheduled retention are in the current source and preview environment. Workers AI is not bound in production. The public ticket UI remains disabled until the current Worker is released and the retention decision is approved.
 
 ## Target service map
 
-| Concern | Initial choice | Reason |
+| Concern | Choice | Reason |
 | --- | --- | --- |
 | API execution | Dedicated Cloudflare Worker | Independent deploy and least-privilege service boundary |
-| Relational data | Dedicated D1 database | SQL records and tenant-scoped queries |
+| Relational data | Dedicated production and preview D1 databases | SQL records and environment isolation |
 | Object storage | R2, later | Only when file/object storage is required |
 | Stateful agent coordination | Durable Objects / Agents SDK, later | Add only for durable per-agent state or coordination |
 | Model traffic controls | AI Gateway, later | Centralize provider routing, analytics and policy after adapters exist |
-| Frontend hosting | Existing GitHub Pages, initially | Avoid an unrelated hosting migration and preserve current release path |
+| Frontend hosting | Existing GitHub Pages | Preserve current release path |
 
 ## Security and release constraints
 
 - Never reuse GShop's D1 database or Worker bindings.
 - Never put provider credentials or session secrets in browser code, public repository files, or localStorage.
-- A health endpoint is not authentication and does not establish that product features are ready.
-- Derive the user principal from a verified session; never trust a client-supplied user ID.
+- Derive user principals from verified sessions; never trust a client-supplied user ID.
 - Enforce ownership in repository queries and prove cross-user isolation with negative tests.
-- Add rate limits, body-size bounds, audit events, observability, backup/restore and rollback before production data is accepted.
+- Production support retention and Workers AI are explicit opt-ins; retention can delete existing support records and AI may consume account quota or paid usage.
 - Keep preview and production resources separate.
-- Do not create production routes, DNS changes, secrets, or database migrations until the dedicated resources and exact frontend origin are confirmed.
+- The manual production release validates the exact D1 binding and Access configuration, runs route/readiness/CORS checks, verifies observability privacy settings and rolls back the previous traffic split if post-deploy checks fail.
+- No production Worker release is triggered by a push or Pages deployment.
 
 ## Consequences
 
-The project gains a clean backend boundary without coupling GShop and MR_SIAVASH_AI. The cost is an additional Worker and database to operate. Production capabilities remain explicitly unavailable until their implementation gates pass.
+The project has a clean backend boundary and a real preview environment without coupling GShop and MR_SIAVASH_AI. Production API code is only partially aligned with current source; the owner must approve the controlled production release. Account login, cloud workspace sync and agent execution still require separate identity, privacy and permission designs.
