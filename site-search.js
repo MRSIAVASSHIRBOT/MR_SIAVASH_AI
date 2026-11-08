@@ -25,15 +25,7 @@ function validIndex(value){
   return item.terms===undefined||(Array.isArray(item.terms)&&item.terms.length<=12&&item.terms.every(x=>typeof x==="string"&&x.length<=80));
  });
 }
-async function readJson(path,maxBytes){
- const response=await fetch(path,{credentials:"omit",cache:"no-cache"});
- if(!response.ok)throw new Error("Search resource unavailable");
- const type=response.headers.get("content-type")||"";
- if(!/^application\/(?:json|[a-z0-9.+-]+\+json)(?:\s*;|$)/i.test(type))throw new Error("Invalid search resource type");
- const text=await response.text();
- if(new TextEncoder().encode(text).byteLength>maxBytes)throw new Error("Search resource too large");
- return JSON.parse(text);
-}
+const readJson=(path,maxBytes)=>window.MRSIAVASHReadJson(path,maxBytes);
 async function load(){
  const [indexResult,moduleResult]=await Promise.allSettled([
   readJson("./search-index.json",96*1024),
