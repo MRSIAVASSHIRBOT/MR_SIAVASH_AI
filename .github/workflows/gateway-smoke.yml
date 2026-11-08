@@ -33,6 +33,21 @@ jobs:
           ready="$(curl --fail --silent --show-error --retry 2 --retry-all-errors --retry-delay 2 --max-time 15 "$GATEWAY_BASE_URL/v1/health/ready")"
           node -e 'const body=JSON.parse(process.argv[1]); if(body.status!=="ready" || body.dependencies?.database!=="ready" || typeof body.request_id!=="string") process.exit(1);' "$ready"
 
+      - name: Verify deployed public support API without creating records
+        env:
+          GATEWAY_BASE_URL: https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          unknown_status="$(curl --silent --show-error --max-time 15 --output /tmp/ticket.json --write-out '%{http_code}' "$GATEWAY_BASE_URL/v1/support/tickets/MS-0000000000000000")"
+          test "$unknown_status" = "404"
+          node -e 'const x=JSON.parse(require("node:fs").readFileSync("/tmp/ticket.json","utf8"));if(x.error?.code!=="ticket_not_found")process.exit(1)'
+
+          invalid_status="$(curl --silent --show-error --max-time 15 --output /tmp/invalid-ticket.json --write-out '%{http_code}' --request POST "$GATEWAY_BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"subject":"","message":""}')"
+          test "$invalid_status" = "400"
+          node -e 'const x=JSON.parse(require("node:fs").readFileSync("/tmp/invalid-ticket.json","utf8"));if(x.error?.code!=="invalid_ticket")process.exit(1)'
+
       - name: Verify exact-origin CORS preflight
         env:
           GATEWAY_BASE_URL: https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev
