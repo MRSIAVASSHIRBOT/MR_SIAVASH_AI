@@ -11,6 +11,7 @@ const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "ut
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
+const supportTickets = await readFile(new URL("../support-tickets.mjs", import.meta.url), "utf8");
 const boundedJson = await readFile(new URL("../bounded-json.js", import.meta.url), "utf8");
 const searchSource = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
 const manifestText = await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8");
@@ -1299,20 +1300,24 @@ test("global search indexes every academy chapter and Python lesson with safe de
   assert.match(sw, /"\.\/search-index\.json"/);
 });
 
-test("support assistant is a local guide and does not submit unavailable tickets", () => {
-  assert.match(html, /راهنمای محلی سایت · بدون ارسال پیام به سرور/);
-  assert.match(html, /ثبت درخواست · به‌زودی/);
-  assert.match(html, /پیگیری · به‌زودی/);
+test("local support guide stays private and ticket APIs fail closed behind retention readiness", () => {
+  assert.match(html, /راهنمای محلی سایت، ثبت درخواست و پیگیری امن گفتگو/);
+  assert.match(html, />ثبت درخواست<\/button>/);
+  assert.match(html, />پیگیری<\/button>/);
+  assert.match(html, /support-tickets\.mjs/);
+  assert.match(html, /support-privacy-note/);
+  assert.match(html, /type="password"/);
   assert.match(support, /readJson\("\.\/search-index\.json"/);
   assert.match(boundedJson, /credentials:"omit"/);
-  assert.match(support, /disableUnavailable/);
-  assert.match(support, /ثبت آنلاین درخواست هنوز در نسخه/);
-  assert.match(support, /پیگیری آنلاین هنوز فعال نیست/);
-  assert.doesNotMatch(support, /mr-siavash-ai-gateway/);
-  assert.doesNotMatch(support, /Authorization/);
-  assert.doesNotMatch(support, /\/v1\/support/);
+  assert.doesNotMatch(support, /mr-siavash-ai-gateway|Authorization|\/v1\/support/);
+  assert.match(supportTickets, /supportGate\(health\)/);
+  assert.match(supportTickets, /features\.publicSupport/);
+  assert.match(supportTickets, /credentials: "omit"/);
+  assert.match(supportTickets, /Authorization: "Bearer "/);
+  assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
+  assert.match(sw, /"\.\/support-tickets\.mjs"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v28"/);
 });
-
 
 test("local support guide retries loading its index after an initial offline failure", async () => {
   let fetchCalls = 0;
