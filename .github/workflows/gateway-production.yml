@@ -27,7 +27,7 @@ on:
           - "60"
           - "90"
           - "180"
-        default: "90"
+        default: "30"
 
 permissions:
   contents: read
