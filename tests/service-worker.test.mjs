@@ -355,3 +355,10 @@ test("offline shell includes the public privacy notice", async () => {
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \\+ "v28"/);
   assert.match(sw, /"\\.\\/privacy\\.html"/);
 });
+
+
+test("offline shell includes the public privacy notice", async () => {
+  const source = await readFile(new URL("../sw.js", import.meta.url), "utf8");
+  assert.ok(source.includes('CACHE_NAME = CACHE_PREFIX + "v28"'));
+  assert.ok(source.includes('"./privacy.html"'));
+});
