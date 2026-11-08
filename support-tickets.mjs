@@ -10,6 +10,10 @@ export function supportGate(payload) {
     Number.isInteger(days) && days >= MIN_RETENTION_DAYS && days <= MAX_RETENTION_DAYS;
 }
 
+export function supportTrackingGate(payload) {
+  return payload?.status === "ready" && payload?.dependencies?.database === "ready";
+}
+
 export function validTicketCredentials(code, secret) {
   return /^MS-[A-F0-9]{16}$/i.test(String(code || "").trim()) &&
     /^[a-f0-9]{64}$/i.test(String(secret || "").trim());
@@ -53,18 +57,17 @@ async function checkAvailability() {
   const trackResult = $("#ticketTrackResult");
   try {
     const health = await request("/v1/health/ready");
-    const enabled = supportGate(health);
-    setFormEnabled(requestForm, enabled);
-    setFormEnabled(trackForm, enabled);
-    if (enabled) {
-      status(requestStatus, "سرویس پشتیبانی آماده است. پیام‌ها در سرور ذخیره می‌شوند؛ اطلاعات محرمانه ارسال نکن.");
-      status(trackResult, "برای مشاهده گفتگو، کد پیگیری و کلید خصوصی را وارد کن.");
-    } else {
-      const note = "ثبت و پیگیری آنلاین تا زمان انتشار نسخه سازگار و فعال‌شدن سیاست نگهداری امن تیکت‌ها غیرفعال است. از راهنمای محلی سایت می‌توانی استفاده کنی.";
-      status(requestStatus, note);
-      status(trackResult, note);
-    }
-    return enabled;
+    const intakeEnabled = supportGate(health);
+    const trackingEnabled = supportTrackingGate(health);
+    setFormEnabled(requestForm, intakeEnabled);
+    setFormEnabled(trackForm, trackingEnabled);
+    status(requestStatus, intakeEnabled
+      ? "سرویس ثبت درخواست آماده است. پیام‌ها در سرور ذخیره می‌شوند؛ اطلاعات محرمانه ارسال نکن."
+      : "ثبت درخواست جدید تا زمان انتشار نسخه سازگار و فعال‌شدن سیاست نگهداری امن تیکت‌ها غیرفعال است.");
+    status(trackResult, trackingEnabled
+      ? "پیگیری درخواست‌های قبلی فعال است؛ کد پیگیری و کلید خصوصی را وارد کن."
+      : "پیگیری آنلاین تا زمان آماده‌شدن پایگاه داده در دسترس نیست.");
+    return intakeEnabled;
   } catch {
     setFormEnabled(requestForm, false);
     setFormEnabled(trackForm, false);
