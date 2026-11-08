@@ -11,6 +11,7 @@ const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "ut
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
+const boundedJson = await readFile(new URL("../bounded-json.js", import.meta.url), "utf8");
 const manifestText = await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8");
 const moduleRegistryText = await readFile(new URL("../modules.json", import.meta.url), "utf8");
 const moduleRegistry = JSON.parse(moduleRegistryText);
@@ -1295,7 +1296,7 @@ test("support assistant is a local guide and does not submit unavailable tickets
   assert.match(html, /ثبت درخواست · به‌زودی/);
   assert.match(html, /پیگیری · به‌زودی/);
   assert.match(support, /readJson\("\.\/search-index\.json"/);
-  assert.match(support, /credentials:"omit"/);
+  assert.doesNotMatch(support, /fetch\\(/);
   assert.match(support, /disableUnavailable/);
   assert.match(support, /ثبت آنلاین درخواست هنوز در نسخه/);
   assert.match(support, /پیگیری آنلاین هنوز فعال نیست/);
@@ -1367,18 +1368,16 @@ test("local support guide retries loading its index after an initial offline fai
     }]
   };
   const modules = { schema: "mr-siavash-ai-module-registry", version: 1, modules: [] };
-  const fetch = async path => {
-    fetchCalls++;
-    if (fetchCalls <= 2) throw new Error("simulated offline failure");
-    return {
-      ok: true,
-      headers: { get: name => name === "content-type" ? "application/json" : null },
-      text: async () => JSON.stringify(path.includes("search-index") ? index : modules)
-    };
+  const window = {
+    MRSIAVASHReadJson: async path => {
+      fetchCalls++;
+      if (fetchCalls <= 2) throw new Error("simulated offline failure");
+      return path.includes("search-index") ? index : modules;
+    }
   };
   vm.runInNewContext(support, {
     document,
-    fetch,
+    window,
     URL,
     TextEncoder,
     location: { href: "https://example.test/" }
