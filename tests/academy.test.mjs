@@ -15,8 +15,8 @@ test("academy exposes six structured courses and thirty chapters", () => {
   }
   assert.equal((js.match(/^\["/gm) || []).length >= 30, true);
   assert.match(html, /id="courseGrid"/);
-  assert.match(html, /studio\\.css/);
-  assert.match(html, /ui-sounds\\.js/);
+  assert.match(html, /studio\.css/);
+  assert.match(html, /ui-sounds\.js/);
   assert.match(js, /Progress data too large/);
   assert.match(html, /id="learningPanel"/);
   assert.match(html, /href="\.\/python\.html"/);
@@ -36,7 +36,7 @@ test("academy navigation, global search, and offline shell are integrated", () =
   assert.match(sw, /"\.\/academy\.html"/);
   assert.match(sw, /"\.\/academy\.css"/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v21"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v22"/);
 });
 
 test("academy layout supports mobile, keyboard, and reduced-motion preferences", () => {
