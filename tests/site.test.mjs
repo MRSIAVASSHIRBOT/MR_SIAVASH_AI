@@ -1196,7 +1196,7 @@ test("homepage experience additions are present and versioned", () => {
   assert.match(html, /class="hero-proof-row"/);
   assert.match(html, /class="hero-readout"/);
   assert.match(html, /class="experience-strip"/);
-  assert.match(html, /نسخه ۰\.۷/);
+  assert.match(html, /نسخه ۱\.۰/);
 });
 
 test("experience stylesheet has balanced syntax and responsive accessibility contracts", () => {
@@ -1216,18 +1216,18 @@ test("flagship design system is layered after legacy styles and covers all break
   assert.ok(html.indexOf("experience.css") < html.indexOf("studio.css"));
   assert.match(studioCss, /--bg:#080b14/);
   assert.match(studioCss, /#9c8cff/);
-  assert.match(studioCss, /@media\\(max-width:760px\\)/);
-  assert.match(studioCss, /@media\\(max-width:480px\\)/);
+  assert.match(studioCss, /@media\(max-width:760px\)/);
+  assert.match(studioCss, /@media\(max-width:480px\)/);
   assert.match(studioCss, /prefers-reduced-motion:reduce/);
   assert.match(studioCss, /forced-colors:active/);
-  assert.equal((studioCss.match(/\\{/g)||[]).length,(studioCss.match(/\\}/g)||[]).length);
+  assert.equal((studioCss.match(/\{/g)||[]).length,(studioCss.match(/\}/g)||[]).length);
 });
 test("interface sounds are opt-in, locally synthesized and never autoplay", () => {
   assert.match(html, /id="soundToggle"/);
   assert.match(uiSounds, /AudioContext/);
   assert.match(uiSounds, /localStorage/);
-  assert.match(uiSounds, /if\\(!enabled\\)return/);
-  assert.match(uiSounds, /addEventListener\\("click"/);
-  assert.doesNotMatch(uiSounds, /autoplay|new Audio\\(/i);
+  assert.match(uiSounds, /if\(!enabled\)return/);
+  assert.match(uiSounds, /addEventListener\("click"/);
+  assert.doesNotMatch(uiSounds, /autoplay|new Audio\(/i);
   assert.match(sw, /"\\.\\/ui-sounds\\.js"/);
 });
