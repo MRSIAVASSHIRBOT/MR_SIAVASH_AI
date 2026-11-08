@@ -237,3 +237,19 @@ test("scheduled cleanup rejects unsafe retention settings before touching D1",as
  await assert.rejects(worker.scheduled({}, {DB:store.db,SUPPORT_RETENTION_DAYS:"7"}),/between 30 and 365/);
  assert.equal(store.statements.length,0);
 });
+
+test("public support readiness is fail-closed until a valid retention policy is configured",async()=>{
+ const database=()=>({prepare(sql){if(sql==="SELECT 1 AS ok")return{first:async()=>({ok:1})};throw new Error("unexpected SQL");}});
+ const disabled=await worker.fetch(req("/v1/health/ready"),{DB:database()});
+ const disabledBody=await disabled.json();
+ assert.equal(disabledBody.features.publicSupport,false);
+ assert.equal(disabledBody.features.supportRetentionDays,null);
+ const enabled=await worker.fetch(req("/v1/health/ready"),{DB:database(),SUPPORT_RETENTION_DAYS:"90"});
+ const enabledBody=await enabled.json();
+ assert.equal(enabledBody.features.publicSupport,true);
+ assert.equal(enabledBody.features.supportRetentionDays,90);
+ const invalid=await worker.fetch(req("/v1/health/ready"),{DB:database(),SUPPORT_RETENTION_DAYS:"7"});
+ const invalidBody=await invalid.json();
+ assert.equal(invalidBody.features.publicSupport,false);
+ assert.equal(invalidBody.features.supportRetentionDays,null);
+});
