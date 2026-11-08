@@ -18,7 +18,9 @@ const settings = {
 test("production release metadata pins the dedicated D1 and preserves Access bindings", () => {
   const metadata = buildVersionMetadata(settings, {
     expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f",
-    commitSha: "a".repeat(40)
+    commitSha: "a".repeat(40),
+    enableSupportRetention: true,
+    retentionDays: 90
   });
   assert.equal(metadata.main_module, "index.js");
   assert.ok(metadata.bindings.some(x => x.name === "DB" && x.database_id === "87c15170-7995-4929-b00c-20b5b491c05f"));
@@ -42,12 +44,27 @@ test("production release refuses a database mismatch or incomplete Access config
 test("Workers AI binding is strictly opt-in and uses the reviewed default model", () => {
   const disabled = buildVersionMetadata(settings, { expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f" });
   assert.equal(disabled.bindings.some(x => x.name === "AI"), false);
+  assert.equal(disabled.bindings.some(x => x.name === "SUPPORT_RETENTION_DAYS"), false);
   const enabled = buildVersionMetadata(settings, {
     expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f",
     enableWorkersAI: true
   });
   assert.ok(enabled.bindings.some(x => x.name === "AI" && x.type === "ai"));
   assert.equal(enabled.bindings.find(x => x.name === "AI_MODEL").text, "@cf/zai-org/glm-4.7-flash");
+});
+
+test("support retention is opt-in and validates the selected period", () => {
+  assert.throws(() => buildVersionMetadata(settings, {
+    expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f",
+    enableSupportRetention: true,
+    retentionDays: 7
+  }), /between 30 and 365/);
+  const enabled = buildVersionMetadata(settings, {
+    expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f",
+    enableSupportRetention: true,
+    retentionDays: 180
+  });
+  assert.equal(enabled.bindings.find(x => x.name === "SUPPORT_RETENTION_DAYS").text, "180");
 });
 
 test("cron schedule merge preserves existing schedules and adds retention once", () => {
