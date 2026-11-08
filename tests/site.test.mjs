@@ -161,7 +161,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v22"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v23"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -231,7 +231,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v22"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v23"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -404,7 +404,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v22"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v23"/);
 });
 
 
@@ -1195,7 +1195,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v22"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v23"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1253,5 +1253,5 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"web-security"/);
   assert.match(academyCss, /#9c8cff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v22"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v23"/);
 });
