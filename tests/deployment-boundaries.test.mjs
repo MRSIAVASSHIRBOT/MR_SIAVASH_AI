@@ -9,8 +9,10 @@ const adminPage = await readFile(new URL("../admin-support.html", import.meta.ur
 const workerSource = await readFile(new URL("../cloudflare/gateway/src/index.js", import.meta.url), "utf8");
 
 test("production documentation distinguishes health checks from source-only product APIs", () => {
+  assert.match(architecture, /GET \/v1\/health\/live/);
+  assert.match(gatewayReadme, /health-only/i);
+  assert.match(security, /health endpoints only/i);
   for (const text of [architecture, gatewayReadme, security]) {
-    assert.match(text, /health-only|health endpoints only/i);
     assert.match(text, /support/i);
   }
   assert.match(architecture, /Automated HTTP smoke checks on 2026-11-08 passed/);
