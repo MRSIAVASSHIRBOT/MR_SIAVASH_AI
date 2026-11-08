@@ -24,6 +24,7 @@ async function request(path, options = {}) {
     ...options,
     cache: "no-store",
     credentials: "omit",
+    referrerPolicy: "no-referrer",
     headers: { Accept: "application/json", ...(options.headers || {}) }
   });
   let data = {};
@@ -103,7 +104,7 @@ async function createTicket(event) {
   const payload = {
     category: $("#supportCategory").value,
     subject,
-    contact_email: $("#supportEmail").value.trim(),
+    contact_email: $("#supportEmail").value.trim() || null,
     message,
     website: $("#supportWebsite").value.trim(),
     consent: $("#supportConsent").checked
@@ -123,6 +124,7 @@ async function createTicket(event) {
       $("#supportEmail").value = "";
       $("#supportMessage").value = "";
       $("#supportWebsite").value = "";
+      $("#supportConsent").checked = false;
     } else {
       status(result, "درخواست دریافت شد.");
     }
