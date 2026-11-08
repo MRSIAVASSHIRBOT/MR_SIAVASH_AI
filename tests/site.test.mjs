@@ -7,6 +7,7 @@ import { supportGate, supportTrackingGate, validTicketCredentials } from "../sup
 const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const experienceCss = await readFile(new URL("../experience.css", import.meta.url), "utf8");
+const experienceNextCss = await readFile(new URL("../experience-next.css", import.meta.url), "utf8");
 const studioCss = await readFile(new URL("../studio.css", import.meta.url), "utf8");
 const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "utf8");
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
@@ -165,7 +166,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v30"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -239,7 +240,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v30"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -412,7 +413,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v30"/);
 });
 
 
@@ -1206,7 +1207,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v30"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1264,7 +1265,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"web-security"/);
   assert.match(academyCss, /#9c8cff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v30"/);
 });
 
 
@@ -1324,7 +1325,7 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(supportTickets, /consent: \$\("#supportConsent"\)\.checked/);
   assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
   assert.match(sw, /"\.\/support-tickets\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v29"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v30"/);
 });
 
 test("local support guide retries loading its index after an initial offline failure", async () => {
@@ -1474,4 +1475,26 @@ test("public privacy notice describes ticket data, one-time credentials and inac
   assert.match(privacy, /۳۰، ۶۰، ۹۰ یا ۱۸۰ روز/);
   assert.match(privacy, /رمز عبور، کلید API/);
   assert.match(privacy, /فضای ذخیره‌سازی مرورگر/);
+});
+
+
+test("emerald flagship experience layer overrides the conflicting studio palette", async () => {
+  const pythonHtml = await readFile(new URL("../python.html", import.meta.url), "utf8");
+  const academyHtml = await readFile(new URL("../academy.html", import.meta.url), "utf8");
+  assert.ok(html.indexOf("studio.css") < html.indexOf("experience-next.css"));
+  assert.ok(pythonHtml.indexOf("studio.css") < pythonHtml.indexOf("experience-next.css"));
+  assert.ok(academyHtml.indexOf("academy.css") < academyHtml.indexOf("experience-next.css"));
+  assert.match(experienceNextCss, /--experience-accent:#8debad/);
+  assert.match(experienceNextCss, /--bg:#07110b/);
+  assert.match(experienceNextCss, /\.hero-visual/);
+  assert.match(experienceNextCss, /\.module-card:hover/);
+  assert.match(experienceNextCss, /\.registry-status/);
+  assert.match(experienceNextCss, /@media\(max-width:760px\)/);
+  assert.match(experienceNextCss, /@media\(max-width:480px\)/);
+  assert.match(experienceNextCss, /prefers-reduced-motion:reduce/);
+  assert.match(experienceNextCss, /forced-colors:active/);
+  assert.match(experienceNextCss, /:focus-visible/);
+  assert.equal((experienceNextCss.match(/\{/g)||[]).length,(experienceNextCss.match(/\}/g)||[]).length);
+  assert.match(sw, /"\.\/experience-next\.css"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v30"/);
 });
