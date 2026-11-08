@@ -6,7 +6,6 @@ const API = "https://api.cloudflare.com/client/v4";
 const WORKER = "mr-siavash-ai-gateway";
 const FRONTEND_ORIGIN = "https://mrsiavasshirbot.github.io";
 const RETENTION_CRON = "0 3 * * *";
-const RETENTION_DAYS = "90";
 const PRESERVED_SECRET_TYPES = ["secret_text", "secret_key", "secrets_store_secret", "mtls_certificate"];
 
 function requireBinding(bindings, name) {
@@ -17,7 +16,7 @@ function requireBinding(bindings, name) {
   return binding.text;
 }
 
-export function buildVersionMetadata(settings, { expectedDatabaseId, commitSha, enableWorkersAI = false } = {}) {
+export function buildVersionMetadata(settings, { expectedDatabaseId, commitSha, enableWorkersAI = false, enableSupportRetention = false, retentionDays = 90 } = {}) {
   if (!settings || !Array.isArray(settings.bindings)) throw new Error("Cloudflare Worker settings are incomplete.");
   if (!/^[0-9a-f-]{36}$/i.test(expectedDatabaseId || "")) throw new Error("Expected production D1 database ID is invalid.");
   if (!settings.compatibility_date) throw new Error("Worker compatibility date is missing.");
@@ -31,17 +30,23 @@ export function buildVersionMetadata(settings, { expectedDatabaseId, commitSha, 
   if (allowedOrigins !== FRONTEND_ORIGIN) throw new Error("Production ALLOWED_ORIGINS does not match the published site origin.");
   for (const name of ["ADMIN_EMAILS", "CF_ACCESS_TEAM_DOMAIN", "CF_ACCESS_AUD"]) requireBinding(rawBindings, name);
 
+  if (enableSupportRetention && (!Number.isInteger(Number(retentionDays)) || Number(retentionDays) < 30 || Number(retentionDays) > 365)) {
+    throw new Error("Support retention must be explicitly selected between 30 and 365 days.");
+  }
   const bindings = rawBindings
     .filter(item => !PRESERVED_SECRET_TYPES.includes(item.type))
     .map(item => {
       if (item.type === "d1") return { type: "d1", name: item.name, database_id: item.database_id || item.id };
-      if (item.type === "plain_text") return { type: "plain_text", name: item.name, text: item.name === "SUPPORT_RETENTION_DAYS" ? RETENTION_DAYS : item.text };
+      if (item.type === "plain_text") return {
+        type: "plain_text", name: item.name,
+        text: item.name === "SUPPORT_RETENTION_DAYS" && enableSupportRetention ? String(retentionDays) : item.text
+      };
       if (item.type === "ai") return { type: "ai", name: item.name };
       return structuredClone(item);
     });
 
-  if (!bindings.some(item => item.name === "SUPPORT_RETENTION_DAYS")) {
-    bindings.push({ type: "plain_text", name: "SUPPORT_RETENTION_DAYS", text: RETENTION_DAYS });
+  if (enableSupportRetention && !bindings.some(item => item.name === "SUPPORT_RETENTION_DAYS")) {
+    bindings.push({ type: "plain_text", name: "SUPPORT_RETENTION_DAYS", text: String(retentionDays) });
   }
   if (enableWorkersAI) {
     if (!bindings.some(item => item.name === "AI" && item.type === "ai")) bindings.push({ type: "ai", name: "AI" });
@@ -150,6 +155,8 @@ export async function releaseProductionWorker({
   expectedDatabaseId,
   deploy = false,
   enableWorkersAI = false,
+  enableSupportRetention = false,
+  retentionDays = 90,
   commitSha = "",
   fetchImpl = fetch,
   source
@@ -161,7 +168,7 @@ export async function releaseProductionWorker({
     cloudflareRequest(prefix + "/deployments", { token, fetchImpl }),
     cloudflareRequest(prefix + "/schedules", { token, fetchImpl })
   ]);
-  const metadata = buildVersionMetadata(settings, { expectedDatabaseId, commitSha, enableWorkersAI });
+  const metadata = buildVersionMetadata(settings, { expectedDatabaseId, commitSha, enableWorkersAI, enableSupportRetention, retentionDays });
   if (!deploy) {
     return { validated: true, deployed: false, worker: WORKER, message: "Production bindings validated. No Worker version, schedule or live traffic was changed." };
   }
@@ -195,10 +202,12 @@ export async function releaseProductionWorker({
     });
     deployed = true;
 
-    const desiredSchedules = mergeCronSchedules(previousSchedules);
-    await cloudflareRequest(prefix + "/schedules", {
-      token, fetchImpl, method: "PUT", body: JSON.stringify(desiredSchedules)
-    });
+    const desiredSchedules = enableSupportRetention ? mergeCronSchedules(previousSchedules) : previousSchedules;
+    if (enableSupportRetention) {
+      await cloudflareRequest(prefix + "/schedules", {
+        token, fetchImpl, method: "PUT", body: JSON.stringify(desiredSchedules)
+      });
+    }
 
     await smokeProduction(fetchImpl, { enableWorkersAI });
     const finalSettings = await cloudflareRequest(prefix + "/settings", { token, fetchImpl });
@@ -236,8 +245,10 @@ async function main() {
   const expectedDatabaseId = process.env.CLOUDFLARE_D1_DATABASE_ID;
   const deploy = String(process.env.DEPLOY_WORKER || "").toLowerCase() === "true";
   const enableWorkersAI = String(process.env.ENABLE_WORKERS_AI || "").toLowerCase() === "true";
+  const enableSupportRetention = String(process.env.ENABLE_SUPPORT_RETENTION || "").toLowerCase() === "true";
+  const retentionDays = Number(process.env.SUPPORT_RETENTION_DAYS || 90);
   const result = await releaseProductionWorker({
-    token, accountId, expectedDatabaseId, deploy, enableWorkersAI,
+    token, accountId, expectedDatabaseId, deploy, enableWorkersAI, enableSupportRetention, retentionDays,
     commitSha: process.env.GITHUB_SHA || ""
   });
   console.log(JSON.stringify(result));
