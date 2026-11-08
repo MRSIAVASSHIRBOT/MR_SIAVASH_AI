@@ -2,7 +2,7 @@ openapi: 3.1.0
 info:
   title: MR_SIAVASH_AI Platform API
   version: 0.1.0
-  summary: Proposed contract for the future MR_SIAVASH_AI backend.
+  summary: API contract for the MR_SIAVASH_AI Cloudflare gateway.
   description: |
     API design contract and partial route contract. The production Worker serves health,
     knowledge-fallback assistant, support ticket, and administrator routes; the isolated
@@ -10,7 +10,7 @@ info:
     routes. Verify environment status in cloudflare/gateway/README.md.
 servers:
   - url: https://api.example.invalid/v1
-    description: Placeholder only; replace after a real backend is provisioned.
+    description: Placeholder only; use cloudflare/gateway/README.md for verified environment URLs and deployment state.
 tags:
   - name: System
   - name: Modules
