@@ -183,9 +183,9 @@ test("proposed backend contract is explicitly design-only and versioned", async 
   assert.match(api, /bearerAuth/);
   assert.match(api, /Idempotency-Key/);
   assert.match(api, /additionalProperties: false/);
-  assert.match(backendGuide, /not a user-facing backend implementation/);
+  assert.match(backendGuide, /separate from the static GitHub Pages frontend/);
   assert.match(backendGuide, /production Worker is `mr-siavash-ai-gateway`/);
-  assert.match(backendGuide, /independent liveness, D1-readiness, and CORS runtime smoke checks/);
+  assert.match(backendGuide, /Preview smoke checks passed for liveness, D1 readiness/);
 });
 
 test("D1 migrations persist verified identity mappings and enforce owner foreign keys", async () => {
