@@ -84,7 +84,7 @@ function showNewTicketCredentials(ticket) {
   box.replaceChildren();
   box.hidden = false;
   box.append(
-    node("p", "", "درخواست ثبت شد. کد و کلید زیر فقط اکنون نمایش داده می‌شوند؛ آن‌ها را در جای امنی نگه دار."),
+    node("p", "", "درخواست ثبت شد. کد و کلید زیر فقط اکنون نمایش داده می‌شوند؛ آن‌ها را در جای امنی نگه دار. درخواست پس از " + ticket.retention_days + " روز بدون به‌روزرسانی حذف می‌شود."),
     node("p", "ticket-secret", "کد پیگیری: " + ticket.code),
     node("p", "ticket-secret", "کلید خصوصی: " + ticket.token)
   );
@@ -99,12 +99,14 @@ async function createTicket(event) {
   const subject = $("#supportSubject").value.trim();
   const message = $("#supportMessage").value.trim();
   if (!subject || !message) { status(result, "موضوع و شرح درخواست را کامل کن."); return; }
+  if (!$("#supportConsent").checked) { status(result, "برای ثبت درخواست، اطلاعیهٔ حریم خصوصی را مطالعه و تأیید کن."); return; }
   const payload = {
     category: $("#supportCategory").value,
     subject,
     contact_email: $("#supportEmail").value.trim(),
     message,
-    website: $("#supportWebsite").value.trim()
+    website: $("#supportWebsite").value.trim(),
+    consent: $("#supportConsent").checked
   };
   submit.disabled = true;
   status(result, "در حال ثبت درخواست…");
