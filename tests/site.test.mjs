@@ -1281,7 +1281,7 @@ test("global search indexes every academy chapter and Python lesson with safe de
   assert.match(search, /ArrowUp/);
   assert.match(search, /aria-activedescendant/);
   assert.match(search, /textContent=item\.title/);
-  assert.doesNotMatch(search, /\.innerHTML\\s*=/);
+  assert.doesNotMatch(search, /\.innerHTML\s*=/);
   assert.match(html, /src="\.\/site-search\.js" defer/);
   assert.match(sw, /"\.\/site-search\.js"/);
   assert.match(sw, /"\.\/search-index\.json"/);
