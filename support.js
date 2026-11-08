@@ -4,6 +4,8 @@ const API_BASE="https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev";
 const root=document.documentElement||{dataset:{}};
 const SUPPORT_RETENTION_DAYS=Number(root.dataset.supportRetentionDays||0);
 const SUPPORT_API_ENABLED=root.dataset.supportApi==="enabled"&&Number.isInteger(SUPPORT_RETENTION_DAYS)&&SUPPORT_RETENTION_DAYS>=30&&SUPPORT_RETENTION_DAYS<=365;
+let SUPPORT_TRACKING_READY=false;
+let SUPPORT_INTAKE_READY=false;
 const normalise=value=>String(value||"").normalize("NFKC").toLocaleLowerCase("fa")
  .replace(/[يى]/g,"ی").replace(/ك/g,"ک")
  .replace(/[\u064b-\u065f\u0670\u0640]/g,"")
@@ -102,6 +104,25 @@ async function apiRequest(path,{method="GET",body,token:secret}={}){
  return data;
 }
 function statusText(element,text){if(element)element.textContent=text;}
+function setFormEnabled(formId,enabled){
+ const form=$(formId);if(!form)return;
+ form.querySelectorAll("input,select,textarea,button").forEach(control=>{control.disabled=!enabled;});
+}
+async function refreshSupportReadiness(){
+ if(typeof fetch!=="function")return;
+ try{
+  const health=await apiRequest("/v1/health/ready");
+  SUPPORT_TRACKING_READY=health.status==="ready"&&health.dependencies?.database==="ready";
+  SUPPORT_INTAKE_READY=SUPPORT_API_ENABLED&&SUPPORT_TRACKING_READY&&health.features?.publicSupport===true&&health.features?.supportRetentionDays===SUPPORT_RETENTION_DAYS;
+ }catch{
+  SUPPORT_TRACKING_READY=false;SUPPORT_INTAKE_READY=false;
+ }
+ setFormEnabled("#ticketTrackForm",SUPPORT_TRACKING_READY);
+ setFormEnabled("#supportRequestForm",SUPPORT_INTAKE_READY);
+ statusText($("#ticketTrackResult"),SUPPORT_TRACKING_READY?"کد پیگیری و کلید خصوصی تیکت قبلی را وارد کن.":"پیگیری آنلاین در حال حاضر به پایگاه دادهٔ آماده نیاز دارد.");
+ if(!SUPPORT_INTAKE_READY)statusText($("#supportRequestStatus"),"ثبت تیکت جدید تا انتشار نسخهٔ تأییدشده و فعال‌سازی دورهٔ نگهداری غیرفعال است.");
+}
+
 function formatDate(value){
  const date=new Date(value);
  return Number.isNaN(date.getTime())?"":date.toLocaleString("fa-IR");
@@ -164,6 +185,7 @@ async function loadTicket(code,secret,target){
 async function submitTicket(event){
  event.preventDefault();
  const form=event.currentTarget,status=$("#supportRequestStatus"),button=form.querySelector('button[type="submit"]');
+ if(!SUPPORT_INTAKE_READY){statusText(status,"ثبت آنلاین تیکت هنوز فعال نشده است.");return;}
  if(!$("#supportConsent").checked){statusText(status,"برای ثبت درخواست، تأیید اطلاعیهٔ حریم خصوصی لازم است.");return;}
  const payload={
   category:$("#supportCategory").value,
@@ -185,6 +207,7 @@ async function submitTicket(event){
 async function trackTicket(event){
  event.preventDefault();
  const form=event.currentTarget,code=$("#ticketCodeInput").value.trim().toUpperCase(),secret=$("#ticketTokenInput").value.trim(),target=$("#ticketTrackResult"),button=form.querySelector('button[type="submit"]');
+ if(!SUPPORT_TRACKING_READY){statusText(target,"پیگیری آنلاین در حال حاضر در دسترس نیست.");return;}
  if(!/^MS-[A-F0-9]{16}$/.test(code)||!/^[a-f0-9]{64}$/i.test(secret)){statusText(target,"کد پیگیری یا کلید خصوصی معتبر نیست.");return;}
  button.disabled=true;statusText(target,"در حال دریافت گفتگو...");
  try{await loadTicket(code,secret,target);}
@@ -198,7 +221,7 @@ function disableUnavailable(formId,statusId,text){
 }
 function init(){
  const support=$("#supportDialog");if(!support)return;
- $("#supportLauncher").addEventListener("click",()=>support.showModal());
+ $("#supportLauncher").addEventListener("click",()=>{support.showModal();refreshSupportReadiness();});
  $("#supportClose").addEventListener("click",()=>support.close());
  support.addEventListener("close",()=>{
   const created=$("#supportRequestStatus"),tracked=$("#ticketTrackResult"),tokenInput=$("#ticketTokenInput");
@@ -208,15 +231,11 @@ function init(){
  });
  document.querySelectorAll("[data-support-tab]").forEach(button=>button.addEventListener("click",()=>tab(button.dataset.supportTab)));
  $("#assistantForm").addEventListener("submit",ask);
- if(SUPPORT_API_ENABLED){
-  $("#supportRequestForm").addEventListener("submit",submitTicket);
-  $("#ticketTrackForm").addEventListener("submit",trackTicket);
-  statusText($("#supportPrivacyNotice"),"با ثبت درخواست، متن پیام و ایمیل اختیاری ذخیره می‌شود. درخواست پس از "+SUPPORT_RETENTION_DAYS+" روز بدون به‌روزرسانی حذف خواهد شد. اطلاعات حساس ارسال نکن.");
-  statusText($("#supportRequestStatus"),"");
- }else{
-  disableUnavailable("#supportRequestForm","#supportRequestStatus","ثبت آنلاین تا انتشار نسخهٔ جدید درگاه و فعال‌سازی دورهٔ نگهداری امن غیرفعال است. لطفاً فعلاً اطلاعات تماس یا پیام خصوصی وارد نکن.");
-  disableUnavailable("#ticketTrackForm","#ticketTrackResult","پیگیری آنلاین پس از انتشار نسخهٔ جدید درگاه و فعال‌سازی سیاست نگهداری در دسترس خواهد بود.");
- }
+ $("#supportRequestForm").addEventListener("submit",submitTicket);
+ $("#ticketTrackForm").addEventListener("submit",trackTicket);
+ disableUnavailable("#supportRequestForm","#supportRequestStatus","ثبت تیکت جدید تا انتشار نسخهٔ تأییدشده و فعال‌سازی دورهٔ نگهداری غیرفعال است.");
+ disableUnavailable("#ticketTrackForm","#ticketTrackResult","در حال بررسی آمادگی پایگاه داده برای پیگیری تیکت‌های قبلی...");
+ refreshSupportReadiness();
  loadKnowledge().catch(()=>{});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
