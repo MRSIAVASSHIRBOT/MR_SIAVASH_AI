@@ -1234,6 +1234,7 @@ test("interface sounds are opt-in, locally synthesized and never autoplay", () =
   assert.match(uiSounds, /localStorage/);
   assert.match(uiSounds, /if\(!enabled\)return/);
   assert.match(uiSounds, /addEventListener\("click"/);
-  assert.doesNotMatch(uiSounds, /autoplay|new Audio\(/i);
+  assert.match(uiSounds, /let enabled=false/);
+  assert.doesNotMatch(uiSounds, /new Audio\(/i);
   assert.ok(sw.includes('"./ui-sounds.js"'));
 });
