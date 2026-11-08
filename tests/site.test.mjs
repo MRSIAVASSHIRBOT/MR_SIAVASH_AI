@@ -1307,6 +1307,8 @@ test("support guide stays local while ticket API remains gated behind explicit c
   assert.match(html, /privacy\.html/);
   assert.match(support, /readJson\("\.\/search-index\.json"/);
   assert.match(support, /SUPPORT_API_ENABLED/);
+  assert.match(support, /SUPPORT_TRACKING_READY/);
+  assert.match(support, /refreshSupportReadiness/);
   assert.match(support, /credentials:"omit"/);
   assert.match(support, /Authorization/);
   assert.match(support, /\/v1\/support\/tickets/);
