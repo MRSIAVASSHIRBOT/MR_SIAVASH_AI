@@ -1312,7 +1312,7 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(boundedJson, /credentials:"omit"/);
   assert.doesNotMatch(support, /mr-siavash-ai-gateway|Authorization|\/v1\/support/);
   assert.match(supportTickets, /supportGate\(health\)/);
-  assert.match(supportTickets, /features\.publicSupport/);
+  assert.match(supportTickets, /features\?\.publicSupport/);
   assert.match(supportTickets, /supportTrackingGate\(health\)/);
   assert.match(supportTickets, /credentials: "omit"/);
   assert.match(supportTickets, /Authorization: "Bearer "/);
@@ -1411,7 +1411,7 @@ test("local support guide retries loading its index after an initial offline fai
 });
 
 test("support UI accurately identifies its local, non-generative guide", () => {
-  assert.match(html, /راهنمای محلی سایت؛ بدون ارسال پیام به سرور یا ارتباط با اپراتور انسانی/);
+  assert.match(html, /راهنمای محلی سایت، ثبت درخواست و پیگیری امن گفتگو/);
   assert.match(html, />راهنمای سایت<\/button>/);
   assert.match(html, /راهنمای محلی سایت · بدون ارسال پیام به سرور؛ پاسخ بر پایه محتوای عمومی منتشرشده/);
   assert.match(html, /سؤال یا عبارت مورد جست‌وجو/);
