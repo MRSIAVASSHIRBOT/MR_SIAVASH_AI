@@ -15,7 +15,7 @@ function createHarness(fetchImpl = async () => new Response("asset", {
   const reads = [];
   let skipWaitingCalls = 0;
   const cache = {
-    async match(key) { reads.push(key.url || String(key)); return cachedResponse; },
+    async match(key) { reads.push(key.url || String(key)); return cachedResponse ? cachedResponse.clone() : null; },
     async put(key, value) { writes.push({ key: key.url || String(key), value }); },
     async add() {},
     async addAll(urls) { writes.push({ precache: urls }); }
