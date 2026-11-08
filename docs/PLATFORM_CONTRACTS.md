@@ -98,7 +98,7 @@ A module cannot move to production until all applicable gates pass:
 
 ## 9. Current implementation boundary
 
-The current site remains a static browser application. The workspace is local to the browser profile. A separate Cloudflare Worker resource has been uploaded with health-only liveness/readiness routes and a dedicated D1 binding; its deployed HTTP behavior has not yet been independently smoke-tested, and the current repository source must not be assumed to match the uploaded Worker bundle. This is not a user-facing product API. This document, the OpenAPI file, and the threat model remain design artifacts; no accounts, authenticated workspace API, cloud sync, AI provider integration, or agent runtime are implemented.
+The current site remains a static browser application and the workspace is local to the browser profile. The deployed Cloudflare Worker exposes health endpoints only; automated runtime smoke checks passed for liveness, D1 readiness and the CORS boundary on 2026-11-08. The repository source also implements public module metadata, assistant, support-ticket and administrator routes, but those routes are not present in the deployed bundle. Cloudflare Access is configured for `/admin` and `/v1/admin/*` with a single-administrator Allow policy; the Access audience matches the Worker's configured audience, and the Worker's Access bindings are present. Query-string redaction is enabled. The production Worker has no Workers AI binding and the repository has no reproducible Wrangler manifest or Worker release workflow. The OpenAPI file and threat model remain design artifacts; no user accounts, authenticated workspace API, cloud sync, model-generated assistant or agent runtime is live.
 
 
 ### Browser-local cross-tab synchronization
@@ -123,7 +123,7 @@ The service worker may cache `modules.json` only when the response is successful
 
 ### Gateway CORS preflight boundary
 
-The health-only Worker accepts a browser preflight only for an exact configured origin, a method the Worker actually implements (`GET`), and explicitly approved request headers (`Content-Type` and `X-Request-ID`). Missing or untrusted origins, unsupported methods, and unapproved or malformed requested headers are rejected with `403` and do not receive an allow-origin grant. CORS is not an authentication or authorization control; every future protected route must independently validate identity and permissions.
+The deployed health-only Worker was smoke-tested for exact-origin CORS. Its legacy preflight handler can return `204` for an untrusted origin, but it does not include `Access-Control-Allow-Origin`; the workflow verifies that no CORS grant is returned. The current repository source uses a stricter policy: it rejects untrusted origins, unsupported methods and unapproved headers with `403`, and allows only `GET`, `POST` or `PATCH` plus the explicit `Content-Type`, `Authorization` and `X-Request-ID` headers. These are CORS behaviors, not authentication or authorization controls; every protected route must independently validate identity and permissions.
 
 
 ### D1 workspace persistence boundary
