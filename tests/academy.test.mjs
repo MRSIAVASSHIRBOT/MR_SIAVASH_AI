@@ -16,6 +16,8 @@ test("academy exposes six structured courses and thirty chapters", () => {
   assert.equal((js.match(/^\["/gm) || []).length >= 30, true);
   assert.match(html, /id="courseGrid"/);
   assert.match(html, /id="learningPanel"/);
+  assert.match(html, /href="\\.\\/experience\\.css"/);
+  assert.match(html, /id="academyStatus" role="status"/);
   assert.match(html, /href="\.\/python\.html"/);
 });
 
