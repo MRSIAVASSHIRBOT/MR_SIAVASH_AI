@@ -10,6 +10,8 @@ const home = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const search = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
 const searchIndex = JSON.parse(await readFile(new URL("../search-index.json", import.meta.url), "utf8"));
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
+const architecture = await readFile(new URL("../docs/ARCHITECTURE.md", import.meta.url), "utf8");
+const roadmap = await readFile(new URL("../docs/ROADMAP.md", import.meta.url), "utf8");
 
 test("academy exposes six structured courses and thirty chapters", () => {
   for (const id of ["html", "css", "javascript", "git", "linux", "web-security"]) {
@@ -59,4 +61,13 @@ test("academy layout supports mobile, keyboard, and reduced-motion preferences",
   assert.match(css, /@media\(max-width:650px\)/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /:focus-visible|outline/);
+});
+
+test("Academy dashboard and browser-local progress boundaries are documented", () => {
+  assert.match(architecture, /aggregate progress dashboard and resume/);
+  assert.match(architecture, /existing mr-siavash-ai\.academy\.v1 key/);
+  assert.match(architecture, /no cloud sync or learner account/);
+  assert.match(roadmap, /Learning Academy progress dashboard/);
+  assert.match(roadmap, /service-worker cache v39/);
+  assert.match(roadmap, /no cloud account or remote execution is implied/);
 });
