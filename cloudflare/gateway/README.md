@@ -38,7 +38,7 @@ The preview Worker uses only the dedicated preview D1 database; migrations 0001â
 
 ## Assistant provider adapter
 
-The Gateway source now contains a normalized Cloudflare Workers AI adapter at \`src/assistant-provider.js\`. It validates the message envelope, bounds output tokens, normalizes supported text/usage shapes, and converts provider failures into typed categories. The request path remains knowledge-grounded: model inference is attempted only when verified site context exists, and provider failure returns the existing knowledge fallback without exposing upstream error text.
+The Gateway source now contains a normalized Cloudflare Workers AI adapter at `src/assistant-provider.js`. It validates the message envelope, bounds output tokens, normalizes supported text/usage shapes, and converts provider failures into typed categories. The request path remains knowledge-grounded: model inference is attempted only when verified site context exists, and provider failure returns the existing knowledge fallback without exposing upstream error text.
 
 The adapter performs one attempt with no automatic retry. Streaming, request timeout and cancellation are explicitly unavailable in this initial binding adapter. Production has no Workers AI binding, so this source-level refactor does not activate model inference or change production traffic. Workers AI usage can incur account charges; binding activation is a separate, explicit release decision.
 
