@@ -65,7 +65,8 @@ test("studio bookmark storage is local and allowlisted", () => {
   assert.match(js, /mr-siavash-ai\.studio\.saved\.v1/);
   assert.match(js, /\["hub","site","gshop"\]/);
   assert.match(html, /فقط روی همین مرورگر/);
-  assert.match(js, /fetch\("\.\/hub-status\.json"/);\n  assert.doesNotMatch(js, /XMLHttpRequest|sendBeacon/);
+  assert.match(js, /fetch\("\.\/hub-status\.json"/);
+  assert.doesNotMatch(js, /XMLHttpRequest|sendBeacon/);
 });
 
 test("studio code examples are copy-only and never evaluated", () => {
@@ -111,7 +112,7 @@ test("Hub public status panel is bounded, read-only and explicit about the local
   assert.match(js, /mr-siavash-hub-public-status/);
   assert.match(js, /credentials:"same-origin"/);
   assert.match(js, /cache:"no-store"/);
-  assert.match(js, /16\\*1024/);
+  assert.match(js, /16\*1024/);
   assert.match(js, /textContent/);
-  assert.match(html, /MR_SIAVASH_HUB_AI\\/actions/);
+  assert.match(html, /MR_SIAVASH_HUB_AI\/actions/);
 });
