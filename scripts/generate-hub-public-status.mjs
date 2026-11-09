@@ -130,7 +130,7 @@ function normalizeCiRun(raw, latestCommitSha) {
     !/^[a-f0-9]{40}$/i.test(headSha) ||
     !updatedAt ||
     !url ||
-    !/^\\/MRSIAVASSHIRBOT\\/MR_SIAVASH_HUB_AI\\/actions\\/runs\\/[0-9]+$/.test(new URL(url).pathname)
+    !/^\/MRSIAVASSHIRBOT\/MR_SIAVASH_HUB_AI\/actions\/runs\/[0-9]+$/.test(new URL(url).pathname)
   ) return null;
 
   const status = ALLOWED_STATUSES.has(raw.status) ? raw.status : "unknown";
