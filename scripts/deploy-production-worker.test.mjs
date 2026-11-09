@@ -169,3 +169,17 @@ test("production release smoke follows the explicit support-retention selection"
   assert.match(source, /supportRetentionDays !== retentionDays/);
   assert.match(source, /smokeProduction\(fetchImpl, \{ enableWorkersAI, enableSupportRetention, retentionDays \}\)/);
 });
+
+test("production workflow gates deploy=true to main before Cloudflare release access", async () => {
+  const workflow = await (await import("node:fs/promises")).readFile(
+    new URL("../.github/workflows/gateway-production.yml", import.meta.url),
+    "utf8"
+  );
+  const guardPosition = workflow.indexOf("Require main as the production deployment source");
+  const cloudflarePosition = workflow.indexOf("Validate production bindings and optionally release");
+
+  assert.ok(guardPosition >= 0, "production workflow must include the main-ref guard");
+  assert.ok(cloudflarePosition > guardPosition, "main-ref guard must run before the Cloudflare release step");
+  assert.match(workflow, /if: \$\{\{ inputs\.deploy \}\}/);
+  assert.match(workflow, /if \[\[ "\$\{GITHUB_REF\}" != "refs\/heads\/main" \]\]/);
+});
