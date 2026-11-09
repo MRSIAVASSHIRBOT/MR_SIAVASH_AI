@@ -12,7 +12,7 @@ A dedicated D1 database named `mr-siavash-ai-preview` has been provisioned in th
 
 The preview Worker `mr-siavash-ai-gateway-preview` has already been uploaded and its `workers.dev` subdomain enabled. Migrations 0001–0003 were applied to the isolated preview database and the seven application tables were verified through `sqlite_master`. The GitHub smoke workflow checks the public runtime on subsequent `main` updates.
 
-The workflow applies the repository migrations to preview only, deploys the current Worker source to the dedicated `workers.dev` preview name, then checks liveness, D1 readiness, public module metadata and exact-origin CORS. It does not configure an AI binding or expose administrator routes; those remain fail-closed until a separately reviewed identity/Access configuration is added to preview.
+The workflow applies the repository migrations to preview only, deploys the current Worker source to the dedicated `workers.dev` preview name, then checks liveness, D1 readiness, public module metadata, administrator edge protection and exact-origin CORS. Preview has a dedicated Cloudflare Access self-hosted application protecting `/admin` and `/v1/admin/*` with the existing single-administrator reusable policy. The Worker independently verifies the Access JWT signature, issuer, audience, expiry, not-before time and administrator allowlist. Preview Worker bindings include the matching Access team domain, application audience and administrator allowlist. No AI binding or service token is configured.
 
 ## Release boundary
 
