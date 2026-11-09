@@ -57,7 +57,10 @@ async function readBoundedResponse(response) {
       if (part.done) break;
       totalBytes += part.value.byteLength;
       if (totalBytes > MAX_RESPONSE_BYTES) {
-        try { await reader.cancel(); } catch { /* The stream may already be closed. */ }
+        try {
+          const cancellation = reader.cancel();
+          if (cancellation && typeof cancellation.catch === "function") cancellation.catch(() => {});
+        } catch { /* The stream may already be closed. */ }
         throw new Error("upstream_response_too_large");
       }
       chunks.push(part.value);
