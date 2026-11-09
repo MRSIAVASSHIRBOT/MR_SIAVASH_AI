@@ -148,11 +148,11 @@ test("client code does not contain a hard-coded provider secret", () => {
 });
 
 test("Field Notes design system is loaded as a local responsive layer", () => {
-  assert.equal((fieldNotesCss.match(/\\{/g) || []).length, (fieldNotesCss.match(/\\}/g) || []).length);
-  assert.match(html, /href="\\.\\/field-notes\\.css"/);
+  assert.equal((fieldNotesCss.match(/\{/g) || []).length, (fieldNotesCss.match(/\}/g) || []).length);
+  assert.match(html, /href="\.\/field-notes\.css"/);
   assert.match(fieldNotesCss, /prefers-reduced-motion: reduce/);
   assert.match(fieldNotesCss, /forced-colors: active/);
-  assert.match(fieldNotesCss, /\.project-card:nth-child\\(1\\)/);
+  assert.match(fieldNotesCss, /\.project-card:nth-child\(1\)/);
 });
 
 test("stylesheet braces are balanced", () => {
