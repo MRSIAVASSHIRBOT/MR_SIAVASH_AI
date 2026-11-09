@@ -25,6 +25,10 @@ const moduleSchemaText = await readFile(new URL("../schemas/module-registry.sche
 const moduleSchema = JSON.parse(moduleSchemaText);
 const workspaceSchemaText = await readFile(new URL("../schemas/workspace-backup.schema.json", import.meta.url), "utf8");
 const workspaceSchema = JSON.parse(workspaceSchemaText);
+const hubStatusText = await readFile(new URL("../hub-status.json", import.meta.url), "utf8");
+const hubStatus = JSON.parse(hubStatusText);
+const hubStatusSchemaText = await readFile(new URL("../schemas/hub-public-status.schema.json", import.meta.url), "utf8");
+const hubStatusSchema = JSON.parse(hubStatusSchemaText);
 const platformText = await readFile(new URL("../docs/PLATFORM_CONTRACTS.md", import.meta.url), "utf8");
 const openapiText = await readFile(new URL("../docs/backend/openapi.yaml", import.meta.url), "utf8");
 const openapiValidatorText = await readFile(new URL("../scripts/validate-openapi.rb", import.meta.url), "utf8");
@@ -1643,11 +1647,28 @@ test("Hub integration is documented as separate until the security gates pass", 
   const contracts = await readFile(new URL("../docs/PLATFORM_CONTRACTS.md", import.meta.url), "utf8");
   const decision = await readFile(new URL("../docs/decisions/0004-hub-integration-boundary.md", import.meta.url), "utf8");
 
-  assert.match(readme, /no direct API connection, shared identity, shared database/i);
+  assert.match(readme, /no direct API connection to the Hub runtime, shared identity, private-data sync/i);
   assert.match(architecture, /no shared identity, database, API session or live runtime connection/i);
   assert.match(contracts, /Exact-origin CORS is necessary but is not authentication/i);
   assert.match(decision, /public tunnel to a developer machine/i);
   assert.match(decision, /short-lived, narrowly scoped credentials/i);
   assert.match(decision, /human approval/i);
   assert.match(decision, /not connected/i);
+});
+
+
+test("public Hub status contract exposes only repository metadata and never claims runtime health", async () => {
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+  assert.equal(hubStatus.schema, "mr-siavash-hub-public-status");
+  assert.equal(hubStatus.version, 1);
+  assert.equal(hubStatus.runtime.state, "not_connected");
+  assert.equal(hubStatus.repository.state, "unavailable");
+  assert.equal(hubStatus.quality.state, "unavailable");
+  assert.equal(hubStatusSchema.properties.runtime.properties.state.const, "not_connected");
+  assert.ok(new RegExp(hubStatusSchema.properties.repository.properties.latest_commit.properties.url.pattern).test("https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/commit/" + "a".repeat(40)));
+  assert.deepEqual(
+    Object.keys(hubStatus).sort(),
+    ["generated_at", "project", "quality", "repository", "runtime", "schema", "source", "version"].sort()
+  );
+  assert.match(readme, /build-time snapshot of public GitHub commit and CI metadata only/i);
 });

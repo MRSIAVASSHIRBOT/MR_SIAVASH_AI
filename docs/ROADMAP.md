@@ -52,8 +52,8 @@ Acceptance gates:
 - Responsive layout, keyboard focus, reduced-motion and forced-colors behavior remain covered.
 
 
-## Cross-project integration — proposed, not connected
+## Cross-project integration — public metadata implemented; private pairing proposed
 
 MR_SIAVASH_AI remains the public identity, portfolio and learning surface. MR_SIAVASH_HUB_AI remains a separate local-first agent runtime. No shared identity, private data store, live API session or agent execution path exists between them.
 
-The first acceptable integration milestone is a read-only, allowlisted public status contract. Private features require a separate owner-initiated pairing mechanism and must preserve Hub-side authentication, ownership, policy checks, approvals and audit. Do not create a public tunnel to the local runtime, wildcard CORS, browser-stored long-lived credentials or direct browser access to private Hub data. See docs/decisions/0004-hub-integration-boundary.md.
+Stage 1 is implemented as a build-time generated, versioned snapshot of the Hub's public main-branch commit and latest CI metadata. The generator allowlists fields, bounds response size, validates GitHub URLs and falls back to an explicit unavailable state. It does not call the Hub API or report local runtime health. Stage 2 remains owner-initiated pairing; private features must preserve Hub-side authentication, ownership, policy checks, approvals and audit. Do not create a public tunnel to the local runtime, wildcard CORS, browser-stored long-lived credentials or direct browser access to private Hub data. See docs/decisions/0004-hub-integration-boundary.md.
