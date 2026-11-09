@@ -1665,6 +1665,7 @@ test("public Hub status contract exposes only repository metadata and never clai
   assert.equal(hubStatus.repository.state, "unavailable");
   assert.equal(hubStatus.quality.state, "unavailable");
   assert.equal(hubStatusSchema.properties.runtime.properties.state.const, "not_connected");
+  assert.ok(new RegExp(hubStatusSchema.properties.repository.properties.latest_commit.properties.url.pattern).test("https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/commit/" + "a".repeat(40)));
   assert.deepEqual(
     Object.keys(hubStatus).sort(),
     ["generated_at", "project", "quality", "repository", "runtime", "schema", "source", "version"].sort()
