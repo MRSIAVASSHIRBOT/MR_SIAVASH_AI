@@ -8,13 +8,22 @@
 <meta name="description" content="آکادمی MR_SIAVASH_AI؛ مسیرهای یادگیری HTML، CSS، JavaScript، Git، Linux و امنیت وب."><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/academy.html"><meta property="og:title" content="آکادمی برنامه‌نویسی | MR_SIAVASH_AI"><meta property="og:description" content="مسیرهای فارسی و ساختاریافته برای یادگیری برنامه‌نویسی، ابزارهای مهندسی و امنیت دفاعی."><meta property="og:type" content="website"><meta property="og:url" content="https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/academy.html"><meta name="twitter:card" content="summary">
 <title>آکادمی برنامه‌نویسی | MR_SIAVASH_AI</title>
 <link rel="icon" href="./favicon.svg"><link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css">
-<link rel="stylesheet" href="./studio.css"><link rel="stylesheet" href="./academy.css"><link rel="stylesheet" href="./experience-next.css"><link rel="stylesheet" href="./atelier.css"><link rel="stylesheet" href="./field-notes.css"><script src="./ui-sounds.js" defer></script><script src="./academy.js" defer></script>
+<link rel="stylesheet" href="./studio.css"><link rel="stylesheet" href="./academy.css"><link rel="stylesheet" href="./experience-next.css"><link rel="stylesheet" href="./atelier.css"><link rel="stylesheet" href="./field-notes.css"><script src="./ui-sounds.js" defer></script><script type="module" src="./academy.js"></script>
 </head>
 <body><div class="app-shell">
 <header class="topbar"><a class="brand" href="./index.html"><span class="brand-mark">M<i>/</i></span><span class="brand-copy"><strong>MR_SIAVASH_AI</strong><small>LEARNING ACADEMY</small></span></a><div class="topbar-actions"><button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" aria-label="فعال‌کردن صداهای رابط کاربری" title="صداهای رابط خاموش هستند"><span class="sound-icon" aria-hidden="true">♪</span><span class="sound-label">صدا خاموش</span></button><a class="button button-quiet" href="./index.html">بازگشت به سایت ↗</a></div></header>
 <main class="academy-page">
 <section class="academy-hero"><div><div class="eyebrow">MR_SIAVASH_AI / LEARNING ACADEMY</div><h1>از یادگیری تا <span>ساختن واقعی.</span></h1><p>مسیرهای آموزشی ساختاریافته برای توسعه وب، ابزارهای مهندسی نرم‌افزار و امنیت دفاعی. هر مسیر شامل فصل‌بندی، هدف یادگیری، نمونه و پیگیری پیشرفت است.</p><div class="academy-stats"><span><b id="courseCount">۶</b> مسیر تخصصی</span><span><b id="lessonCount">۳۰</b> فصل آموزشی</span><span><b>۱۰۰٪</b> فارسی</span></div></div><div class="academy-orbit" aria-hidden="true"><span>LEARN</span><b>BUILD</b><i>GROW</i></div></section>
 <section class="academy-toolbar"><label class="academy-search"><span aria-hidden="true">⌕</span><input id="courseSearch" type="search" placeholder="جست‌وجوی دوره یا موضوع..." autocomplete="off" aria-label="جست‌وجوی دوره‌ها"></label><div class="academy-filters" role="group" aria-label="فیلتر سطح"><button type="button" data-level="all" aria-pressed="true">همه</button><button type="button" data-level="beginner" aria-pressed="false">مقدماتی</button><button type="button" data-level="intermediate" aria-pressed="false">متوسط</button><button type="button" data-level="advanced" aria-pressed="false">پیشرفته</button></div></section>
+<section class="academy-dashboard" id="academyDashboard" aria-labelledby="academyDashboardTitle" aria-live="polite">
+  <div class="academy-dashboard-heading">
+    <div><div class="eyebrow">YOUR LEARNING OVERVIEW</div><h2 id="academyDashboardTitle">داشبورد یادگیری</h2></div>
+    <span class="academy-dashboard-local">ذخیره‌شده در همین مرورگر</span>
+  </div>
+  <div id="academyDashboardContent" class="academy-dashboard-content">
+    <p class="academy-dashboard-empty">در حال آماده‌سازی نمای پیشرفت...</p>
+  </div>
+</section>
 <section><div class="academy-section-head"><div><div class="eyebrow">CHOOSE YOUR PATH</div><h2>مسیر یادگیری را انتخاب کن</h2></div><span id="visibleCount">۶ دوره</span></div><div id="courseGrid" class="course-grid"></div><p id="courseEmpty" class="academy-empty" hidden>دوره‌ای با این عبارت پیدا نشد.</p></section>
 <section class="academy-learning" id="learningPanel" aria-live="polite"><div class="academy-learning-empty"><span>↗</span><h2>یک مسیر را انتخاب کن</h2><p>با انتخاب هر دوره، فصل‌ها، اهداف یادگیری و نمونه‌های آن نمایش داده می‌شوند.</p></div></section>
 <section class="academy-existing"><div><div class="eyebrow">ALREADY AVAILABLE</div><h2>دوره پایتون مقدماتی</h2><p>۱۲ درس تعاملی، مثال‌های Python 3، تمرین و ذخیره پیشرفت در مرورگر.</p></div><a class="button button-primary" href="./python.html">ورود به دوره پایتون ↗</a></section>
