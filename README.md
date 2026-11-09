@@ -29,7 +29,7 @@ The repository provides a static web application with:
 
 ### What is not connected yet
 
-Remote agent execution, consumer user accounts, private profiles, cloud synchronization, billing, and authenticated workspace persistence are not live product features. The production Worker already exposes health, knowledge-fallback assistant, support-ticket and Access-protected administrator routes, but it is behind current main and does not yet expose the public module catalog or scheduled retention handler.
+Remote agent execution from this site, consumer user accounts, private profiles, cloud synchronization, billing, and authenticated workspace persistence are not live product features. MR_SIAVASH_HUB_AI is a separate local-first project; there is no direct API connection, shared identity, shared database or remote agent session between the two projects yet. The proposed integration boundary is documented in docs/decisions/0004-hub-integration-boundary.md. The production Worker already exposes health, knowledge-fallback assistant, support-ticket and Access-protected administrator routes, but it is behind current main and does not yet expose the public module catalog or scheduled retention handler.
 
 A Cloudflare Access self-hosted application is configured for the Worker paths `/admin` and `/v1/admin/*`, with an allow policy restricted to the designated administrator identity. The Worker source also validates the Access JWT and administrator allowlist. Cloudflare Access is configured and the deployed Worker serves the protected administrator routes; end-to-end authorized browser-session verification remains outstanding. The production Worker has no Workers AI binding, so model-generated assistant responses are not active. The source now includes a normalized provider adapter, but it remains dormant until a reviewed environment binding is explicitly enabled. Do not enter secrets, passwords, private keys, or sensitive personal data into the static site.
 
@@ -57,6 +57,7 @@ A Cloudflare Access self-hosted application is configured for the Worker paths `
 - cloudflare/gateway/ — Worker source, D1 migrations, tests, isolated preview and guarded production release documentation
 - docs/ARCHITECTURE.md — current boundaries and future integration plan
 - docs/decisions/0001-cloudflare-backend-boundary.md — Cloudflare backend decision record
+- docs/decisions/0004-hub-integration-boundary.md — safe integration boundary for MR_SIAVASH_HUB_AI
 - SECURITY.md — security reporting and current security boundaries
 
 ## Run locally
