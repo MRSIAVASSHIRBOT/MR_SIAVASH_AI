@@ -113,6 +113,7 @@ test("Hub public status panel is bounded, read-only and explicit about the local
   assert.match(js, /mr-siavash-hub-public-status/);
   assert.match(js, /credentials:"same-origin"/);
   assert.match(js, /cache:"no-store"/);
+  assert.match(js, /formatHubDate\(data\.generated_at\)/);
   assert.match(js, /16\*1024/);
   assert.match(js, /textContent/);
   assert.match(html, /MR_SIAVASH_HUB_AI\/actions/);
