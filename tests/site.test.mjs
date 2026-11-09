@@ -76,7 +76,7 @@ test("navigation buttons have real section targets", () => {
 
 test("administrator console is reachable from the main navigation and remains Access-protected", () => {
   const adminUrl = "https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev/admin";
-  assert.match(html, new RegExp('href="' + adminUrl.replace(/[.*+?^$\{\}()|[\]\\]/g, "\\test("support deep links open the existing support center", () => {") + '"'));
+  assert.ok(html.includes('href="' + adminUrl + '"'), "admin navigation must target the protected Preview console");
   assert.match(html, /پنل مدیریت/);
   assert.match(html, /target="_blank" rel="noopener noreferrer" aria-label="ورود به پنل مدیریت MR_SIAVASH_AI؛ نیازمند احراز هویت"/);
 });
