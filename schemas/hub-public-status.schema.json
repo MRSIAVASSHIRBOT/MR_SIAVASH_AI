@@ -5,36 +5,94 @@
   "description": "Allowlisted public GitHub repository and CI metadata only. This schema does not describe private Hub runtime health.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema", "version", "generated_at", "source", "project", "repository", "quality", "runtime"],
+  "required": [
+    "schema",
+    "version",
+    "generated_at",
+    "source",
+    "project",
+    "repository",
+    "quality",
+    "runtime"
+  ],
   "properties": {
-    "schema": { "const": "mr-siavash-hub-public-status" },
-    "version": { "const": 1 },
-    "generated_at": { "type": ["string", "null"], "format": "date-time" },
-    "source": { "enum": ["github-public-api", "repository-fallback"] },
+    "schema": {
+      "const": "mr-siavash-hub-public-status"
+    },
+    "version": {
+      "const": 1
+    },
+    "generated_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "source": {
+      "enum": [
+        "github-public-api",
+        "repository-fallback"
+      ]
+    },
     "project": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name", "repository_url", "default_branch"],
+      "required": [
+        "name",
+        "repository_url",
+        "default_branch"
+      ],
       "properties": {
-        "name": { "const": "MR_SIAVASH_HUB_AI" },
-        "repository_url": { "const": "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI" },
-        "default_branch": { "const": "main" }
+        "name": {
+          "const": "MR_SIAVASH_HUB_AI"
+        },
+        "repository_url": {
+          "const": "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI"
+        },
+        "default_branch": {
+          "const": "main"
+        }
       }
     },
     "repository": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["state", "latest_commit"],
+      "required": [
+        "state",
+        "latest_commit"
+      ],
       "properties": {
-        "state": { "enum": ["available", "unavailable"] },
+        "state": {
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
         "latest_commit": {
-          "type": ["object", "null"],
+          "type": [
+            "object",
+            "null"
+          ],
           "additionalProperties": false,
-          "required": ["short_sha", "committed_at", "url"],
+          "required": [
+            "short_sha",
+            "committed_at",
+            "url"
+          ],
           "properties": {
-            "short_sha": { "type": "string", "pattern": "^[a-f0-9]{7}$" },
-            "committed_at": { "type": "string", "format": "date-time" },
-            "url": { "type": "string", "pattern": "^https://github\\\\.com/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/commit/[a-f0-9]{40}$" }
+            "short_sha": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{7}$"
+            },
+            "committed_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "url": {
+              "type": "string",
+              "pattern": "^https://github\\.com/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/commit/[a-f0-9]{40}$"
+            }
           }
         }
       }
@@ -42,21 +100,76 @@
     "quality": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["state", "latest_ci"],
+      "required": [
+        "state",
+        "latest_ci"
+      ],
       "properties": {
-        "state": { "enum": ["available", "unavailable"] },
+        "state": {
+          "enum": [
+            "available",
+            "unavailable"
+          ]
+        },
         "latest_ci": {
-          "type": ["object", "null"],
+          "type": [
+            "object",
+            "null"
+          ],
           "additionalProperties": false,
-          "required": ["name", "status", "conclusion", "updated_at", "url", "short_sha", "matches_latest_commit"],
+          "required": [
+            "name",
+            "status",
+            "conclusion",
+            "updated_at",
+            "url",
+            "short_sha",
+            "matches_latest_commit"
+          ],
           "properties": {
-            "name": { "const": "CI" },
-            "status": { "enum": ["queued", "in_progress", "completed", "unknown"] },
-            "conclusion": { "type": ["string", "null"], "enum": ["success", "failure", "cancelled", "skipped", "timed_out", "action_required", "neutral", "stale", null] },
-            "updated_at": { "type": "string", "format": "date-time" },
-            "url": { "type": "string", "pattern": "^https://github\\\\.com/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/actions/runs/[0-9]+$" },
-            "short_sha": { "type": "string", "pattern": "^[a-f0-9]{7}$" },
-            "matches_latest_commit": { "type": "boolean" }
+            "name": {
+              "const": "CI"
+            },
+            "status": {
+              "enum": [
+                "queued",
+                "in_progress",
+                "completed",
+                "unknown"
+              ]
+            },
+            "conclusion": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "enum": [
+                "success",
+                "failure",
+                "cancelled",
+                "skipped",
+                "timed_out",
+                "action_required",
+                "neutral",
+                "stale",
+                null
+              ]
+            },
+            "updated_at": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "url": {
+              "type": "string",
+              "pattern": "^https://github\\.com/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/actions/runs/[0-9]+$"
+            },
+            "short_sha": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{7}$"
+            },
+            "matches_latest_commit": {
+              "type": "boolean"
+            }
           }
         }
       }
@@ -64,10 +177,19 @@
     "runtime": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["state", "detail"],
+      "required": [
+        "state",
+        "detail"
+      ],
       "properties": {
-        "state": { "const": "not_connected" },
-        "detail": { "type": "string", "minLength": 1, "maxLength": 240 }
+        "state": {
+          "const": "not_connected"
+        },
+        "detail": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 240
+        }
       }
     }
   }
