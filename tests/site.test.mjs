@@ -1558,6 +1558,7 @@ test("public pages expose unique canonical URLs and social metadata", async () =
     assert.match(source, /<meta\s+name="robots"\s+content="index,follow/i, path + " must declare indexability");
     assert.match(source, /<meta\s+property="og:url"\s+content=/i, path + " must expose its Open Graph URL");
     assert.match(source, /<meta\s+name="twitter:card"\s+content="summary"/i, path + " must declare a social card type");
+    assert.doesNotMatch(source, /\\n\s*<(?:meta|link)\b/i, path + " must not contain escaped newline text in the document head");
     canonicalUrls.push(canonicals[0]);
   }
   assert.equal(new Set(canonicalUrls).size, pages.length, "canonical URLs must be unique");
