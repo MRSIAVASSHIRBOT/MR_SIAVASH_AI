@@ -10,6 +10,104 @@ test("CORS allows only exact origin and approved methods and headers",async()=>{
 test("unknown routes and unsupported methods fail closed",async()=>{assert.equal((await worker.fetch(req("/v1/nope"),{})).status,404);assert.equal((await worker.fetch(req("/v1/health/live",{method:"DELETE"}),{})).status,405);});
 test("assistant validates input and fails closed without database",async()=>{const r=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"سلام"})}),{});assert.equal(r.status,503);});
 test("admin dashboard and APIs reject requests without verified Access JWT",async()=>{const page=await worker.fetch(req("/admin"),{});assert.equal(page.status,401);const r=await worker.fetch(req("/v1/admin/support/tickets"),{DB:db()});assert.equal(r.status,401);assert.equal((await r.json()).error.code,"admin_auth_required");});
+
+function createAccessJwt(privateKey, overrides = {}) {
+ const now = Math.floor(Date.now() / 1000);
+ const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT", kid: "preview-test-key" })).toString("base64url");
+ const claims = {
+  iss: "https://preview-team.cloudflareaccess.com",
+  aud: ["preview-aud"],
+  exp: now + 300,
+  nbf: now - 30,
+  email: "admin@example.test",
+  ...overrides
+ };
+ const payload = Buffer.from(JSON.stringify(claims)).toString("base64url");
+ const signingInput = header + "." + payload;
+ return signingInput + "." + sign("RSA-SHA256", Buffer.from(signingInput), privateKey).toString("base64url");
+}
+
+test("admin routes accept only a valid signed Access JWT for the configured audience and allowlisted identity", async () => {
+ const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+ const jwk = {
+  ...publicKey.export({ format: "jwk" }),
+  kid: "preview-test-key",
+  alg: "RS256",
+  use: "sig"
+ };
+ const originalFetch = globalThis.fetch;
+ globalThis.fetch = async url => {
+  assert.equal(String(url), "https://preview-team.cloudflareaccess.com/cdn-cgi/access/certs");
+  return new Response(JSON.stringify({ keys: [jwk] }), {
+   status: 200,
+   headers: { "Content-Type": "application/json" }
+  });
+ };
+ const env = {
+  CF_ACCESS_TEAM_DOMAIN: "preview-team.cloudflareaccess.com",
+  CF_ACCESS_AUD: "preview-aud",
+  ADMIN_EMAILS: "ADMIN@example.test",
+  DB: { prepare() { return { all: async () => ({ results: [] }) }; } }
+ };
+ try {
+  const valid = createAccessJwt(privateKey);
+  const page = await worker.fetch(req("/admin", {
+   headers: { "Cf-Access-Jwt-Assertion": valid }
+  }), env);
+  assert.equal(page.status, 200);
+  assert.match(page.headers.get("content-type") || "", /text\/html/i);
+  assert.match(await page.text(), /SUPPORT CONSOLE/);
+
+  const api = await worker.fetch(req("/v1/admin/support/tickets", {
+   headers: { "Cf-Access-Jwt-Assertion": valid }
+  }), env);
+  assert.equal(api.status, 200);
+  assert.deepEqual((await api.json()).tickets, []);
+
+  const rejected = [
+   createAccessJwt(privateKey, { iss: "https://attacker.cloudflareaccess.com" }),
+   createAccessJwt(privateKey, { aud: ["wrong-audience"] }),
+   createAccessJwt(privateKey, { exp: Math.floor(Date.now() / 1000) - 1 }),
+   createAccessJwt(privateKey, { nbf: Math.floor(Date.now() / 1000) + 60 }),
+   createAccessJwt(privateKey, { email: "intruder@example.test" })
+  ];
+  for (const token of rejected) {
+   const response = await worker.fetch(req("/v1/admin/support/tickets", {
+    headers: { "Cf-Access-Jwt-Assertion": token }
+   }), env);
+   assert.equal(response.status, 401);
+  }
+
+  const [header, payload, signature] = valid.split(".");
+  const changedSignature = (signature[0] === "A" ? "B" : "A") + signature.slice(1);
+  const forged = await worker.fetch(req("/admin", {
+   headers: { "Cf-Access-Jwt-Assertion": header + "." + payload + "." + changedSignature }
+  }), env);
+  assert.equal(forged.status, 401);
+ } finally {
+  globalThis.fetch = originalFetch;
+ }
+});
+
+test("admin routes fail closed when the Access signing-key endpoint is unavailable", async () => {
+ const { privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+ const originalFetch = globalThis.fetch;
+ globalThis.fetch = async () => { throw new Error("simulated key service outage"); };
+ try {
+  const response = await worker.fetch(req("/v1/admin/support/tickets", {
+   headers: { "Cf-Access-Jwt-Assertion": createAccessJwt(privateKey) }
+  }), {
+   CF_ACCESS_TEAM_DOMAIN: "preview-team.cloudflareaccess.com",
+   CF_ACCESS_AUD: "preview-aud",
+   ADMIN_EMAILS: "admin@example.test",
+   DB: { prepare() { return { all: async () => ({ results: [] }) }; } }
+  });
+  assert.equal(response.status, 401);
+ } finally {
+  globalThis.fetch = originalFetch;
+ }
+});
+
 test("scheduled cleanup fails closed when no retention period is configured",async()=>{
  let batches=0;
  const DB={prepare(){throw new Error("cleanup must not prepare SQL without an approved retention period");},batch(){batches++;}};
@@ -66,7 +164,7 @@ test("assistant knowledge distinguishes roadmap modules from active local module
 });
 
 
-import { createHash } from "node:crypto";
+import { createHash, generateKeyPairSync, sign } from "node:crypto";
 
 function supportDb() {
  const tickets = new Map();

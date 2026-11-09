@@ -63,8 +63,14 @@ jobs:
           fi
           invalid_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request POST "$BASE_URL/v1/support/tickets" --header 'Content-Type: application/json' --data '{"subject":"","message":"","consent":true}')"
           test "$invalid_status" = "400"
-          admin_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "$BASE_URL/v1/admin/support/tickets")"
-          test "$admin_status" = "401"
+          admin_page_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "$BASE_URL/admin")"
+          admin_api_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "$BASE_URL/v1/admin/support/tickets")"
+          for status in "$admin_page_status" "$admin_api_status"; do
+            case "$status" in
+              302|401|403) ;;
+              *) echo "An anonymous admin route was not blocked (HTTP $status)." >&2; exit 1 ;;
+            esac
+          done
           ticket_status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "$BASE_URL/v1/support/tickets/MS-0000000000000000")"
           test "$ticket_status" = "404"
       - name: Check trusted and untrusted CORS boundaries
