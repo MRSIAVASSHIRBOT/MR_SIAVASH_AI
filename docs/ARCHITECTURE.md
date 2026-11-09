@@ -2,7 +2,7 @@
 
 ## Product boundary
 
-The current repository is a static, browser-executed front end. It must not claim to provide authentication, remote AI execution, cloud persistence, or private user accounts until a trusted backend exists.
+The primary application in this repository is a static, browser-executed front end. It must not claim consumer authentication, private cloud persistence, production model inference or remote Hub agent execution unless the corresponding backend capability is enabled and verified end to end.
 
 ## Front-end layers
 
@@ -33,7 +33,7 @@ MR_SIAVASH_AI has separate production and preview Cloudflare environments. Produ
 
 A Cloudflare control-plane readback on 2026-11-08 identified production Worker version `f7d5a92e-2694-4af1-8b99-18d04742925d`. That deployed bundle exposes health/readiness, a knowledge-fallback assistant endpoint, public support-ticket create/read/reply endpoints, and Access-protected administrator console/API routes. It does not yet contain the current repository's `GET /v1/modules` route or the scheduled data-retention handler. The preview Worker runs current `main` source and its runtime smoke workflow passed health, D1 readiness, module catalog, grounded fallback, support validation, admin fail-closed and CORS checks.
 
-The production Worker has no Workers AI binding; its assistant endpoint therefore uses verified knowledge fallback rather than model inference. The public site keeps ticket submission/tracking disabled until the reviewed production release and retention decision are complete. Production D1 already contains support records; their contents were not inspected, and no records were changed. Do not reapply migrations 0001–0003.
+The production Worker has no Workers AI binding; its assistant endpoint therefore uses verified knowledge fallback rather than model inference. New public ticket intake remains disabled until the reviewed production release and retention decision are complete; existing ticket tracking is a separate route and remains subject to D1 availability. Production D1 already contains support records; their contents were not inspected, and no records were changed. Do not reapply migrations 0001–0003.
 
 Cloudflare Access is configured for `/admin` and `/v1/admin/*` with a single-administrator allow policy. The Worker independently validates Access JWT signature, issuer, audience, expiry and administrator allowlist. Authorized browser-session verification remains a manual acceptance test.
 
