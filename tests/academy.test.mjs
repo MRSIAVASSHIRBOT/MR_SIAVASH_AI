@@ -71,3 +71,12 @@ test("Academy dashboard and browser-local progress boundaries are documented", (
   assert.match(roadmap, /service-worker cache v39/);
   assert.match(roadmap, /no cloud account or remote execution is implied/);
 });
+
+
+test("academy visual system stays aligned with the forest and emerald site palette", () => {
+  assert.match(css, /#152019/);
+  assert.match(css, /#75c58d/);
+  assert.match(css, /#a8e2b7/);
+  assert.match(css, /:focus-visible\{outline:2px solid #9bd8aa/);
+  assert.doesNotMatch(css, /#9c8cff|#68dff5|#b7aaff/);
+});
