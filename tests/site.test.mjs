@@ -1644,7 +1644,7 @@ test("Hub integration is documented as separate until the security gates pass", 
   const decision = await readFile(new URL("../docs/decisions/0004-hub-integration-boundary.md", import.meta.url), "utf8");
 
   assert.match(readme, /no direct API connection, shared identity, shared database/i);
-  assert.match(architecture, /no live runtime connection/i);
+  assert.match(architecture, /no shared identity, database, API session or live runtime connection/i);
   assert.match(contracts, /Exact-origin CORS is necessary but is not authentication/i);
   assert.match(decision, /public tunnel to a developer machine/i);
   assert.match(decision, /short-lived, narrowly scoped credentials/i);
