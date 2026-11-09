@@ -1,0 +1,23 @@
+{
+  "schema": "mr-siavash-hub-public-status",
+  "version": 1,
+  "generated_at": null,
+  "source": "repository-fallback",
+  "project": {
+    "name": "MR_SIAVASH_HUB_AI",
+    "repository_url": "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI",
+    "default_branch": "main"
+  },
+  "repository": {
+    "state": "unavailable",
+    "latest_commit": null
+  },
+  "quality": {
+    "state": "unavailable",
+    "latest_ci": null
+  },
+  "runtime": {
+    "state": "not_connected",
+    "detail": "این پنل فقط فراداده عمومی مخزن و CI را نشان می‌دهد؛ سلامت اجرای محلی Hub را بررسی نمی‌کند."
+  }
+}
