@@ -21,8 +21,7 @@ test("studio exposes clear visitor journeys and all primary sections", () => {
 });
 
 test("studio HTML has valid local anchors and no accidental escaped newline text", () => {
-  assert.doesNotMatch(html, /\
-/);
+  assert.doesNotMatch(html, /\\n/);
   const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map(match => match[1]);
   assert.equal(new Set(ids).size, ids.length, "duplicate HTML id");
   const localAnchors = [...html.matchAll(/\shref="#([^"]+)"/g)].map(match => match[1]);
