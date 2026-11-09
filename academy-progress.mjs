@@ -44,9 +44,9 @@ export function summarizeAcademyProgress(courses, progress) {
   let completedCourses = 0;
 
   for (const course of courses) {
-    const count = Array.isArray(progress[course.id])
-      ? progress[course.id].filter(index => Number.isInteger(index) && index >= 0 && index < course.lessons.length).length
-      : 0;
+    const count = new Set(Array.isArray(progress[course.id])
+      ? progress[course.id].filter(index => Number.isInteger(index) && index >= 0 && index < course.lessons.length)
+      : []).size;
     completedLessons += count;
     if (count > 0) startedCourses += 1;
     if (course.lessons.length > 0 && count === course.lessons.length) completedCourses += 1;
@@ -65,12 +65,17 @@ export function summarizeAcademyProgress(courses, progress) {
 export function resolveAcademyResume(courses, progress, meta = {}) {
   if (!courses.length) return null;
   const preferred = courses.find(course => course.id === meta.lastCourse);
+  const completedFor = course => new Set(
+    (Array.isArray(progress[course.id]) ? progress[course.id] : []).filter(
+      index => Number.isInteger(index) && index >= 0 && index < course.lessons.length
+    )
+  );
   const fallback = courses.find(course => {
-    const count = Array.isArray(progress[course.id]) ? progress[course.id].length : 0;
+    const count = completedFor(course).size;
     return count > 0 && count < course.lessons.length;
   }) || courses[0];
   const course = preferred || fallback;
-  const completed = new Set(Array.isArray(progress[course.id]) ? progress[course.id] : []);
+  const completed = completedFor(course);
   const allComplete = course.lessons.length > 0 && completed.size >= course.lessons.length;
   let lessonIndex = Number.isInteger(meta.lastLesson) &&
     meta.lastLesson >= 0 && meta.lastLesson < course.lessons.length
