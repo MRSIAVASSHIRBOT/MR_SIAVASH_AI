@@ -1,6 +1,6 @@
 # ADR-0004: Safe integration boundary for MR_SIAVASH_AI and MR_SIAVASH_HUB_AI
 
-- **Status:** Proposed; no runtime integration is active
+- **Status:** Accepted for Stage 0 and Stage 1 public metadata only; private pairing and agent actions remain proposed
 - **Date:** 2026-11-09
 - **Decision scope:** Public site, Cloudflare Gateway, local-first Hub runtime
 
@@ -58,8 +58,8 @@ If the owner later chooses to host Hub remotely, that is a distinct deployment a
 
 ## Staged rollout
 
-1. **Stage 0 — documentation:** agree on this boundary and keep the projects explicitly labeled as separate.
-2. **Stage 1 — public status:** add a read-only, versioned and allowlisted status contract; verify that no private data is present.
+1. **Stage 0 — documentation:** completed; the boundary is recorded and the projects remain explicitly labeled as separate.
+2. **Stage 1 — public status:** implemented as a build-time snapshot of public GitHub commit and CI metadata, with a versioned allowlist and unavailable fallback. It does not query the Hub runtime.
 3. **Stage 2 — local pairing:** implement an owner-controlled bridge with scoped credentials, revocation and negative security tests.
 4. **Stage 3 — bounded agent actions:** expose only named Hub capabilities through policy-checked APIs, with audit, idempotency, budgets and human approval.
 5. **Stage 4 — remote hosting, if requested:** perform a separate threat model and production-readiness review before enabling any public endpoint.
