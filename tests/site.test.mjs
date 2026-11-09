@@ -1657,7 +1657,8 @@ test("Hub integration is documented as separate until the security gates pass", 
 });
 
 
-test("public Hub status contract exposes only repository metadata and never claims runtime health", () => {
+test("public Hub status contract exposes only repository metadata and never claims runtime health", async () => {
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
   assert.equal(hubStatus.schema, "mr-siavash-hub-public-status");
   assert.equal(hubStatus.version, 1);
   assert.equal(hubStatus.runtime.state, "not_connected");
