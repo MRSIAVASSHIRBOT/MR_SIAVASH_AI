@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const html = await readFile(new URL("../academy.html", import.meta.url), "utf8");
 const js = await readFile(new URL("../academy.js", import.meta.url), "utf8");
+const progressModule = await readFile(new URL("../academy-progress.mjs", import.meta.url), "utf8");
 const css = await readFile(new URL("../academy.css", import.meta.url), "utf8");
 const home = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const search = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
@@ -18,7 +19,7 @@ test("academy exposes six structured courses and thirty chapters", () => {
   assert.match(html, /id="courseGrid"/);
   assert.match(html, /studio\.css/);
   assert.match(html, /ui-sounds\.js/);
-  assert.match(js, /Progress data too large/);
+  assert.match(progressModule, /value\.length > 4096/);
   assert.match(html, /id="learningPanel"/);
   assert.match(html, /id="academyStatus" role="status"/);
   assert.match(html, /id="academyDashboardContent"/);
@@ -36,7 +37,7 @@ test("academy tracks progress locally and renders lesson content as text", () =>
   assert.match(js, /aria-expanded/);
   assert.ok(js.includes("navigator.serviceWorker.register"));
   assert.ok(js.includes("aria-valuenow"));
-  assert.ok(js.includes("پیشرفت در همین مرورگر ذخیره شد"));
+  assert.ok(js.includes("پیشرفت و موقعیت یادگیری در همین مرورگر ذخیره شد."));
 });
 
 test("academy navigation, global search, and offline shell are integrated", () => {
