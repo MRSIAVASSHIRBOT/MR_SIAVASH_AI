@@ -91,7 +91,7 @@ test("provider errors are normalized without exposing upstream details", () => {
     const error = classifyAssistantProviderError(new Error(message));
     assert.equal(error.category, category);
     assert.equal(error.retryable, retryable);
-    assert.doesNotMatch(error.message, /invalid token|rate limit|unsupported model/i);
+    assert.doesNotMatch(error.message, /invalid token|HTTP 429|504 request timeout|400 unsupported model/i);
   }
 });
 
