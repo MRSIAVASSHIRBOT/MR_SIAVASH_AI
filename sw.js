@@ -1,9 +1,9 @@
 "use strict";
 
 const CACHE_PREFIX = "mr-siavash-ai-shell-";
-const CACHE_NAME = CACHE_PREFIX + "v38";
+const CACHE_NAME = CACHE_PREFIX + "v39";
 const MAX_MODULE_REGISTRY_BYTES = 64 * 1024;
-const SHELL_FILES = ["./", "./index.html", "./styles.css", "./experience.css", "./studio.css", "./experience-next.css", "./atelier.css", "./field-notes.css", "./ui-sounds.js", "./app.js", "./site-search.js", "./search-index.json", "./python.html", "./python-course.css", "./python-course.js", "./academy.html", "./academy.css", "./academy.js", "./bounded-json.js", "./support.js", "./support-tickets.mjs", "./support.css", "./privacy.html", "./favicon.svg", "./manifest.webmanifest", "./modules.json", "./studio.html", "./studio-portfolio.css", "./studio-portfolio.js"];
+const SHELL_FILES = ["./", "./index.html", "./styles.css", "./experience.css", "./studio.css", "./experience-next.css", "./atelier.css", "./field-notes.css", "./ui-sounds.js", "./app.js", "./site-search.js", "./search-index.json", "./python.html", "./python-course.css", "./python-course.js", "./academy.html", "./academy.css", "./academy.js", "./academy-progress.mjs", "./bounded-json.js", "./support.js", "./support-tickets.mjs", "./support.css", "./privacy.html", "./favicon.svg", "./manifest.webmanifest", "./modules.json", "./studio.html", "./studio-portfolio.css", "./studio-portfolio.js"];
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
