@@ -53,11 +53,11 @@ The UI must render status from trusted application configuration, not infer prod
 
 ## 5. AI provider adapter
 
-The first implementation is the Cloudflare Workers AI adapter in \`cloudflare/gateway/src/assistant-provider.js\`. It provides a normalized provider/model identifier, validates message envelopes, bounds output tokens, normalizes supported text and usage response shapes, and maps upstream failures to typed categories without returning raw provider errors to the browser.
+The first implementation is the Cloudflare Workers AI adapter in `cloudflare/gateway/src/assistant-provider.js`. It provides a normalized provider/model identifier, validates message envelopes, bounds output tokens, normalizes supported text and usage response shapes, and maps upstream failures to typed categories without returning raw provider errors to the browser.
 
-The adapter's retry policy is explicit: one attempt and no automatic retry. This avoids silently multiplying model calls and potential usage. Its current capabilities explicitly report streaming, request timeout, and cancellation as unavailable; the current non-streaming \`env.AI.run()\` binding contract does not expose a documented cancellation parameter. Do not describe the adapter as meeting the full production provider contract until bounded execution/cancellation is supported and tested.
+The adapter's retry policy is explicit: one attempt and no automatic retry. This avoids silently multiplying model calls and potential usage. Its current capabilities explicitly report streaming, request timeout, and cancellation as unavailable; the current non-streaming `env.AI.run()` binding contract does not expose a documented cancellation parameter. Do not describe the adapter as meeting the full production provider contract until bounded execution/cancellation is supported and tested.
 
-The adapter is dormant when the \`AI\` binding is absent. Production currently has no Workers AI binding, so this source refactor does not activate model inference, create model usage, or change production behavior. Provider credentials stay in server-side secret storage. Never put keys in HTML, JavaScript bundles, localStorage, service-worker caches, or public logs. Provider output is untrusted data and must be rendered as text by default.
+The adapter is dormant when the `AI` binding is absent. Production currently has no Workers AI binding, so this source refactor does not activate model inference, create model usage, or change production behavior. Provider credentials stay in server-side secret storage. Never put keys in HTML, JavaScript bundles, localStorage, service-worker caches, or public logs. Provider output is untrusted data and must be rendered as text by default.
 
 ## 6. Agent execution boundary
 
