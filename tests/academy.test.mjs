@@ -26,6 +26,9 @@ test("academy exposes six structured courses and thirty chapters", () => {
   assert.match(html, /type="module" src="\.\/academy\.js"/);
   assert.match(js, /resolveAcademyResume/);
   assert.match(js, /summarizeAcademyProgress/);
+  assert.match(js, /progressMeta\.lastCourse=id/);
+  assert.match(js, /progressMeta\.lastLesson=lessonIndex/);
+  assert.match(js, /renderDashboard\(\)/);
   assert.match(html, /href="\.\/python\.html"/);
 });
 
