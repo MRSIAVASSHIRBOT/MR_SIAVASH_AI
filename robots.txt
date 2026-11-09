@@ -1,1 +1,4 @@
-User-agent: *\nAllow: /\n\nSitemap: https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/sitemap.xml\n
+User-agent: *
+Allow: /
+
+Sitemap: https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/sitemap.xml
