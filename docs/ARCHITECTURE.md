@@ -7,9 +7,9 @@ The primary application in this repository is a static, browser-executed front e
 ## Front-end layers
 
 1. **Presentation:** semantic HTML, RTL layout, responsive CSS, keyboard navigation, dialogs, status indicators.
-2. **Client application:** module registry, hash routing, saved-module state, local task operations, JSON import/export.
-3. **Browser persistence:** versioned localStorage keys. Tasks and favorites synchronize across same-origin tabs through validated storage events with last-write-wins semantics. Data remains scoped to the browser profile; there is no cross-device or cloud synchronization. While explicit workspace recovery is pending, incoming task writes and storage-clear events are ignored.
-4. **Offline shell:** service worker uses an explicit exact-URL allowlist for static application resources. It bypasses API, authenticated, query-string, cross-origin, unknown-route, and non-GET requests; navigation fallback is limited to the app document and stores only successful HTML responses.
+2. **Client application:** module registry, hash routing, saved-module state, local task operations, JSON import/export, and Academy course-progress/resume state through a validated browser-local utility.
+3. **Browser persistence:** versioned localStorage keys. Academy progress and resume metadata remain in the existing mr-siavash-ai.academy.v1 key; legacy completion arrays are preserved and normalized. Tasks and favorites synchronize across same-origin tabs through validated storage events with last-write-wins semantics. Data remains scoped to the browser profile; there is no cross-device or cloud synchronization. While explicit workspace recovery is pending, incoming task writes and storage-clear events are ignored.
+4. **Offline shell:** service worker uses an explicit exact-URL allowlist for static application resources, including the Academy progress module (cache version v39). It bypasses API, authenticated, query-string, cross-origin, unknown-route, and non-GET requests; navigation fallback is limited to the app document and stores only successful HTML responses.
 
 ## Module boundaries
 
@@ -23,7 +23,7 @@ The primary application in this repository is a static, browser-executed front e
 | Knowledge Library | Searchable public learning material and private research knowledge | Site search is local/public; Hub memory and knowledge remain in its separate runtime |
 | Creator Studio | Media planning and production workflows | Not yet available as a connected site module |
 | Digital Identity | Public project identity and privacy information | Static/public identity only; no consumer login or private profile |
-| Learning Academy | Six learning paths covering 30 chapters | Implemented; progress is stored in the current browser |
+| Learning Academy | Six learning paths, 30 chapters, aggregate progress dashboard and resume to last active/next incomplete chapter | Implemented; progress and resume metadata are validated and stored only in the current browser; no cloud sync or learner account |
 | Python Course | Beginner Python lessons, examples and knowledge checks | Implemented; 12 lessons with browser-local progress; code is not executed by the site |
 | Personal Workspace | Local tasks, favorites and backup/restore | Browser-only prototype |
 

@@ -1,6 +1,6 @@
 # Product roadmap — parallel workstreams
 
-> Runtime status verified 2026-11-09 against the latest repository main commit `feba5acafb07e3d041b7d06134006e69c9119c7f` and current Cloudflare control-plane state. The latest exact-head CI runs for the administrator-navigation change (42616900715) and production-release guard (42612328716) both completed successfully; both changes are merged. Production Worker traffic remains at 100% on version 5 (`f7d5a92e-2694-4af1-8b99-18d04742925d`); the production version-6 rollout was rolled back after failed smoke checks, and production has no scheduled retention cron or Workers AI binding. Preview Worker traffic is at 100% on version 6 (`2b737abb-0303-41cc-b96d-2b02bdb1dea8`), sourced from commit `92ef4c4fb646cd7c9045de5aacffa6d161f84a2d`, with isolated Preview D1, its own Cloudflare Access application for `/admin` and `/v1/admin/*`, a daily 03:00 UTC schedule, and a 90-day Preview retention setting. Preview's retention configuration is not a production data-lifecycle decision. Both environments remain without Workers AI inference enabled. Authorized browser-session acceptance for the admin console remains outstanding. The static-site navigation now links to `admin-support.html`, whose secure entry button targets the production admin route; the separate Preview admin URL remains available for Preview acceptance testing. The future production support-retention choice remains 30 days, but production automatic deletion stays disabled pending a separately approved release and review of existing-ticket impact. GitHub main branch protection remains disabled (issue #70 is open).
+> Runtime status verified 2026-11-09 against the latest repository main commit `06a231ba7e969e55f976f65385e9ebb21140361c` and current Cloudflare control-plane state. The exact-main GitHub Pages quality/deployment run (42619304661), Cloudflare Gateway Runtime Smoke (42619304649), and Preview Runtime Smoke (42619304609) all completed successfully on that commit. The Academy progress dashboard is merged and the static-site deployment workflow succeeded. Production Worker traffic remains at 100% on version 5 (`f7d5a92e-2694-4af1-8b99-18d04742925d`); the production version-6 rollout was rolled back after failed smoke checks, and production has no scheduled retention cron or Workers AI binding. Preview Worker traffic is at 100% on version 6 (`2b737abb-0303-41cc-b96d-2b02bdb1dea8`), sourced from commit `92ef4c4fb646cd7c9045de5aacffa6d161f84a2d`, with isolated Preview D1, its own Cloudflare Access application for `/admin` and `/v1/admin/*`, a daily 03:00 UTC schedule, and a 90-day Preview retention setting. Preview's retention configuration is not a production data-lifecycle decision. Both environments remain without Workers AI inference enabled. Authorized browser-session acceptance for the admin console remains outstanding. The static-site navigation now links to `admin-support.html`, whose secure entry button targets the production admin route; the separate Preview admin URL remains available for Preview acceptance testing. The future production support-retention choice remains 30 days, but production automatic deletion stays disabled pending a separately approved release and review of existing-ticket impact. GitHub main branch protection remains disabled (issue #70 is open).
 
 The workstreams progress together behind shared release gates. A module is not production-ready merely because its card or UI exists. Shared integration rules are defined in docs/PLATFORM_CONTRACTS.md.
 
@@ -11,7 +11,7 @@ The workstreams progress together behind shared release gates. A module is not p
 | Backend/API | Versioned OpenAPI contract, tenant-scoped D1 schema, internal principal mapping, and health/public metadata boundary | Automated OpenAPI validation plus in-memory migration/backfill/foreign-key tests in CI; then Wrangler-local D1 tests, preview migration, contract tests and cross-account isolation tests before production |
 | Identity and privacy | Authentication lifecycle and authorization matrix | Negative tests prove cross-account access is denied |
 | AI and agents | Normalized Workers AI adapter is implemented in source; bounded agent runtime is maintained separately in MR_SIAVASH_HUB_AI | Provider remains disabled in production until an explicit binding/release; cross-project access requires the ADR-0004 pairing and authorization gates |
-| Learning and security | Defensive learning paths and authorized-lab boundaries | Content review and safe lab framing |
+| Learning and security | Six-path Academy (30 chapters), browser-local progress dashboard, resume position, Python course and defensive web-security learning | Progress migration, malformed-storage recovery, resume logic, mobile/accessibility behavior and offline-shell coverage remain tested; no cloud account or remote execution is implied |
 | Creator and knowledge | Reusable content/resource metadata contracts | Search, export and ownership rules documented |
 | Operations | Main-only CI deployment gate, monitoring, backup and rollback | Only successful main-branch runs can deploy; deployment URL is surfaced; restoration is tested |
 
@@ -38,6 +38,21 @@ Add AI, agent, developer, security, learning, creator and knowledge capabilities
 
 ### Stage E — production readiness
 Complete accessibility, security, reliability, privacy, observability, backup/restore and incident-response reviews.
+
+## Learning Academy progress dashboard — 2026-11-09
+
+The Academy now provides six structured learning paths with 30 chapters, plus the separate 12-lesson Python course. Its dashboard summarizes completed chapters, total progress, paths with progress and completed courses. The resume action returns to the saved active course and next incomplete or last active chapter.
+
+Progress remains browser-local under the existing storage key, preserving prior completion arrays while adding validated resume metadata. The new pure progress module normalizes malformed, oversized, duplicate and out-of-range records; it does not introduce user accounts, cloud synchronization or server-side learner profiles. The module is included in the versioned offline shell (service-worker cache v39).
+
+Acceptance gates:
+- Legacy progress is preserved and normalized without changing the existing storage key.
+- Summary calculations ignore duplicate and invalid chapter indexes.
+- Resume logic handles unfinished chapters, completed chapters and fully completed courses.
+- Lesson samples continue to render as text; no HTML injection or in-browser code execution is added.
+- The progress module is included in the atomic offline shell and its cache version is updated.
+- Mobile layout, keyboard focus, reduced motion and forced-colors behavior remain covered.
+- UI copy clearly states that progress is stored only in the current browser.
 
 ## Digital studio experience — 2026-11-09
 
