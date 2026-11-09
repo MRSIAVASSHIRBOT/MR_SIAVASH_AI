@@ -1635,3 +1635,19 @@ test("all local assets referenced by public HTML pages exist and core routes are
   }
   assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v37"/);
 });
+
+
+test("Hub integration is documented as separate until the security gates pass", async () => {
+  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
+  const architecture = await readFile(new URL("../docs/ARCHITECTURE.md", import.meta.url), "utf8");
+  const contracts = await readFile(new URL("../docs/PLATFORM_CONTRACTS.md", import.meta.url), "utf8");
+  const decision = await readFile(new URL("../docs/decisions/0004-hub-integration-boundary.md", import.meta.url), "utf8");
+
+  assert.match(readme, /no direct API connection, shared identity, shared database/i);
+  assert.match(architecture, /no shared identity, database, API session or live runtime connection/i);
+  assert.match(contracts, /Exact-origin CORS is necessary but is not authentication/i);
+  assert.match(decision, /public tunnel to a developer machine/i);
+  assert.match(decision, /short-lived, narrowly scoped credentials/i);
+  assert.match(decision, /human approval/i);
+  assert.match(decision, /not connected/i);
+});

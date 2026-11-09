@@ -1,6 +1,6 @@
 # Platform integration contracts
 
-Status: architecture specification; not an implementation or deployed service.
+Status: living architecture and integration contract. Implementation varies by section; the AI provider adapter is present in source but dormant in production, and cross-project Hub integration remains proposed.
 
 This document defines shared rules for the parallel product workstreams so that modules can evolve independently without creating incompatible identity, data, AI, or agent boundaries.
 
@@ -100,4 +100,20 @@ Production has no Workers AI binding. The support API is present in the deployed
 
 Cloudflare Access protects `/admin` and `/v1/admin/*`; the Worker independently verifies the Access JWT and administrator allowlist. Query-string redaction is enabled and persistent invocation logs/traces remain enabled. The manual-only production release workflow defaults to read-only binding validation and rolls back the previous traffic split if post-deployment checks fail. Workers AI and automatic support retention are explicit opt-ins.
 
-No consumer user accounts, identity-provider login, private profiles, cloud workspace sync, model-generated assistant or agent runtime are live. The OpenAPI and threat-model documents remain contracts/design artifacts, not proof of those capabilities.
+Within MR_SIAVASH_AI, consumer user accounts, identity-provider login, private profiles, cloud workspace sync, production model-generated assistant responses and a remote Hub agent connection are not live. MR_SIAVASH_HUB_AI has a separate local-first agent runtime, but it is not connected to this site. The OpenAPI and threat-model documents remain contracts/design artifacts, not proof of those capabilities.
+
+
+## 10. Cross-project integration: MR_SIAVASH_HUB_AI
+
+MR_SIAVASH_HUB_AI is a separate local-first runtime, not a connected backend for this static site. Its authentication, owner identity, local memory, knowledge, tools, workflow state, approvals and audit trail remain authoritative inside that project. No shared database, shared session, direct browser-to-Hub API call or remote agent execution is currently active.
+
+Integration must be opt-in and staged:
+
+1. **Public read-only metadata:** expose only explicitly allowlisted project status and capability metadata through a versioned public contract. Never include private task names, prompts, memory, local paths, credentials, support records or raw logs.
+2. **Private local pairing:** require an owner-initiated local bridge or equivalent reviewed connector. Bind the exact site origin and a paired client identity; use short-lived, narrowly scoped credentials, replay protection, request limits and revocation. Exact-origin CORS is necessary but is not authentication.
+3. **Controlled agent operations:** route requests through Hub authentication, ownership checks, the policy engine, bounded tool schemas, idempotency, audit events and per-action human approval for consequential side effects.
+4. **Remote hosting, if ever selected:** treat it as a separate product/security decision requiring verified identity, tenant isolation, TLS, monitoring, backup/restore, data retention and budget controls. Do not silently expose the local runtime.
+
+Prohibited shortcuts: wildcard CORS, unauthenticated local endpoints, public tunnels to a developer machine, browser-stored long-lived Hub tokens, client-supplied owner IDs, shared SQLite/D1 files, and model-proposed actions that bypass Hub policy.
+
+Acceptance gates include negative origin and authentication tests, pairing/revocation tests, cross-user isolation, request-size/rate limits, replay/idempotency checks, audit redaction, offline behavior, and end-to-end verification that no consequential action executes without the Hub's approval boundary. Until those gates pass, all UI copy must say the projects are separate and not connected.
