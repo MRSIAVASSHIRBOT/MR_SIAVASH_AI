@@ -28,7 +28,7 @@ test("all public pages load the new design layer after the stable component styl
 });
 
 test("editorial material contrast, original typography and local-only assets are present", () => {
-  assert.match(atelier, /--bg:#07110c/);
+  assert.match(atelier, /--bg:#0b120d/);
   assert.match(atelier, /background:#d9ddce/);
   assert.match(atelier, /font:800 clamp\(43px,5\.5vw,72px\)\/\.94 Georgia,serif/);
   assert.doesNotMatch(atelier, /@import|url\(\s*["']?https?:/i);
