@@ -22,6 +22,7 @@ test("public Hub snapshot exposes only allowlisted repository and CI metadata", 
   const fetchImpl = async (url, options) => {
     calls.push({ url: String(url), options });
     assert.equal(options.headers.Authorization, undefined);
+    assert.equal(options.headers["User-Agent"], "MR_SIAVASH_AI-public-status");
     if (String(url).endsWith("/commits/main")) {
       return jsonResponse({
         sha: commitSha,
@@ -122,4 +123,38 @@ test("unavailable or oversized public API responses fail closed to a metadata-on
   assert.equal(limited.source, "repository-fallback");
   assert.equal(limited.repository.latest_commit, null);
   assert.equal(limited.quality.latest_ci, null);
+});
+
+
+test("rejects non-GitHub metadata URLs and accepts GitHub's vendor JSON content type", async () => {
+  const fetchImpl = async (url) => {
+    if (String(url).endsWith("/commits/main")) {
+      return new Response(JSON.stringify({
+        sha: commitSha,
+        html_url: "https://attacker.example/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/commit/" + commitSha,
+        commit: { author: { date: "2026-11-09T10:00:00Z" } },
+      }), {
+        status: 200,
+        headers: { "content-type": "application/vnd.github+json; charset=utf-8" },
+      });
+    }
+    return new Response(JSON.stringify({
+      workflow_runs: [{
+        name: "CI",
+        head_branch: "main",
+        head_sha: commitSha,
+        status: "completed",
+        conclusion: "success",
+        updated_at: "2026-11-09T10:01:00Z",
+        html_url: "https://attacker.example/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/actions/runs/123",
+      }],
+    }), {
+      status: 200,
+      headers: { "content-type": "application/vnd.github+json; charset=utf-8" },
+    });
+  };
+  const result = await buildHubPublicStatus({ fetchImpl });
+  assert.equal(result.source, "repository-fallback");
+  assert.equal(result.repository.latest_commit, null);
+  assert.equal(result.quality.latest_ci, null);
 });
