@@ -1566,11 +1566,11 @@ test("public pages expose unique canonical URLs and social metadata", async () =
 test("crawler directives and sitemap only advertise public site routes", async () => {
   const robots = await readFile(new URL("../robots.txt", import.meta.url), "utf8");
   const sitemap = await readFile(new URL("../sitemap.xml", import.meta.url), "utf8");
-  assert.match(robots, /^User-agent: \*\s+Allow: \/m);
-  assert.match(robots, /Sitemap: https:\/\/mrsiavasshirbot\.github\.io\/MR_SIAVASH_AI\/sitemap\.xml/);
-  assert.match(sitemap, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
+  assert.ok(robots.startsWith("User-agent: *\nAllow: /"), "robots.txt must allow public crawling");
+  assert.ok(robots.includes("Sitemap: https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/sitemap.xml"));
+  assert.ok(sitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>'));
   for (const route of ["/", "/studio.html", "/academy.html", "/python.html", "/privacy.html"]) {
     assert.ok(sitemap.includes("https://mrsiavasshirbot.github.io/MR_SIAVASH_AI" + route), "missing sitemap route " + route);
   }
-  assert.doesNotMatch(sitemap, /localhost|127\.0\.0\.1|workers\.dev/);
+  assert.ok(!/localhost|127\.0\.0\.1|workers\.dev/.test(sitemap), "sitemap must not expose development or API hosts");
 });
