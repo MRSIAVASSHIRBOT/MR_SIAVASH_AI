@@ -29,6 +29,8 @@ test("production release metadata pins the dedicated D1 and preserves Access bin
   }
   assert.deepEqual(metadata.keep_bindings, ["secret_text", "secret_key", "secrets_store_secret", "mtls_certificate"]);
   assert.equal(metadata.bindings.find(x => x.name === "SUPPORT_RETENTION_DAYS").text, "30");
+  assert.equal(metadata.annotations["workers/commit_sha"], "a".repeat(40));
+  assert.equal(metadata.annotations["workers/repository_url"], "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI");
 });
 
 test("production release refuses a database mismatch or incomplete Access configuration", () => {
@@ -104,7 +106,6 @@ test("retention opt-out removes only its cleanup cron and preserves unrelated sc
   ]);
 });
 
-
 test("validation-only production release performs reads and never uploads or changes traffic", async () => {
   const calls = [];
   const fetchImpl = async (url, init = {}) => {
@@ -135,6 +136,22 @@ test("validation-only production release performs reads and never uploads or cha
   assert.ok(calls.every(call => !call.path.endsWith("/deployments") || call.method === "GET"));
 });
 
+test("production deployment refuses a missing or invalid source commit before Cloudflare access", async () => {
+  let calls = 0;
+  await assert.rejects(releaseProductionWorker({
+    token: "test-token",
+    accountId: "ae50292f7e60c0d6d0052727e61c4033",
+    expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f",
+    deploy: true,
+    commitSha: "not-a-commit",
+    fetchImpl: async () => {
+      calls += 1;
+      throw new Error("Cloudflare must not be called");
+    }
+  }), /exact 40-character Git commit SHA/);
+  assert.equal(calls, 0);
+});
+
 test("secret values are not copied into uploaded version metadata", () => {
   const metadata = buildVersionMetadata(settings, {
     expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f"
@@ -145,7 +162,7 @@ test("secret values are not copied into uploaded version metadata", () => {
 
 test("production release smoke follows the explicit support-retention selection", async () => {
   const source = await (await import("node:fs/promises")).readFile(new URL("./deploy-production-worker.mjs", import.meta.url), "utf8");
-  assert.match(source, /enableSupportRetention \? 400 : 503/);
+  assert.match(source, /enableSupportRetention ? 400 : 503/);
   assert.match(source, /support_retention_required/);
   assert.match(source, /consent_required/);
   assert.match(source, /ready\.body\.features\?\.publicSupport !== enableSupportRetention/);
