@@ -100,7 +100,7 @@ Production has no Workers AI binding. The support API is present in the deployed
 
 Cloudflare Access protects `/admin` and `/v1/admin/*`; the Worker independently verifies the Access JWT and administrator allowlist. Query-string redaction is enabled and persistent invocation logs/traces remain enabled. The manual-only production release workflow defaults to read-only binding validation and rolls back the previous traffic split if post-deployment checks fail. Workers AI and automatic support retention are explicit opt-ins.
 
-No consumer user accounts, identity-provider login, private profiles, cloud workspace sync, model-generated assistant or agent runtime are live. The OpenAPI and threat-model documents remain contracts/design artifacts, not proof of those capabilities.
+Within MR_SIAVASH_AI, consumer user accounts, identity-provider login, private profiles, cloud workspace sync, production model-generated assistant responses and a remote Hub agent connection are not live. MR_SIAVASH_HUB_AI has a separate local-first agent runtime, but it is not connected to this site. The OpenAPI and threat-model documents remain contracts/design artifacts, not proof of those capabilities.
 
 
 ## 10. Cross-project integration: MR_SIAVASH_HUB_AI
