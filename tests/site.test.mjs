@@ -10,6 +10,7 @@ const experienceCss = await readFile(new URL("../experience.css", import.meta.ur
 const experienceNextCss = await readFile(new URL("../experience-next.css", import.meta.url), "utf8");
 const studioCss = await readFile(new URL("../studio.css", import.meta.url), "utf8");
 const atelierCss = await readFile(new URL("../atelier.css", import.meta.url), "utf8");
+const fieldNotesCss = await readFile(new URL("../field-notes.css", import.meta.url), "utf8");
 const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "utf8");
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
@@ -144,6 +145,14 @@ test("workspace import is bounded and schema-checked", () => {
 
 test("client code does not contain a hard-coded provider secret", () => {
   assert.doesNotMatch(app, /\b(?:sk|ghp|github_pat)_[A-Za-z0-9]{20,}\b/);
+});
+
+test("Field Notes design system is loaded as a local responsive layer", () => {
+  assert.equal((fieldNotesCss.match(/\\{/g) || []).length, (fieldNotesCss.match(/\\}/g) || []).length);
+  assert.match(html, /href="\\.\\/field-notes\\.css"/);
+  assert.match(fieldNotesCss, /prefers-reduced-motion: reduce/);
+  assert.match(fieldNotesCss, /forced-colors: active/);
+  assert.match(fieldNotesCss, /\.project-card:nth-child\\(1\\)/);
 });
 
 test("stylesheet braces are balanced", () => {
