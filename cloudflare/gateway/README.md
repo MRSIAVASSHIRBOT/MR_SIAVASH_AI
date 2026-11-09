@@ -34,7 +34,7 @@ Production version 5 has no Workers AI binding or scheduled handler, and the liv
 
 ## Preview state
 
-The preview Worker uses only the dedicated preview D1 database; migrations 0001–0003 are recorded there. Control-plane inspection shows preview traffic was rolled back to version 3 (`ee5ca3d5-280c-4b97-88fc-fcbbf8429496`) after a version 4 deployment attempt (`febed03d-580a-4246-8e7e-9ba39555d3c8`) failed its deployment verification. The GitHub preview smoke run for main commit `b060beeecd13196d1143187a518962379a696c22` passed immediately before that attempt, so it does not prove version 4 remained active. The preview schedule is daily at 03:00 UTC with a 90-day policy. Preview has no Access administrator bindings or Workers AI binding; admin routes must remain fail-closed.
+The preview Worker uses only the dedicated preview D1 database; migrations 0001–0003 are recorded there. On 2026-11-09, Worker version 5 (`2376809c-6fbb-46e2-8d27-a7df5f104926`) was uploaded from `main` commit `2b5ea7f7fff30d543cc714f055088bb5228faec7` and activated at 100% traffic under deployment `8b8503fb-1e46-47e7-a762-04f3e676d8e3`. Its bindings were verified to include only the isolated preview D1 database, the exact website origin and `SUPPORT_RETENTION_DAYS=90`; the existing daily 03:00 UTC schedule was preserved. No Workers AI or administrator Access binding was added. Version 3 (`ee5ca3d5-280c-4b97-88fc-fcbbf8429496`) is the recorded rollback target. Runtime smoke verification against version 5 is pending; the earlier version 4 attempt was rolled back after failed verification, and the smoke run from commit `b060beeecd13196d1143187a518962379a696c22` did not validate version 5.
 
 ## Assistant provider adapter
 
