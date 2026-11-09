@@ -288,3 +288,19 @@ test("ticket creation requires explicit consent before writing data",async()=>{
  assert.equal((await response.json()).error.code,"consent_required");
  assert.equal(store.tickets.size,0);
 });
+
+test("assistant falls back safely when the configured provider fails", async () => {
+ const response = await worker.fetch(req("/v1/assistant/chat", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ message: "آموزش پایتون" })
+ }), {
+  DB: rateDb(),
+  AI: { run: async () => { throw new Error("401 invalid provider credential: do-not-leak"); } }
+ });
+ const data = await response.json();
+ assert.equal(response.status, 200);
+ assert.equal(data.mode, "knowledge_fallback");
+ assert.ok(data.answer.length > 0);
+ assert.doesNotMatch(JSON.stringify(data), /do-not-leak|credential/i);
+});

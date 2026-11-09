@@ -36,6 +36,12 @@ Production version 5 has no Workers AI binding or scheduled handler, and the liv
 
 The preview Worker uses only the dedicated preview D1 database; migrations 0001–0003 are recorded there. Control-plane inspection shows preview traffic was rolled back to version 3 (`ee5ca3d5-280c-4b97-88fc-fcbbf8429496`) after a version 4 deployment attempt (`febed03d-580a-4246-8e7e-9ba39555d3c8`) failed its deployment verification. The GitHub preview smoke run for main commit `b060beeecd13196d1143187a518962379a696c22` passed immediately before that attempt, so it does not prove version 4 remained active. The preview schedule is daily at 03:00 UTC with a 90-day policy. Preview has no Access administrator bindings or Workers AI binding; admin routes must remain fail-closed.
 
+## Assistant provider adapter
+
+The Gateway source now contains a normalized Cloudflare Workers AI adapter at `src/assistant-provider.js`. It validates the message envelope, bounds output tokens, normalizes supported text/usage shapes, and converts provider failures into typed categories. The request path remains knowledge-grounded: model inference is attempted only when verified site context exists, and provider failure returns the existing knowledge fallback without exposing upstream error text.
+
+The adapter performs one attempt with no automatic retry. Streaming, request timeout and cancellation are explicitly unavailable in this initial binding adapter. Production has no Workers AI binding, so this source-level refactor does not activate model inference or change production traffic. Workers AI usage can incur account charges; binding activation is a separate, explicit release decision.
+
 ## Current source API
 
 | Route | Method | Purpose |
