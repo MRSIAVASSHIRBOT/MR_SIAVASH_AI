@@ -24,7 +24,7 @@ test("all public pages load the new design layer after the stable component styl
     assert.ok(html.indexOf("atelier.css") > html.indexOf("experience-next.css"));
     assert.doesNotMatch(html, /href="\.\/experience-signature\.css"/);
   }
-  assert.match(index, /name="theme-color" content="#0b120d"/);
+  assert.match(index, /name="theme-color" content="#07110c"/);
 });
 
 test("editorial material contrast, original typography and local-only assets are present", () => {
@@ -46,7 +46,7 @@ test("atelier respects mobile, touch, keyboard, reduced motion and forced colors
 });
 
 test("offline shell caches the atelier stylesheet with cache version 36", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v36"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v37"/);
   assert.match(sw, /"\.\/atelier\.css"/);
   assert.doesNotMatch(sw, /"\.\/experience-signature\.css"/);
 });

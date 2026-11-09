@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { readFile } from "node:fs/promises";
+import { access, readFile } from "node:fs/promises";
 import vm from "node:vm";
 import { supportGate, supportTrackingGate, validTicketCredentials } from "../support-tickets.mjs";
 
@@ -182,7 +182,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v36"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v37"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -260,7 +260,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v36"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v37"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -433,7 +433,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v36"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v37"/);
 });
 
 
@@ -1225,7 +1225,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v36"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v37"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1283,7 +1283,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"web-security"/);
   assert.match(academyCss, /#9c8cff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v36"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v37"/);
 });
 
 
@@ -1343,7 +1343,7 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(supportTickets, /consent: \$\("#supportConsent"\)\.checked/);
   assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
   assert.match(sw, /"\.\/support-tickets\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v36"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v37"/);
 });
 
 test("local support guide retries loading its index after an initial offline failure", async () => {
@@ -1538,7 +1538,7 @@ test("emerald flagship experience layer overrides the conflicting studio palette
   assert.match(experienceNextCss, /:focus-visible/);
   assert.equal((experienceNextCss.match(/\{/g)||[]).length,(experienceNextCss.match(/\}/g)||[]).length);
   assert.match(sw, /"\.\/experience-next\.css"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v36"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v37"/);
 });
 
 
@@ -1574,4 +1574,64 @@ test("crawler directives and sitemap only advertise public site routes", async (
     assert.ok(sitemap.includes("https://mrsiavasshirbot.github.io/MR_SIAVASH_AI" + route), "missing sitemap route " + route);
   }
   assert.ok(!/localhost|127\.0\.0\.1|workers\.dev/.test(sitemap), "sitemap must not expose development or API hosts");
+});
+
+
+test("public pages keep install metadata and browser chrome colors consistent", async () => {
+  const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
+  const pages = ["index.html", "studio.html", "academy.html", "python.html"];
+  for (const page of pages) {
+    const source = await readFile(new URL("../" + page, import.meta.url), "utf8");
+    assert.match(source, /<link\s+rel="manifest"\s+href="\.\/manifest\.webmanifest"/i, page + " must expose the install manifest");
+    const theme = source.match(/<meta\s+name="theme-color"\s+content="([^"]+)"/i);
+    assert.ok(theme, page + " must declare a browser theme color");
+    assert.equal(theme[1], manifest.theme_color, page + " theme must match the installed app");
+  }
+  assert.equal(manifest.background_color, manifest.theme_color, "installed app launch and browser chrome should use one coherent canvas color");
+  assert.equal(manifest.lang, "fa");
+  assert.equal(manifest.dir, "rtl");
+});
+
+test("privacy page has the same defensive browser policy and discoverability metadata", async () => {
+  const source = await readFile(new URL("../privacy.html", import.meta.url), "utf8");
+  assert.match(source, /Content-Security-Policy/i);
+  assert.match(source, /default-src 'self'/);
+  assert.match(source, /object-src 'none'/);
+  assert.match(source, /script-src 'self'/);
+  assert.match(source, /style-src 'self'/);
+  assert.doesNotMatch(source, /unsafe-inline|unsafe-eval/);
+  assert.match(source, /name="referrer" content="strict-origin-when-cross-origin"/);
+  assert.match(source, /rel="canonical" href="https:\/\/mrsiavasshirbot\.github\.io\/MR_SIAVASH_AI\/privacy\.html"/);
+  assert.match(source, /property="og:url"/);
+});
+
+test("all local assets referenced by public HTML pages exist and core routes are offline-cached", async () => {
+  const pages = ["index.html", "studio.html", "academy.html", "python.html", "privacy.html"];
+  const localAssets = new Set();
+  for (const page of pages) {
+    const source = await readFile(new URL("../" + page, import.meta.url), "utf8");
+    const tags = source.match(/<(?:script|link|img|source)\b[^>]*>/gi) || [];
+    for (const tag of tags) {
+      for (const match of tag.matchAll(/\b(?:src|href)=["']([^"']+)["']/gi)) {
+        const raw = match[1];
+        if (!raw.startsWith("./") && !raw.startsWith("../")) continue;
+        const resolved = new URL(raw, "https://site.test/" + page);
+        if (resolved.origin !== "https://site.test") continue;
+        let path = decodeURIComponent(resolved.pathname.replace(/^\//, ""));
+        if (!path || path.endsWith("/")) path += "index.html";
+        await access(new URL("../" + path, import.meta.url));
+        localAssets.add(path);
+      }
+    }
+  }
+  const worker = await readFile(new URL("../sw.js", import.meta.url), "utf8");
+  const shellMatch = worker.match(/const SHELL_FILES = \[([\s\S]*?)\];/);
+  assert.ok(shellMatch, "service worker must declare its offline shell");
+  const shell = new Set([...shellMatch[1].matchAll(/["']([^"']+)["']/g)].map(match => match[1].replace(/^\.\//, "")));
+  for (const route of pages) assert.ok(shell.has(route), route + " must be available offline");
+  for (const asset of localAssets) {
+    if (["index.html", "studio.html", "academy.html", "python.html", "privacy.html"].includes(asset)) continue;
+    assert.ok(shell.has(asset), asset + " is referenced by a public page but missing from the offline shell");
+  }
+  assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v37"/);
 });
