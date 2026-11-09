@@ -74,11 +74,13 @@ test("navigation buttons have real section targets", () => {
   assert.match(html, /href="\.\/studio\.html"/, "digital studio must be reachable from the main site");
 });
 
-test("administrator console is reachable from the main navigation and remains Access-protected", () => {
-  const adminUrl = "https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev/admin";
-  assert.ok(html.includes('href="' + adminUrl + '"'), "admin navigation must target the protected Preview console");
+test("administrator console navigation uses the reviewed production entry page, not Preview", async () => {
+  const adminEntry = await readFile(new URL("../admin-support.html", import.meta.url), "utf8");
+  assert.match(html, /href="\.\/admin-support\.html"/);
   assert.match(html, /پنل مدیریت/);
-  assert.match(html, /target="_blank" rel="noopener noreferrer" aria-label="ورود به پنل مدیریت MR_SIAVASH_AI؛ نیازمند احراز هویت"/);
+  assert.match(html, /target="_blank" rel="noopener noreferrer" aria-label="ورود به مرکز مدیریت پشتیبانی MR_SIAVASH_AI؛ نیازمند احراز هویت"/);
+  assert.match(adminEntry, /https:\/\/mr-siavash-ai-gateway\.mrsiavashirbot\.workers\.dev\/admin/);
+  assert.doesNotMatch(html, /mr-siavash-ai-gateway-preview/);
 });
 
 test("support deep links open the existing support center", () => {
