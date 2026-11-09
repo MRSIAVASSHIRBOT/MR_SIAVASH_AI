@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/sitemap.xml
