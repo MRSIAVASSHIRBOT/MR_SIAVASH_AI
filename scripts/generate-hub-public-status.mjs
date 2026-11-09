@@ -91,7 +91,7 @@ async function fetchPublicJson(url, fetchImpl) {
     });
     if (!response || !response.ok) throw new Error("upstream_unavailable");
     const contentType = response.headers && response.headers.get("content-type") || "";
-    if (!/^application\/json(?:\s*;|$)/i.test(contentType)) {
+    if (!/^application\/(?:json|vnd\.github\+json)(?:\s*;|$)/i.test(contentType)) {
       throw new Error("upstream_content_type_invalid");
     }
     return JSON.parse(await readBoundedResponse(response));
@@ -129,7 +129,8 @@ function normalizeCiRun(raw, latestCommitSha) {
     typeof headSha !== "string" ||
     !/^[a-f0-9]{40}$/i.test(headSha) ||
     !updatedAt ||
-    !url
+    !url ||
+    !/^\\/MRSIAVASSHIRBOT\\/MR_SIAVASH_HUB_AI\\/actions\\/runs\\/[0-9]+$/.test(new URL(url).pathname)
   ) return null;
 
   const status = ALLOWED_STATUSES.has(raw.status) ? raw.status : "unknown";
