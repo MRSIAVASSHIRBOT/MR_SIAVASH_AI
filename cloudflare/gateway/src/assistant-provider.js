@@ -58,7 +58,7 @@ export function classifyAssistantProviderError(error) {
   if (/\b(408|504)\b|timed?\s*out|timeout|abort/.test(message)) {
     return new AssistantProviderError("timeout", "The AI provider request timed out.", { retryable: true });
   }
-  if (/\b400\b|bad request|invalid request|unsupported model/.test(message)) {
+  if (/\b(400|7003)\b|bad request|invalid request|unsupported model/.test(message)) {
     return new AssistantProviderError("invalid_request", "The AI provider rejected the request format or model.");
   }
   return new AssistantProviderError("unavailable", "The AI provider is temporarily unavailable.", { retryable: true });
