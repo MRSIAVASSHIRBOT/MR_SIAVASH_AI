@@ -21,6 +21,10 @@ test("academy exposes six structured courses and thirty chapters", () => {
   assert.match(js, /Progress data too large/);
   assert.match(html, /id="learningPanel"/);
   assert.match(html, /id="academyStatus" role="status"/);
+  assert.match(html, /id="academyDashboardContent"/);
+  assert.match(html, /type="module" src="\.\/academy\.js"/);
+  assert.match(js, /resolveAcademyResume/);
+  assert.match(js, /summarizeAcademyProgress/);
   assert.match(html, /href="\.\/python\.html"/);
 });
 
@@ -42,7 +46,8 @@ test("academy navigation, global search, and offline shell are integrated", () =
   assert.match(sw, /"\.\/academy\.html"/);
   assert.match(sw, /"\.\/academy\.css"/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v38"/);
+  assert.match(sw, /"\.\/academy-progress\.mjs"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v39"/);
 });
 
 test("academy layout supports mobile, keyboard, and reduced-motion preferences", () => {
