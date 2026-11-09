@@ -191,6 +191,7 @@ test("service worker caches the static shell and ignores non-GET requests", () =
   assert.match(sw, /"\.\/studio\.html"/);
   assert.match(sw, /"\.\/studio-portfolio\.css"/);
   assert.match(sw, /"\.\/studio-portfolio\.js"/);
+  assert.match(sw, /"\.\/field-notes\.css"/);
   assert.match(sw, /request\.mode === "navigate"/);
   assert.match(sw, /request\.method !== "GET"/);
 });
