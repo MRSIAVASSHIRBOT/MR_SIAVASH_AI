@@ -56,6 +56,14 @@ jobs:
           node --test cloudflare/gateway/tests/*.test.mjs scripts/deploy-production-worker.test.mjs
           ruby scripts/validate-openapi.rb
           python scripts/test-d1-migrations.py
+      - name: Require main as the production deployment source
+        if: ${{ inputs.deploy }}
+        run: |
+          set -euo pipefail
+          if [[ "${GITHUB_REF}" != "refs/heads/main" ]]; then
+            echo "::error::Production deployment must be dispatched from refs/heads/main."
+            exit 1
+          fi
       - name: Validate production bindings and optionally release
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
