@@ -52,7 +52,7 @@ Acceptance gates:
 - Responsive layout, keyboard focus, reduced-motion and forced-colors behavior remain covered.
 
 
-## Cross-project integration — proposed, not connected
+## Cross-project integration — public metadata implemented; private pairing proposed
 
 MR_SIAVASH_AI remains the public identity, portfolio and learning surface. MR_SIAVASH_HUB_AI remains a separate local-first agent runtime. No shared identity, private data store, live API session or agent execution path exists between them.
 
