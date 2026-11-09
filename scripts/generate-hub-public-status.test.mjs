@@ -115,11 +115,12 @@ test("unavailable or oversized public API responses fail closed to a metadata-on
   assert.equal(unavailable.runtime.state, "not_connected");
   assert.doesNotMatch(JSON.stringify(unavailable), /network detail|token|secret/i);
 
-  const oversized = new Response("x".repeat(MAX_RESPONSE_BYTES + 1), {
-    status: 200,
-    headers: { "content-type": "application/json" },
+  const limited = await buildHubPublicStatus({
+    fetchImpl: async () => new Response("x".repeat(MAX_RESPONSE_BYTES + 1), {
+      status: 200,
+      headers: { "content-type": "application/json" },
+    }),
   });
-  const limited = await buildHubPublicStatus({ fetchImpl: async () => oversized.clone() });
   assert.equal(limited.source, "repository-fallback");
   assert.equal(limited.repository.latest_commit, null);
   assert.equal(limited.quality.latest_ci, null);
