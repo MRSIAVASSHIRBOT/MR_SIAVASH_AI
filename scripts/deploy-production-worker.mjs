@@ -179,6 +179,9 @@ export async function releaseProductionWorker({
   source
 }) {
   if (!token || !accountId || !expectedDatabaseId) throw new Error("Cloudflare token, account ID and expected production D1 ID are required.");
+  if (deploy && !/^[0-9a-f]{40}$/i.test(commitSha || "")) {
+    throw new Error("Production deployment requires the exact 40-character Git commit SHA.");
+  }
   const prefix = "/accounts/" + accountId + "/workers/scripts/" + WORKER;
   const [settings, deploymentsResult, schedulesResult] = await Promise.all([
     cloudflareRequest(prefix + "/settings", { token, fetchImpl }),
