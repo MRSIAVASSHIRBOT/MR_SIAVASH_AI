@@ -1298,7 +1298,10 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyJs, /id:"css"/);
   assert.match(academyJs, /id:"javascript"/);
   assert.match(academyJs, /id:"web-security"/);
-  assert.match(academyCss, /#9c8cff/);
+  assert.match(academyCss, /#152019/);
+  assert.match(academyCss, /#75c58d/);
+  assert.match(academyCss, /#a8e2b7/);
+  assert.doesNotMatch(academyCss, /#9c8cff|#68dff5|#b7aaff/);
   assert.match(sw, /"\.\/academy\.js"/);
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v39"/);
 });
