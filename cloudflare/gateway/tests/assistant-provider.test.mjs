@@ -85,6 +85,7 @@ test("provider errors are normalized without exposing upstream details", () => {
     ["HTTP 429 rate limit", "rate_limit", true],
     ["504 request timeout", "timeout", true],
     ["400 unsupported model", "invalid_request", false],
+    ["7003 User Input Error", "invalid_request", false],
     ["upstream unavailable", "unavailable", true]
   ];
   for (const [message, category, retryable] of cases) {
