@@ -109,7 +109,7 @@ MR_SIAVASH_HUB_AI is a separate local-first runtime, not a connected backend for
 
 Integration must be opt-in and staged:
 
-1. **Public read-only metadata:** expose only explicitly allowlisted project status and capability metadata through a versioned public contract. Never include private task names, prompts, memory, local paths, credentials, support records or raw logs.
+1. **Public read-only metadata — implemented:** the Digital Studio reads a build-time generated hub-status.json snapshot containing only the Hub main-branch commit and latest main-branch CI metadata from the public GitHub API. The generator enforces response-size limits, validates GitHub URLs, allowlists fields, and writes an unavailable fallback if the upstream API fails. This is not a direct Hub API connection and does not report local runtime health. Never include private task names, prompts, memory, local paths, credentials, support records or raw logs.
 2. **Private local pairing:** require an owner-initiated local bridge or equivalent reviewed connector. Bind the exact site origin and a paired client identity; use short-lived, narrowly scoped credentials, replay protection, request limits and revocation. Exact-origin CORS is necessary but is not authentication.
 3. **Controlled agent operations:** route requests through Hub authentication, ownership checks, the policy engine, bounded tool schemas, idempotency, audit events and per-action human approval for consequential side effects.
 4. **Remote hosting, if ever selected:** treat it as a separate product/security decision requiring verified identity, tenant isolation, TLS, monitoring, backup/restore, data retention and budget controls. Do not silently expose the local runtime.
