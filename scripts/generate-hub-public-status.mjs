@@ -24,6 +24,11 @@ function safeRepositoryUrl(value, expectedPrefix) {
     if (
       url.protocol !== "https:" ||
       url.hostname !== "github.com" ||
+      url.username ||
+      url.password ||
+      url.port ||
+      url.search ||
+      url.hash ||
       !url.pathname.startsWith(expectedPrefix)
     ) return null;
     return url.href;
@@ -77,7 +82,11 @@ async function fetchPublicJson(url, fetchImpl) {
   try {
     const response = await fetchImpl(url, {
       method: "GET",
-      headers: { Accept: "application/vnd.github+json" },
+      headers: {
+        Accept: "application/vnd.github+json",
+        "User-Agent": "MR_SIAVASH_AI-public-status",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
       signal: controller.signal,
     });
     if (!response || !response.ok) throw new Error("upstream_unavailable");
@@ -159,7 +168,7 @@ export async function buildHubPublicStatus({
     ? runsRaw.workflow_runs
     : [];
   const latestCiRaw = workflowRuns.find(run => run && run.name === "CI" && run.head_branch === "main");
-  const latestCi = normalizeCiRun(latestCiRaw, commitRaw && commitRaw.sha);
+  const latestCi = normalizeCiRun(latestCiRaw, latestCommit ? commitRaw.sha : null);
 
   const hasPublicData = Boolean(latestCommit || latestCi);
   return {
