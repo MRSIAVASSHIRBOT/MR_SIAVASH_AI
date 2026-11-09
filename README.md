@@ -29,7 +29,7 @@ The repository provides a static web application with:
 
 ### What is not connected yet
 
-Remote agent execution from this site, consumer user accounts, private profiles, cloud synchronization, billing, and authenticated workspace persistence are not live product features. MR_SIAVASH_HUB_AI is a separate local-first project; there is no direct API connection, shared identity, shared database or remote agent session between the two projects yet. The proposed integration boundary is documented in docs/decisions/0004-hub-integration-boundary.md. The production Worker already exposes health, knowledge-fallback assistant, support-ticket and Access-protected administrator routes, but it is behind current main and does not yet expose the public module catalog or scheduled retention handler.
+Remote agent execution from this site, consumer user accounts, private profiles, cloud synchronization, billing, and authenticated workspace persistence are not live product features. MR_SIAVASH_HUB_AI is a separate local-first project; the Digital Studio shows a build-time snapshot of public GitHub commit and CI metadata only. There is no direct API connection to the Hub runtime, shared identity, private-data sync or remote agent session; the panel does not report local runtime health. The integration boundary is documented in docs/decisions/0004-hub-integration-boundary.md. The production Worker already exposes health, knowledge-fallback assistant, support-ticket and Access-protected administrator routes, but it is behind current main and does not yet expose the public module catalog or scheduled retention handler.
 
 A Cloudflare Access self-hosted application is configured for the Worker paths `/admin` and `/v1/admin/*`, with an allow policy restricted to the designated administrator identity. The Worker source also validates the Access JWT and administrator allowlist. Cloudflare Access is configured and the deployed Worker serves the protected administrator routes; end-to-end authorized browser-session verification remains outstanding. The production Worker has no Workers AI binding, so model-generated assistant responses are not active. The source now includes a normalized provider adapter, but it remains dormant until a reviewed environment binding is explicitly enabled. Do not enter secrets, passwords, private keys, or sensitive personal data into the static site.
 
@@ -46,12 +46,15 @@ A Cloudflare Access self-hosted application is configured for the Worker paths `
 - Workspace tasks and favorites synchronize between same-origin tabs through validated browser storage events (last-write-wins; no cloud sync)
 - schemas/module-registry.schema.json — formal JSON Schema 2020-12 contract for module metadata
 - schemas/workspace-backup.schema.json — formal JSON Schema 2020-12 contract for local workspace backups
+- schemas/hub-public-status.schema.json and hub-status.json — versioned, public-only Hub repository/CI metadata contract and safe fallback
+- scripts/generate-hub-public-status.mjs — bounded build-time fetch of public GitHub metadata; no Hub credentials or private runtime access
 - manifest.webmanifest — installable web-app metadata
 - sw.js — static-shell offline cache
 - tests/site.test.mjs — dependency-free Node.js structure and safety checks
 - tests/academy.test.mjs — academy curriculum, rendering, and progress safety checks
 - tests/python-course.test.mjs — Python curriculum and safety regression checks
 - tests/service-worker.test.mjs — runtime regression tests for static-cache isolation and navigation boundaries
+- scripts/generate-hub-public-status.test.mjs — allowlist, response-size, stale-CI and fallback tests
 - .github/workflows/deploy.yml — quality checks and GitHub Pages deployment
 - .github/workflows/gateway-smoke.yml — read-only deployed Worker liveness/readiness and CORS smoke checks
 - cloudflare/gateway/ — Worker source, D1 migrations, tests, isolated preview and guarded production release documentation
