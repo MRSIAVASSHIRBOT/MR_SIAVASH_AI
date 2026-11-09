@@ -1552,12 +1552,12 @@ test("public pages expose unique canonical URLs and social metadata", async () =
   const canonicalUrls = [];
   for (const [path, expected] of pages) {
     const source = await readFile(new URL("../" + path, import.meta.url), "utf8");
-    const canonicals = [...source.matchAll(/<link\\s+rel="canonical"\\s+href="([^"]+)"/gi)].map(match => match[1]);
+    const canonicals = [...source.matchAll(/<link\s+rel="canonical"\s+href="([^"]+)"/gi)].map(match => match[1]);
     assert.equal(canonicals.length, 1, path + " must have exactly one canonical URL");
     assert.equal(canonicals[0], expected, path + " canonical URL must match its public URL");
-    assert.match(source, /<meta\\s+name="robots"\\s+content="index,follow/i, path + " must declare indexability");
-    assert.match(source, /<meta\\s+property="og:url"\\s+content=/i, path + " must expose its Open Graph URL");
-    assert.match(source, /<meta\\s+name="twitter:card"\\s+content="summary"/i, path + " must declare a social card type");
+    assert.match(source, /<meta\s+name="robots"\s+content="index,follow/i, path + " must declare indexability");
+    assert.match(source, /<meta\s+property="og:url"\s+content=/i, path + " must expose its Open Graph URL");
+    assert.match(source, /<meta\s+name="twitter:card"\s+content="summary"/i, path + " must declare a social card type");
     canonicalUrls.push(canonicals[0]);
   }
   assert.equal(new Set(canonicalUrls).size, pages.length, "canonical URLs must be unique");
@@ -1566,11 +1566,11 @@ test("public pages expose unique canonical URLs and social metadata", async () =
 test("crawler directives and sitemap only advertise public site routes", async () => {
   const robots = await readFile(new URL("../robots.txt", import.meta.url), "utf8");
   const sitemap = await readFile(new URL("../sitemap.xml", import.meta.url), "utf8");
-  assert.match(robots, /^User-agent: \\*\\s+Allow: \\/m);
-  assert.match(robots, /Sitemap: https:\\/\\/mrsiavasshirbot\\.github\\.io\\/MR_SIAVASH_AI\\/sitemap\\.xml/);
-  assert.match(sitemap, /^<\\?xml version="1\\.0" encoding="UTF-8"\\?>/);
+  assert.match(robots, /^User-agent: \*\s+Allow: \/m);
+  assert.match(robots, /Sitemap: https:\/\/mrsiavasshirbot\.github\.io\/MR_SIAVASH_AI\/sitemap\.xml/);
+  assert.match(sitemap, /^<\?xml version="1\.0" encoding="UTF-8"\?>/);
   for (const route of ["/", "/studio.html", "/academy.html", "/python.html", "/privacy.html"]) {
     assert.ok(sitemap.includes("https://mrsiavasshirbot.github.io/MR_SIAVASH_AI" + route), "missing sitemap route " + route);
   }
-  assert.doesNotMatch(sitemap, /localhost|127\\.0\\.0\\.1|workers\\.dev/);
+  assert.doesNotMatch(sitemap, /localhost|127\.0\.0\.1|workers\.dev/);
 });
