@@ -126,35 +126,60 @@ test("unavailable or oversized public API responses fail closed to a metadata-on
 });
 
 
-test("rejects non-GitHub metadata URLs and accepts GitHub's vendor JSON content type", async () => {
-  const fetchImpl = async (url) => {
-    if (String(url).endsWith("/commits/main")) {
-      return new Response(JSON.stringify({
-        sha: commitSha,
-        html_url: "https://attacker.example/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/commit/" + commitSha,
-        commit: { author: { date: "2026-11-09T10:00:00Z" } },
-      }), {
-        status: 200,
-        headers: { "content-type": "application/vnd.github+json; charset=utf-8" },
+test("accepts GitHub vendor JSON and rejects non-GitHub metadata URLs", async () => {
+  const vendorJson = async (value) => new Response(JSON.stringify(value), {
+    status: 200,
+    headers: { "content-type": "application/vnd.github+json; charset=utf-8" },
+  });
+  const accepted = await buildHubPublicStatus({
+    fetchImpl: async url => {
+      if (String(url).endsWith("/commits/main")) {
+        return vendorJson({
+          sha: commitSha,
+          html_url: commitUrl,
+          commit: { author: { date: "2026-11-09T10:00:00Z" } },
+        });
+      }
+      return vendorJson({
+        workflow_runs: [{
+          name: "CI",
+          head_branch: "main",
+          head_sha: commitSha,
+          status: "completed",
+          conclusion: "success",
+          updated_at: "2026-11-09T10:01:00Z",
+          html_url: ciUrl,
+        }],
       });
-    }
-    return new Response(JSON.stringify({
-      workflow_runs: [{
-        name: "CI",
-        head_branch: "main",
-        head_sha: commitSha,
-        status: "completed",
-        conclusion: "success",
-        updated_at: "2026-11-09T10:01:00Z",
-        html_url: "https://attacker.example/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/actions/runs/123",
-      }],
-    }), {
-      status: 200,
-      headers: { "content-type": "application/vnd.github+json; charset=utf-8" },
-    });
-  };
-  const result = await buildHubPublicStatus({ fetchImpl });
-  assert.equal(result.source, "repository-fallback");
-  assert.equal(result.repository.latest_commit, null);
-  assert.equal(result.quality.latest_ci, null);
+    },
+  });
+  assert.equal(accepted.source, "github-public-api");
+  assert.equal(accepted.repository.latest_commit.short_sha, "aaaaaaa");
+  assert.equal(accepted.quality.latest_ci.conclusion, "success");
+
+  const rejected = await buildHubPublicStatus({
+    fetchImpl: async url => {
+      if (String(url).endsWith("/commits/main")) {
+        return jsonResponse({
+          sha: commitSha,
+          html_url: "https://attacker.example/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/commit/" + commitSha,
+          commit: { author: { date: "2026-11-09T10:00:00Z" } },
+        });
+      }
+      return jsonResponse({
+        workflow_runs: [{
+          name: "CI",
+          head_branch: "main",
+          head_sha: commitSha,
+          status: "completed",
+          conclusion: "success",
+          updated_at: "2026-11-09T10:01:00Z",
+          html_url: "https://attacker.example/MRSIAVASSHIRBOT/MR_SIAVASH_HUB_AI/actions/runs/123",
+        }],
+      });
+    },
+  });
+  assert.equal(rejected.source, "repository-fallback");
+  assert.equal(rejected.repository.latest_commit, null);
+  assert.equal(rejected.quality.latest_ci, null);
 });
