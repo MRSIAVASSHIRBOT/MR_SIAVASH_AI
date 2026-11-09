@@ -83,3 +83,11 @@ test("serialized metadata round-trips with progress without changing the storage
     updatedAt: "2026-11-09T12:00:00.000Z"
   });
 });
+
+test("summary and resume calculations ignore duplicate and invalid lesson indexes", () => {
+  const summary = summarizeAcademyProgress(courses, { html: [0, 0, 99, -1], css: [1, 1] });
+  assert.equal(summary.completedLessons, 2);
+  assert.equal(summary.percentage, 40);
+  const target = resolveAcademyResume(courses, { html: [0, 0, 99] }, { lastCourse: "html", lastLesson: 0 });
+  assert.equal(target.lessonIndex, 1);
+});
