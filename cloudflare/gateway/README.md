@@ -61,7 +61,7 @@ The adapter performs one attempt with no automatic retry. Streaming, request tim
 
 ## Privacy and retention
 
-The Worker source contains a scheduled cleanup handler. It deletes support tickets after the configured number of days without an update; the D1 foreign-key cascade deletes linked messages. It also deletes expired idempotency records and rate-limit buckets. Allowed retention periods are 30–365 days.
+The Worker source contains a scheduled cleanup handler. It deletes support tickets after the configured number of days without an update; the D1 foreign-key cascade deletes linked messages. It also deletes expired idempotency records and rate-limit buckets. Allowed retention periods are 30–365 days. Each successful run emits a structured Workers log event, `support_retention_cleanup_completed`, containing only the scheduled timestamp, retention period, and aggregate deletion counts. It does not log ticket IDs, message bodies, bearer tokens, or contact data. A configured schedule is not proof of a successful run; verify the event and invocation outcome in telemetry.
 
 Preview and Production each use separate 90-day retention configurations and their own daily schedules. Production's owner-selected 90-day policy is active with the daily `0 3 * * *` UTC cron. The schedule is configured, but the first scheduled execution still requires operational verification. Production D1 contains existing support records; do not change the selected period or run manual destructive cleanup without the repository owner's approval.
 
