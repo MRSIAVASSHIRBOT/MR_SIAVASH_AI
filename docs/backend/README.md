@@ -26,7 +26,7 @@ The deployed Production Worker and current source both implement health, module 
 
 ## Privacy, retention and support
 
-Ticket creation stores the request text and optional contact email in D1. The ticket access token is returned once and only its SHA-256 hash is stored. The public website gates new ticket intake on explicit privacy acknowledgement and the Worker's retention-readiness response; ticket tracking uses the one-time bearer token.
+Ticket creation stores the request text and optional contact email in D1. The ticket access token is returned once and only its SHA-256 hash is stored. The public website gates new ticket intake on explicit privacy acknowledgement and the Worker's retention-readiness response; ticket tracking uses the one-time bearer token. The floating assistant defaults to local-only search; its online AI mode sends only the current question to the grounded assistant endpoint after explicit per-question consent, without sending conversation history or creating a support ticket.
 
 The Worker includes a scheduled cleanup handler that deletes tickets after 30–365 configured days without an update, cascading to linked messages, and clears expired idempotency/rate-limit records. Preview and Production each use separate 90-day policies and daily schedules. Production's schedule is configured; verify its first execution through telemetry. Production D1 already contains support records.
 

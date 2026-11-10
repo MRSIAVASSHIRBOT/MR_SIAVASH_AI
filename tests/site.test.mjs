@@ -15,6 +15,7 @@ const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "ut
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
+const privacyText = await readFile(new URL("../privacy.html", import.meta.url), "utf8");
 const supportTickets = await readFile(new URL("../support-tickets.mjs", import.meta.url), "utf8");
 const boundedJson = await readFile(new URL("../bounded-json.js", import.meta.url), "utf8");
 const searchSource = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
@@ -195,7 +196,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v39"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v40"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -279,7 +280,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v39"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v40"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -452,7 +453,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v39"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v40"/);
 });
 
 
@@ -1244,7 +1245,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v39"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v40"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1305,7 +1306,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyCss, /#a8e2b7/);
   assert.doesNotMatch(academyCss, /#9c8cff|#68dff5|#b7aaff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v39"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v40"/);
 });
 
 
@@ -1355,7 +1356,8 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(html, /type="password"/);
   assert.match(support, /readJson\("\.\/search-index\.json"/);
   assert.match(boundedJson, /credentials:"omit"/);
-  assert.doesNotMatch(support, /mr-siavash-ai-gateway|Authorization|\/v1\/support/);
+  assert.match(support, /ASSISTANT_API/);
+  assert.doesNotMatch(support, /Authorization|\/v1\/support/);
   assert.match(supportTickets, /supportGate\(health\)/);
   assert.match(supportTickets, /features\?\.publicSupport/);
   assert.match(supportTickets, /supportTrackingGate\(health\)/);
@@ -1365,7 +1367,7 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(supportTickets, /consent: \$\("#supportConsent"\)\.checked/);
   assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
   assert.match(sw, /"\.\/support-tickets\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v39"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v40"/);
 });
 
 test("local support guide retries loading its index after an initial offline failure", async () => {
@@ -1457,17 +1459,133 @@ test("local support guide retries loading its index after an initial offline fai
   assert.equal(button.disabled, false);
 });
 
-test("support UI accurately identifies its local, non-generative guide", () => {
-  assert.match(html, /راهنمای محلی سایت، ثبت درخواست و پیگیری امن گفتگو/);
-  assert.match(html, />راهنمای سایت<\/button>/);
-  assert.match(html, /راهنمای محلی سایت · بدون ارسال پیام به سرور؛ پاسخ بر پایه محتوای عمومی منتشرشده/);
-  assert.match(html, /سؤال یا عبارت مورد جست‌وجو/);
-  assert.match(html, />یافتن راهنما<\/button>/);
-  assert.doesNotMatch(html, /ارتباط مستقیم با پشتیبانی|ارجاع به پشتیبانی انسانی|گفتگو با ربات/);
-  assert.doesNotMatch(support, /handoffButton|\.\/v1\/|method:"POST"/);
-  assert.ok(support.includes("window.MRSIAVASHReadJson"));
+test("online support sends only the current question after per-question consent", async () => {
+  let ready;
+  let submit;
+  let chooseOnline;
+  let fetchCalls = 0;
+  let requestUrl = "";
+  let requestOptions;
+  const submitButton = { disabled: false, textContent: "" };
+  const input = { value: "آموزش پایتون", focus() {} };
+  const consent = { checked: false, focus() {} };
+  const status = { textContent: "" };
+  const messages = {
+    children: [],
+    scrollHeight: 100,
+    append(...items) { this.children.push(...items); },
+    get childElementCount() { return this.children.length; }
+  };
+  const makeElement = () => ({
+    children: [],
+    hidden: false,
+    textContent: "",
+    className: "",
+    dataset: {},
+    append(...items) { this.children.push(...items); },
+    get childElementCount() { return this.children.length; },
+    setAttribute() {},
+    classList: { toggle() {} },
+    addEventListener(name, callback) {
+      if (name === "submit") submit = callback;
+      if (name === "click" && this.dataset.assistantMode === "online") chooseOnline = callback;
+    },
+    querySelector() { return submitButton; },
+    focus() {},
+    close() {},
+    showModal() {}
+  });
+  const localMode = makeElement();
+  localMode.dataset.assistantMode = "local";
+  const onlineMode = makeElement();
+  onlineMode.dataset.assistantMode = "online";
+  const form = makeElement();
+  const elements = new Map([
+    ["#supportDialog", makeElement()],
+    ["#supportLauncher", makeElement()],
+    ["#supportClose", makeElement()],
+    ["#assistantForm", form],
+    ["#assistantInput", input],
+    ["#assistantMessages", messages],
+    ["#assistantOnlineConsent", consent],
+    ["#assistantOnlineConsentLabel", makeElement()],
+    ["#assistantOnlineNotice", makeElement()],
+    ["#assistantOnlineStatus", status],
+    ["#assistantModeDescription", makeElement()]
+  ]);
+  const document = {
+    readyState: "loading",
+    addEventListener(name, callback) { if (name === "DOMContentLoaded") ready = callback; },
+    querySelector(selector) { return elements.get(selector) || null; },
+    querySelectorAll(selector) {
+      if (selector === "[data-assistant-mode]") return [localMode, onlineMode];
+      return [];
+    },
+    createElement() { return makeElement(); }
+  };
+  const window = {
+    MRSIAVASHReadJson: async path => path.includes("search-index")
+      ? { schema: "mr-siavash-ai-search-index", version: 1, items: [] }
+      : { schema: "mr-siavash-ai-module-registry", version: 1, modules: [] },
+    fetch: async (url, options) => {
+      fetchCalls++;
+      requestUrl = url;
+      requestOptions = options;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          answer: "دوره پایتون در سایت موجود است.",
+          mode: "ai_grounded",
+          sources: [{ title: "آموزش پایتون", href: "./python.html" }]
+        })
+      };
+    }
+  };
+  vm.runInNewContext(support, {
+    document, window, URL, TextEncoder, location: { href: "https://example.test/" }
+  });
+  ready();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(typeof submit, "function");
+  assert.equal(typeof chooseOnline, "function");
+  assert.equal(localMode.getAttribute?.("aria-pressed"), undefined);
+  chooseOnline();
+  assert.equal(consent.checked, false);
+  await submit({ preventDefault() {}, currentTarget: form });
+  assert.equal(fetchCalls, 0, "online request must not run without explicit consent");
+  assert.match(status.textContent, /تأیید/);
+  assert.equal(input.value, "آموزش پایتون", "the unanswered question remains available for editing");
+
+  consent.checked = true;
+  await submit({ preventDefault() {}, currentTarget: form });
+  assert.equal(fetchCalls, 1);
+  assert.equal(requestUrl, "https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev/v1/assistant/chat");
+  assert.equal(requestOptions.method, "POST");
+  assert.equal(requestOptions.credentials, "omit");
+  assert.equal(requestOptions.referrerPolicy, "no-referrer");
+  assert.deepEqual(Object.keys(JSON.parse(requestOptions.body)), ["message"]);
+  assert.equal(JSON.parse(requestOptions.body).message, "آموزش پایتون");
+  assert.equal(consent.checked, false, "consent is reset after each online request");
+  assert.ok(messages.children.some(node => String(node.textContent).includes("دوره پایتون")));
+  assert.equal(submitButton.disabled, false);
 });
 
+test("support assistant defaults to local search and gates optional online AI behind explicit consent", () => {
+  assert.match(html, /راهنمای محلی/);
+  assert.match(html, /دستیار هوشمند آنلاین/);
+  assert.match(html, /id="assistantOnlineConsent"/);
+  assert.match(html, /متن سؤال فعلی پس از تأیید تو به Gateway ارسال می‌شود/);
+  assert.match(support, /assistantMode = "local"/);
+  assert.match(support, /requestMode === "online" && !consent\?\.checked/);
+  assert.match(support, /body: JSON\.stringify\(\{ message: query \}\)/);
+  assert.match(support, /credentials: "omit"/);
+  assert.match(support, /referrerPolicy: "no-referrer"/);
+  assert.match(support, /ASSISTANT_API/);
+  assert.ok(support.includes("window.MRSIAVASHReadJson"));
+  assert.match(privacyText, /برای هر سؤال، تأیید صریح لازم است/);
+  assert.match(privacyText, /شناسهٔ مشتق‌شده از IP و به‌صورت هش/);
+});
 
 test("support and global search delegate public JSON reads to the shared bounded loader", () => {
   assert.ok(support.includes("window.MRSIAVASHReadJson"));
@@ -1475,7 +1593,7 @@ test("support and global search delegate public JSON reads to the shared bounded
   assert.match(boundedJson, /reader.cancel/);
   assert.match(boundedJson, /controller.abort/);
   assert.match(boundedJson, /credentials:"omit"/);
-  assert.equal(support.includes("fetch("), false);
+  assert.match(support, /window\.fetch\(ASSISTANT_API/);
   assert.equal(searchSource.includes("fetch("), false);
 });
 
@@ -1513,8 +1631,8 @@ test("ticket tracking remains available without enabling new ticket intake", () 
 test("public privacy notice describes ticket data, one-time credentials and inactivity retention", async () => {
   const privacy = await readFile(new URL("../privacy.html", import.meta.url), "utf8");
   assert.match(privacy, /کلید خصوصی به‌صورت هش‌شده ذخیره می‌شود/);
-  assert.match(privacy, /مدت انتخاب‌شده برای ثبت آنلاین این سایت ۳۰ روز است/);
-  assert.match(privacy, /۳۰ روز بدون به‌روزرسانی/);
+  assert.match(privacy, /مدت نگهداری فعال تیکت‌های پشتیبانی در محیط Production برابر ۹۰ روز/);
+  assert.match(privacy, /۹۰ روز از آخرین به‌روزرسانی/);
   assert.match(privacy, /رمز عبور، کلید API/);
   assert.match(privacy, /فضای ذخیره‌سازی مرورگر/);
 });
@@ -1560,7 +1678,7 @@ test("emerald flagship experience layer overrides the conflicting studio palette
   assert.match(experienceNextCss, /:focus-visible/);
   assert.equal((experienceNextCss.match(/\{/g)||[]).length,(experienceNextCss.match(/\}/g)||[]).length);
   assert.match(sw, /"\.\/experience-next\.css"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v39"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v40"/);
 });
 
 
@@ -1655,7 +1773,7 @@ test("all local assets referenced by public HTML pages exist and core routes are
     if (["index.html", "studio.html", "academy.html", "python.html", "privacy.html"].includes(asset)) continue;
     assert.ok(shell.has(asset), asset + " is referenced by a public page but missing from the offline shell");
   }
-  assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v39"/);
+  assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v40"/);
 });
 
 
