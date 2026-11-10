@@ -164,6 +164,42 @@ test("assistant knowledge distinguishes roadmap modules from active local module
 });
 
 
+
+test("assistant falls back to verified knowledge when Workers AI fails",async()=>{
+ const response=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"آموزش پایتون"})}),{
+  DB:rateDb(),
+  AI:{run:async()=>{throw new Error("provider unavailable: private-provider-detail");}}
+ });
+ const data=await response.json();
+ assert.equal(response.status,200);
+ assert.equal(data.mode,"knowledge_fallback");
+ assert.equal(data.handoff,false);
+ assert.ok(data.sources.some(x=>x.href==="./python.html"));
+ assert.doesNotMatch(JSON.stringify(data),/private-provider-detail/);
+});
+
+test("assistant enforces its per-minute rate limit",async()=>{
+ let requests=0;
+ const db={prepare(sql){return{bind(){return this;},first:async()=>sql.startsWith("INSERT INTO api_rate_limits")?{request_count:++requests}:null};}};
+ const ask=()=>worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"آموزش پایتون"})}),{DB:db});
+ for(let i=0;i<20;i++)assert.equal((await ask()).status,200);
+ const limited=await ask();
+ assert.equal(limited.status,429);
+ assert.equal((await limited.json()).error.code,"rate_limited");
+ assert.equal(requests,21);
+});
+
+test("assistant rejects blank and overlong messages before consuming rate limit",async()=>{
+ let rateWrites=0;
+ const db={prepare(sql){return{bind(){return this;},first:async()=>{if(sql.startsWith("INSERT INTO api_rate_limits"))rateWrites++;return{request_count:1};}};}};
+ for(const message of ["   ","x".repeat(1201)]){
+  const response=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message})}),{DB:db});
+  assert.equal(response.status,400);
+  assert.equal((await response.json()).error.code,"invalid_message");
+ }
+ assert.equal(rateWrites,0);
+});
+
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
 
 function supportDb() {
