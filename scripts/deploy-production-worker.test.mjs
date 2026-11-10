@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { buildVersionMetadata, buildWorkerUploadForm, mergeCronSchedules, configureCronSchedules, getFeatureRemovalRequirements, releaseProductionWorker, waitForModulesRoute, waitForReadyRoute } from "./deploy-production-worker.mjs";
 
 const settings = {
@@ -444,7 +445,8 @@ test("production readiness smoke still rejects a wrong retention period after pr
 
 test("production workflow requires a separate feature-removal acknowledgement", async () => {
   const workflow = await readFile(new URL("../.github/workflows/gateway-production.yml", import.meta.url), "utf8");
-  assert.ok(workflow.includes("allow_feature_removal:"));
+  const inputStart = workflow.indexOf("allow_feature_removal:");
+  assert.ok(inputStart >= 0);
+  assert.ok(workflow.slice(inputStart, inputStart + 400).includes("default: false"));
   assert.ok(workflow.includes("ALLOW_FEATURE_REMOVAL: ${{ inputs.allow_feature_removal }}"));
-  assert.match(workflow, /allow_feature_removal:[\\s\\S]*?default: false/);
 });
