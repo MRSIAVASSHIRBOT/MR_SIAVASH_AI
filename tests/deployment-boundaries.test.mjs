@@ -61,7 +61,7 @@ test("production retention cleanup is explicit opt-in and scheduled handler is t
   assert.match(workerSource, /async function cleanupExpiredRecords/);
   assert.match(workerSource, /SUPPORT_RETENTION_DAYS/);
   assert.match(workerSource, /must be explicitly configured between 30 and 365/);
-  assert.match(workerSource, /async scheduled\(_controller,env\)/);
+  assert.match(workerSource, /async scheduled\\((?:_controller|controller),env\\)/);
   assert.match(releaseScript, /enableSupportRetention/);
 });
 
