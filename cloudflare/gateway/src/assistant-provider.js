@@ -1,5 +1,5 @@
 const DEFAULT_MODEL = "@cf/zai-org/glm-4.7-flash";
-const MAX_OUTPUT_TOKENS = 450;
+const MAX_OUTPUT_TOKENS = 1536;
 const MAX_MESSAGES = 10;
 
 export class AssistantProviderError extends Error {
@@ -17,15 +17,32 @@ function safeModel(value) {
     : DEFAULT_MODEL;
 }
 
+function contentText(value) {
+  if (typeof value === "string") return value.trim();
+  if (!Array.isArray(value)) return "";
+  return value
+    .map(part => typeof part === "string" ? part : typeof part?.text === "string" ? part.text : "")
+    .filter(Boolean)
+    .join("\n")
+    .trim();
+}
+
 function extractText(result) {
   const candidates = [
     typeof result === "string" ? result : null,
     result?.response,
     result?.output_text,
     result?.result?.response,
-    result?.choices?.[0]?.message?.content
+    result?.choices?.[0]?.message?.content,
+    result?.result?.choices?.[0]?.message?.content,
+    result?.message?.content,
+    result?.result?.message?.content
   ];
-  return candidates.find(value => typeof value === "string" && value.trim())?.trim() || "";
+  for (const candidate of candidates) {
+    const text = contentText(candidate);
+    if (text) return text;
+  }
+  return "";
 }
 
 function normalizeUsage(result) {

@@ -45,7 +45,7 @@ async function assistant(req,env,id){
    {role:"user",content:message}
   ];
   try{
-   const generated=await provider.generate({messages,maxTokens:450});
+   const generated=await provider.generate({messages});
    return json(req,env,id,200,{answer:generated.text,sources:found.map(x=>({title:x.title,href:x.href})),handoff:false,mode:"ai_grounded",request_id:id});
   }catch(error){
    console.error(JSON.stringify({event:"assistant_inference_failed",request_id:id,provider:provider.provider,category:error?.category||"unavailable"}));
