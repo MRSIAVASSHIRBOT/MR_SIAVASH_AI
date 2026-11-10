@@ -12,7 +12,7 @@ test("provider adapter stays disabled without an AI binding", () => {
   assert.equal(createAssistantProvider({ AI: {} }), null);
 });
 
-test("provider adapter uses a safe default model and bounded output tokens", async () => {
+test("provider adapter uses a safe default model and a reasoning-safe bounded token budget", async () => {
   let call;
   const provider = createAssistantProvider({
     AI: { run: async (model, input) => {
@@ -22,11 +22,21 @@ test("provider adapter uses a safe default model and bounded output tokens", asy
   });
   assert.equal(provider.provider, "cloudflare-workers-ai");
   assert.equal(provider.model, assistantProviderDefaults.model);
-  const result = await provider.generate({ messages: [{ role: "user", content: "سلام" }], maxTokens: 999 });
+  assert.equal(assistantProviderDefaults.maxOutputTokens, 1536);
+  const result = await provider.generate({ messages: [{ role: "user", content: "سلام" }], maxTokens: 4096 });
   assert.equal(call.model, assistantProviderDefaults.model);
-  assert.equal(call.input.max_tokens, 450);
+  assert.equal(call.input.max_tokens, 1536);
   assert.equal(result.text, "پاسخ تأییدشده");
   assert.equal(result.usage, null);
+});
+
+test("provider adapter uses the configured token budget when no override is supplied", async () => {
+  let input;
+  const provider = createAssistantProvider({
+    AI: { run: async (_model, value) => { input = value; return { response: "ok" }; } }
+  });
+  await provider.generate({ messages: [{ role: "user", content: "hello" }] });
+  assert.equal(input.max_tokens, assistantProviderDefaults.maxOutputTokens);
 });
 
 test("provider adapter accepts only a valid Workers AI model identifier", async () => {
@@ -39,16 +49,19 @@ test("provider adapter accepts only a valid Workers AI model identifier", async 
   assert.equal(selected, assistantProviderDefaults.model);
 });
 
-test("provider adapter normalizes supported response shapes and usage metadata", async () => {
+test("provider adapter normalizes Workers AI and OpenAI-compatible response envelopes", async () => {
   const outputs = [
-    { output_text: "first" },
-    { result: { response: "second" } },
-    { choices: [{ message: { content: "third" } }] }
+    [{ output_text: "first" }, "first"],
+    [{ result: { response: "second" } }, "second"],
+    [{ choices: [{ message: { content: "third" } }] }, "third"],
+    [{ result: { choices: [{ message: { content: "fourth" } }] } }, "fourth"],
+    [{ message: { content: [{ type: "text", text: "fifth" }] } }, "fifth"],
+    [{ result: { message: { content: "sixth" } } }, "sixth"]
   ];
-  for (const output of outputs) {
+  for (const [output, expected] of outputs) {
     const provider = createAssistantProvider({ AI: { run: async () => output } });
     const result = await provider.generate({ messages: [{ role: "user", content: "hello" }] });
-    assert.ok(["first", "second", "third"].includes(result.text));
+    assert.equal(result.text, expected);
   }
 
   const provider = createAssistantProvider({
@@ -71,8 +84,10 @@ test("provider adapter rejects invalid message envelopes before calling the bind
   assert.equal(called, false);
 });
 
-test("provider adapter reports empty model output as a typed error", async () => {
-  const provider = createAssistantProvider({ AI: { run: async () => ({ response: "  " }) } });
+test("provider adapter reports empty model output as a typed error without treating reasoning as user-facing text", async () => {
+  const provider = createAssistantProvider({
+    AI: { run: async () => ({ response: "  ", reasoning: "internal reasoning only" }) }
+  });
   await assert.rejects(
     provider.generate({ messages: [{ role: "user", content: "hello" }] }),
     error => error instanceof AssistantProviderError && error.category === "empty_response"
