@@ -18,6 +18,11 @@ on:
         required: true
         type: boolean
         default: false
+      allow_feature_removal:
+        description: "Allow removal of currently active Workers AI or support-retention configuration; requires explicit owner approval"
+        required: true
+        type: boolean
+        default: false
       retention_days:
         description: "Support ticket inactivity retention period (used only when enabled)"
         required: true
@@ -72,6 +77,7 @@ jobs:
           DEPLOY_WORKER: ${{ inputs.deploy }}
           ENABLE_WORKERS_AI: ${{ inputs.enable_workers_ai }}
           ENABLE_SUPPORT_RETENTION: ${{ inputs.enable_support_retention }}
+          ALLOW_FEATURE_REMOVAL: ${{ inputs.allow_feature_removal }}
           SUPPORT_RETENTION_DAYS: ${{ inputs.retention_days }}
           GITHUB_SHA: ${{ github.sha }}
         run: node scripts/deploy-production-worker.mjs
