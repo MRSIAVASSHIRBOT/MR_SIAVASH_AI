@@ -81,6 +81,18 @@ export function classifyAssistantProviderError(error) {
   return new AssistantProviderError("unavailable", "The AI provider is temporarily unavailable.", { retryable: true });
 }
 
+function truncateUtf16(value, maxUnits) {
+  let end = 0;
+  let units = 0;
+  for (const character of value) {
+    const width = character.length;
+    if (units + width > maxUnits) break;
+    units += width;
+    end += width;
+  }
+  return value.slice(0, end);
+}
+
 export function createAssistantProvider(env) {
   const binding = env?.AI;
   if (!binding || typeof binding.run !== "function") return null;
@@ -135,7 +147,7 @@ export function createAssistantProvider(env) {
       return Object.freeze({
         provider: "cloudflare-workers-ai",
         model,
-        text: text.slice(0, 3000),
+        text: truncateUtf16(text, 3000),
         usage: normalizeUsage(result)
       });
     }
