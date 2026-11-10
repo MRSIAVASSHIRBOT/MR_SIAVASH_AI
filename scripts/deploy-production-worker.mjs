@@ -114,6 +114,61 @@ async function cloudflareRequest(path, { token, fetchImpl = fetch, ...options } 
   return payload.result;
 }
 
+export async function waitForModulesRoute(fetchImpl, base, {
+  attempts = 30,
+  intervalMs = 2000,
+  sleepImpl = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds))
+} = {}) {
+  if (typeof fetchImpl !== "function" || typeof base !== "string" || !base.startsWith("https://")) {
+    throw new Error("A valid HTTPS Worker URL and fetch implementation are required for propagation checks.");
+  }
+  if (!Number.isInteger(attempts) || attempts < 1 || attempts > 60 || !Number.isFinite(intervalMs) || intervalMs < 0) {
+    throw new Error("Worker propagation polling bounds are invalid.");
+  }
+
+  let lastStatus = null;
+  let lastNetworkError = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetchImpl(base + "/v1/modules");
+      lastStatus = response.status;
+      lastNetworkError = null;
+
+      if (response.status === 200) {
+        let body;
+        try {
+          body = await response.json();
+        } catch {
+          throw new Error("Production module catalog returned an invalid JSON response.");
+        }
+        if (!Array.isArray(body.items) || body.items.length !== 9) {
+          throw new Error("Production module catalog does not match the reviewed nine-module contract.");
+        }
+        return body;
+      }
+
+      // Cloudflare may acknowledge a deployment before every edge location serves
+      // the new Worker version. A 404 can therefore be transient during rollout.
+      if (![404, 502, 503, 504].includes(response.status)) {
+        throw new Error("Production module route returned unexpected HTTP " + response.status + ".");
+      }
+    } catch (error) {
+      if (error.message.startsWith("Production module catalog") ||
+          error.message.startsWith("Production module route returned unexpected")) {
+        throw error;
+      }
+      lastNetworkError = error;
+    }
+
+    if (attempt < attempts) await sleepImpl(intervalMs);
+  }
+
+  const reason = lastNetworkError
+    ? "last request failed: " + lastNetworkError.message
+    : "last HTTP status: " + lastStatus;
+  throw new Error("Production module route did not become ready after " + attempts + " checks (" + reason + ").");
+}
+
 async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false, retentionDays = 90 } = {}) {
   const base = "https://" + WORKER + ".mrsiavashirbot.workers.dev";
   async function call(path, init, status) {
@@ -130,8 +185,7 @@ async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSuppo
   if (ready.body.status !== "ready" || ready.body.dependencies?.database !== "ready") throw new Error("Production D1 readiness payload is invalid.");
   if (ready.body.features?.publicSupport !== enableSupportRetention) throw new Error("Production support readiness does not match the approved retention setting.");
   if (enableSupportRetention && ready.body.features?.supportRetentionDays !== retentionDays) throw new Error("Production support retention days do not match the approved release input.");
-  const modules = await call("/v1/modules", {}, 200);
-  if (!Array.isArray(modules.body.items) || modules.body.items.length !== 9) throw new Error("Production module catalog does not match the reviewed nine-module contract.");
+  await waitForModulesRoute(fetchImpl, base);
 
   const unknown = await call("/v1/support/tickets/MS-0000000000000000", {}, 404);
   if (unknown.body.error?.code !== "ticket_not_found") throw new Error("Production public ticket route is not responding with the expected private-not-found result.");
