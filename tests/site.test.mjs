@@ -252,12 +252,14 @@ test("security and roadmap docs define production gates", async () => {
   assert.doesNotMatch(roadmap, /^#\s*$/m);
   assert.doesNotMatch(roadmap, /source\.Product roadmap/);
   assert.match(roadmap, /parallel workstreams/);
-  assert.match(roadmap, /production Worker currently serves health\/readiness, a knowledge-fallback assistant endpoint, public support-ticket routes/);
-  assert.match(roadmap, /manual-only production release workflow/);
-  assert.match(roadmap, /retention decision/);
-  assert.match(roadmap, /Preview Worker traffic is at 100% on version 6/);
-  assert.match(roadmap, /production environment has no scheduled retention cron or Workers AI binding/);
-  assert.match(roadmap, /Authorized browser-session acceptance for the admin console remains outstanding/);
+  assert.match(roadmap, /main commit `971a5e702876a0bc78b19c55b8b0daf358471c5b`/);
+  assert.match(roadmap, /Production release workflow run `42801780384` completed successfully/);
+  assert.match(roadmap, /Worker version `146709f7-8158-40c8-aa80-b8b0772787f1` receiving 100% of traffic/);
+  assert.match(roadmap, /58\/58 Node tests/);
+  assert.match(roadmap, /real Workers AI request that returned `mode: ai_grounded` with non-empty sources/);
+  assert.match(roadmap, /daily `0 3 \* \* \*` cleanup schedule/);
+  assert.match(roadmap, /does not by itself prove that a cleanup execution has occurred/);
+  assert.match(roadmap, /end-to-end administrator ticket workflow acceptance and Preview sign-in remain separate checks/);
   assert.doesNotMatch(roadmap, /Preview traffic remains rolled back to v3/);
 });
 

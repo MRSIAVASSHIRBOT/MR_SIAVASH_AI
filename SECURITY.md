@@ -2,13 +2,13 @@
 
 ## Scope
 
-The deployed production Worker currently exposes public support-ticket create/read/reply endpoints; this describes the deployed bundle, not every route in the current repository source.
+The deployed Production Worker serves health/readiness, public module metadata, a grounded Workers AI assistant, support-ticket routes, and Access-protected administrator routes.
 
-The public website is a static GitHub Pages application. The production Worker, `mr-siavash-ai-gateway`, is deployed on its `workers.dev` hostname. A separate preview Worker, `mr-siavash-ai-gateway-preview`, runs current source against an isolated D1 database. A Cloudflare control-plane inspection on 2026-11-08 identified deployed version `f7d5a92e-2694-4af1-8b99-18d04742925d`.
+The public website is a static GitHub Pages application. The production Worker, `mr-siavash-ai-gateway`, is deployed on its `workers.dev` hostname. A separate Preview Worker, `mr-siavash-ai-gateway-preview`, uses an isolated D1 database. On 2026-11-10, Cloudflare confirmed Production version `146709f7-8158-40c8-aa80-b8b0772787f1` at 100% traffic under deployment `cb861582-86ea-4899-8cff-273062d9b36c`.
 
-The production Worker currently contains health/readiness, a knowledge-fallback assistant endpoint, public support ticket creation/read/reply endpoints, and Access-protected administrator console/API routes. It does not yet contain the current repository's public `/v1/modules` route or scheduled retention handler. The current `main` source and isolated preview Worker contain those newer capabilities. Production has no Workers AI binding; no model-generated assistant response is active.
+Production contains health/readiness, public `/v1/modules` metadata, a grounded Workers AI assistant, public support-ticket routes, a scheduled retention handler, and Access-protected administrator console/API routes. The production release run `42801780384` passed the grounded assistant smoke request, which returned `mode: ai_grounded` with non-empty sources. Preview remains a separate environment with its own isolated D1 and Access/AI configuration.
 
-The public UI continues to disable ticket submission and tracking until the reviewed production release and retention decision are complete. Production D1 already contains support records; their contents were not inspected or exported. Do not reset the database, reapply migrations 0001–0003, or enable automatic deletion without explicit owner approval.
+The public UI gates new ticket intake on explicit privacy acknowledgement and the Worker's retention-readiness response; ticket tracking requires the one-time bearer token. Production D1 contains support records; their contents were not inspected or exported. Do not reset the database, reapply migrations 0001–0003, or change the owner-selected retention period without approval.
 
 ## Administrator access boundary
 
@@ -18,7 +18,7 @@ A Cloudflare Access self-hosted application is configured for:
 
 The application has a single-administrator email allow policy. Its audience matches the Worker's configured Access audience; the Worker's Access team-domain, audience and administrator allowlist bindings are present. The application uses an eight-hour session, path-scoped cookies and HttpOnly cookies.
 
-The Worker independently validates Access JWT signature, issuer, audience, expiry and the administrator email allowlist. Keep this server-side validation. A protected route and a configured Access application do not replace an end-to-end authorized browser-session test.
+The Worker independently validates Access JWT signature, issuer, audience, expiry and the administrator email allowlist. Keep this server-side validation. Production One-time PIN sign-in was owner-confirmed on 2026-11-10; end-to-end administrator ticket workflow acceptance remains a separate test.
 
 ## Gateway privacy and telemetry
 
@@ -26,11 +26,11 @@ Support ticket text and optional contact email are stored in D1. Ticket credenti
 
 A Cloudflare settings readback verified `observability.redact_query_string: true`. Persistent invocation logs and traces remain enabled. Query-string redaction does not redact request bodies, headers, D1 records or other telemetry fields.
 
-The current Worker source includes a scheduled cleanup handler for inactive support tickets, expired idempotency records and rate-limit buckets. Preview uses a 90-day inactivity period. Production has no retention cron. Enabling production retention deletes existing inactive support tickets and linked messages after the explicitly selected period; it is disabled by default in the production release workflow and requires owner approval.
+The current Worker includes a scheduled cleanup handler for inactive support tickets, expired idempotency records and rate-limit buckets. Production and Preview each have separate 90-day inactivity settings and daily `0 3 * * *` schedules. Production's schedule is configured; verify the first scheduled execution through telemetry. The owner explicitly selected the 90-day period; do not change it or run manual destructive cleanup without approval.
 
 ## Production release boundary
 
-The production release workflow is manual-only and defaults to read-only configuration validation. A production traffic change requires `deploy=true`, a configured `cloudflare-production` GitHub environment and a scoped Cloudflare API token. Workers AI and support retention are separate opt-ins. The release client validates the production D1 identifier and Access bindings, preserves hidden secret binding types, performs route/readiness/CORS smoke checks, verifies observability settings, and restores the previous traffic split/schedules if post-deploy checks fail.
+The production release workflow is manual-only and defaults to read-only configuration validation. A production traffic change requires `deploy=true`, a configured `cloudflare-production` GitHub environment and a scoped Cloudflare API token. Workers AI and support retention remain separate explicit inputs. The release client validates the production D1 identifier and Access bindings, preserves hidden secret binding types, performs readiness/module/privacy/CORS and grounded AI smoke checks, verifies observability settings, and restores the previous traffic split/schedules if post-deploy checks fail.
 
 ## Reporting
 

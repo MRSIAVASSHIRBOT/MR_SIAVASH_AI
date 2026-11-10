@@ -21,23 +21,23 @@ test("production documentation distinguishes deployed routes from current source
     assert.match(doc, /Workers AI/i);
     assert.match(doc, /retention/i);
   }
-  assert.match(gatewayReadme, /does \*\*not\*\* yet contain `GET \/v1\/modules`/);
-  assert.match(gatewayReadme, /100% of production traffic is on Worker version 5/);
-  assert.match(gatewayReadme, /Version 6 .* rolled back within seconds/);
+  assert.match(gatewayReadme, /100% of production traffic/);
+  assert.match(gatewayReadme, /version 12/);
+  assert.match(gatewayReadme, /mode: ai_grounded/);
+  assert.match(gatewayReadme, /GET \/v1\/modules/);
   assert.match(gatewayReadme, /POST.*v1\/support\/tickets/);
-  assert.match(gatewayReadme, /new ticket submission disabled/i);
-  assert.match(gatewayReadme, /existing-ticket tracking remains available/i);
   assert.match(gatewayReadme, /explicit privacy acknowledgement/i);
   assert.match(gatewayReadme, /Verified production state — 2026-11-10/);
   assert.match(gatewayReadme, /SUPPORT_RETENTION_DAYS=90/);
-  assert.match(gatewayReadme, /no cron schedule for retention/i);
+  assert.match(gatewayReadme, /daily `0 3 \* \* \*` UTC schedule/);
   assert.match(gatewayReadme, /Preview Worker traffic is at 100%/);
   assert.match(gatewayReadme, /\`AI\` \(Workers AI\)/);
-  assert.match(gatewayReadme, /daily `0 3 \* \* \*` UTC schedule/);
   assert.match(roadmap, /66ccb720-01cb-43e0-9b14-6d1500fa2581/);
-  assert.doesNotMatch(gatewayReadme, /No Workers AI binding or service token was added/);
-  assert.match(roadmap, /7d884683e0899d7f61e69e8cf2865228b9379c3d/);
-  assert.match(roadmap, /production environment has no scheduled retention cron or Workers AI binding/i);
+  assert.match(roadmap, /971a5e702876a0bc78b19c55b8b0daf358471c5b/);
+  assert.match(roadmap, /Production release workflow run `42801780384` completed successfully/);
+  assert.match(roadmap, /real Workers AI request that returned `mode: ai_grounded`/);
+  assert.doesNotMatch(gatewayReadme, /Production has no Workers AI binding/i);
+  assert.doesNotMatch(roadmap, /production environment has no scheduled retention cron or Workers AI binding/i);
   assert.doesNotMatch(roadmap, /future production support-retention choice remains 30 days/i);
 });
 
