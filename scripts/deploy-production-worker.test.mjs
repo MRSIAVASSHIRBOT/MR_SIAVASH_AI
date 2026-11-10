@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildVersionMetadata, mergeCronSchedules, configureCronSchedules, releaseProductionWorker } from "./deploy-production-worker.mjs";
+import { buildVersionMetadata, buildWorkerUploadForm, mergeCronSchedules, configureCronSchedules, releaseProductionWorker } from "./deploy-production-worker.mjs";
 
 const settings = {
   compatibility_date: "2026-11-06",
@@ -28,7 +28,7 @@ test("production release metadata pins the dedicated D1 and preserves Access bin
     assert.ok(metadata.bindings.some(x => x.name === name), name);
   }
   assert.deepEqual(metadata.keep_bindings, ["secret_text", "secret_key", "secrets_store_secret", "mtls_certificate"]);
-  assert.equal(metadata.bindings.find(x => x.name === "SUPPORT_RETENTION_DAYS").text, "30");
+  assert.equal(metadata.bindings.find(x => x.name === "SUPPORT_RETENTION_DAYS").text, "90");
   assert.equal(metadata.annotations["workers/commit_sha"], "a".repeat(40));
   assert.equal(metadata.annotations["workers/repository_url"], "https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI");
 });
@@ -67,6 +67,22 @@ test("support retention is opt-in and validates the selected period", () => {
     retentionDays: 180
   });
   assert.equal(enabled.bindings.find(x => x.name === "SUPPORT_RETENTION_DAYS").text, "180");
+});
+
+test("production upload includes the complete Worker module graph", async () => {
+  const form = buildWorkerUploadForm({ main_module: "index.js" }, {
+    indexSource: 'import { createAssistantProvider } from "./assistant-provider.js";',
+    assistantProviderSource: "export function createAssistantProvider() {}"
+  });
+  const files = form.getAll("files");
+  assert.equal(files.length, 2);
+  assert.deepEqual(files.map(file => file.name), ["index.js", "assistant-provider.js"]);
+  assert.match(await files[0].text(), /assistant-provider\.js/);
+  assert.match(await files[1].text(), /createAssistantProvider/);
+});
+
+test("production upload rejects an incomplete Worker module graph", () => {
+  assert.throws(() => buildWorkerUploadForm({}, { indexSource: "export default {}" }), /provider module source is required/);
 });
 
 test("cron schedule merge preserves existing schedules and adds retention once", () => {

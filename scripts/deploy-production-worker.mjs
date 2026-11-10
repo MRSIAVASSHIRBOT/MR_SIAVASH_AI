@@ -16,7 +16,7 @@ function requireBinding(bindings, name) {
   return binding.text;
 }
 
-export function buildVersionMetadata(settings, { expectedDatabaseId, commitSha, enableWorkersAI = false, enableSupportRetention = false, retentionDays = 30 } = {}) {
+export function buildVersionMetadata(settings, { expectedDatabaseId, commitSha, enableWorkersAI = false, enableSupportRetention = false, retentionDays = 90 } = {}) {
   if (!settings || !Array.isArray(settings.bindings)) throw new Error("Cloudflare Worker settings are incomplete.");
   if (!/^[0-9a-f-]{36}$/i.test(expectedDatabaseId || "")) throw new Error("Expected production D1 database ID is invalid.");
   if (!settings.compatibility_date) throw new Error("Worker compatibility date is missing.");
@@ -72,6 +72,20 @@ export function buildVersionMetadata(settings, { expectedDatabaseId, commitSha, 
   };
 }
 
+export function buildWorkerUploadForm(metadata, { indexSource, assistantProviderSource } = {}) {
+  if (typeof indexSource !== "string" || !indexSource.trim()) {
+    throw new Error("Worker entry module source is required.");
+  }
+  if (typeof assistantProviderSource !== "string" || !assistantProviderSource.trim()) {
+    throw new Error("Imported assistant provider module source is required.");
+  }
+  const form = new FormData();
+  form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
+  form.append("files", new Blob([indexSource], { type: "application/javascript+module" }), "index.js");
+  form.append("files", new Blob([assistantProviderSource], { type: "application/javascript+module" }), "assistant-provider.js");
+  return form;
+}
+
 export function mergeCronSchedules(currentSchedules, cron = RETENTION_CRON) {
   const current = Array.isArray(currentSchedules) ? currentSchedules : [];
   const crons = [...new Set(current.map(item => item?.cron).filter(value => typeof value === "string" && value.trim()))];
@@ -100,7 +114,7 @@ async function cloudflareRequest(path, { token, fetchImpl = fetch, ...options } 
   return payload.result;
 }
 
-async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false, retentionDays = 30 } = {}) {
+async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false, retentionDays = 90 } = {}) {
   const base = "https://" + WORKER + ".mrsiavashirbot.workers.dev";
   async function call(path, init, status) {
     const response = await fetchImpl(base + path, init);
@@ -173,10 +187,10 @@ export async function releaseProductionWorker({
   deploy = false,
   enableWorkersAI = false,
   enableSupportRetention = false,
-  retentionDays = 30,
+  retentionDays = 90,
   commitSha = "",
   fetchImpl = fetch,
-  source
+  sourceFiles
 }) {
   if (!token || !accountId || !expectedDatabaseId) throw new Error("Cloudflare token, account ID and expected production D1 ID are required.");
   if (deploy && !/^[0-9a-f]{40}$/i.test(commitSha || "")) {
@@ -201,10 +215,14 @@ export async function releaseProductionWorker({
   }
   const previousSchedules = (schedulesResult.schedules || []).map(item => ({ cron: item.cron }));
 
-  const workerSource = source ?? await readFile(resolve("cloudflare/gateway/src/index.js"), "utf8");
-  const form = new FormData();
-  form.append("metadata", new Blob([JSON.stringify(metadata)], { type: "application/json" }));
-  form.append("files", new Blob([workerSource], { type: "application/javascript+module" }), "index.js");
+  const modules = sourceFiles ?? await Promise.all([
+    readFile(resolve("cloudflare/gateway/src/index.js"), "utf8"),
+    readFile(resolve("cloudflare/gateway/src/assistant-provider.js"), "utf8")
+  ]);
+  const form = buildWorkerUploadForm(metadata, {
+    indexSource: modules[0],
+    assistantProviderSource: modules[1]
+  });
 
   const uploaded = await cloudflareRequest(prefix + "/versions", { token, fetchImpl, method: "POST", body: form });
   const versionId = uploaded.id;
@@ -266,7 +284,7 @@ async function main() {
   const deploy = String(process.env.DEPLOY_WORKER || "").toLowerCase() === "true";
   const enableWorkersAI = String(process.env.ENABLE_WORKERS_AI || "").toLowerCase() === "true";
   const enableSupportRetention = String(process.env.ENABLE_SUPPORT_RETENTION || "").toLowerCase() === "true";
-  const retentionDays = Number(process.env.SUPPORT_RETENTION_DAYS || 30);
+  const retentionDays = Number(process.env.SUPPORT_RETENTION_DAYS || 90);
   const result = await releaseProductionWorker({
     token, accountId, expectedDatabaseId, deploy, enableWorkersAI, enableSupportRetention, retentionDays,
     commitSha: process.env.GITHUB_SHA || ""

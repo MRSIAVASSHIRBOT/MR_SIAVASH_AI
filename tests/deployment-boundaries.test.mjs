@@ -42,7 +42,7 @@ test("production release is manual, read-only by default and guarded by exact re
   assert.match(releaseWorkflow, /enable_support_retention/);
   assert.match(releaseWorkflow, /ENABLE_SUPPORT_RETENTION:.*inputs\.enable_support_retention/);
   assert.match(releaseWorkflow, /SUPPORT_RETENTION_DAYS:.*inputs\.retention_days/);
-  assert.match(releaseWorkflow, /default: "30"/);
+  assert.match(releaseWorkflow, /default: "90"/);
   assert.match(releaseWorkflow, /enable_workers_ai/);
 });
 
