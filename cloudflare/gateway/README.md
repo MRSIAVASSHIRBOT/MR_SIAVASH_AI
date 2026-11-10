@@ -15,7 +15,7 @@ Never bind this project to GShop's `gahop` Worker or `gshop-db`.
 
 ## Verified production state — 2026-11-10
 
-Cloudflare control-plane inspection on 2026-11-08 verified that 100% of production traffic is on Worker version 5, `f7d5a92e-2694-4af1-8b99-18d04742925d`. Version 6 (`864e90b3-d163-41d6-84f6-6e87dd0960d7`, source commit `b060beeecd13196d1143187a518962379a696c22`) was uploaded with the scheduled handler and a 90-day retention binding, but its deployment was rolled back within seconds to version 5 after post-deployment smoke checks failed. Version 6 is not active. The rollback restored the previous traffic split and left the production cron schedule empty.
+Cloudflare control-plane inspection on 2026-11-10 reconfirmed that 100% of production traffic is on Worker version 5, `f7d5a92e-2694-4af1-8b99-18d04742925d`. Version 6 (`864e90b3-d163-41d6-84f6-6e87dd0960d7`, source commit `b060beeecd13196d1143187a518962379a696c22`) was uploaded with the scheduled handler and a 90-day retention binding, but its deployment was rolled back within seconds to version 5 after post-deployment smoke checks failed. Version 6 is not active. The rollback restored the previous traffic split and left the production cron schedule empty.
 
 The deployed version contains:
 - `GET /v1/health/live` and `GET /v1/health/ready`.
