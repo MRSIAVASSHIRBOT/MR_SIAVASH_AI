@@ -63,7 +63,7 @@ The adapter performs one attempt with no automatic retry. Streaming, request tim
 
 The Worker source contains a scheduled cleanup handler. It deletes support tickets after the configured number of days without an update; the D1 foreign-key cascade deletes linked messages. It also deletes expired idempotency records and rate-limit buckets. Allowed retention periods are 30–365 days.
 
-Preview uses 90 days. The selected default for a future production policy is 30 days. The manual release workflow remains opt-in and defaults to disabled; no production cron is configured. This matters because production D1 already contains support records. Do not enable a retention cron or delete existing records without the repository owner's explicit selection of the retention period.
+Preview uses 90 days. The owner-selected production policy is 90 days, matching the existing production binding and Preview policy. The manual release workflow remains opt-in and defaults to disabled; no production cron is configured. This matters because production D1 already contains support records. Do not enable a retention cron or delete existing records without the repository owner's explicit selection of the retention period.
 
 Ticket creation requires an explicit privacy acknowledgement and an active 30–365-day retention setting. The public interface enables new intake only after the Worker confirms both. Existing-ticket tracking remains available when D1 is healthy. Ticket tokens are returned once and stored only as SHA-256 hashes; the browser sends them in the Authorization header and never puts them in URLs, logs, localStorage or analytics. Do not collect passwords, payment data, API keys or authentication codes.
 
@@ -71,7 +71,7 @@ Ticket creation requires an explicit privacy acknowledgement and an active 30–
 
 `.github/workflows/gateway-production.yml` is manual-only. Its `deploy` input defaults to false; the default path performs read-only validation of the production D1 binding and Access configuration. A real deployment requires an explicit manual dispatch with `deploy=true`, a configured `cloudflare-production` GitHub environment, and its narrowly scoped `CLOUDFLARE_API_TOKEN` secret.
 
-The release client uploads a version through the Cloudflare Workers Versions API, creates a separate 100% deployment, configures retention only when explicitly selected, runs route/readiness/CORS smoke checks, verifies observability privacy settings, and restores the previous traffic split and schedules if post-deploy verification fails. Workers AI is a separate opt-in because it can consume account quota or paid usage. No production release was executed by this change.
+The release client uploads a version through the Cloudflare Workers Versions API, creates a separate 100% deployment, configures retention only when explicitly selected, runs route/readiness/CORS smoke checks, verifies observability privacy settings, and restores the previous traffic split and schedules if post-deploy verification fails. Workers AI is a separate opt-in because it can consume account quota or paid usage. The production release remains manual-only and must use the exact reviewed `main` commit. The uploader must include both `index.js` and its imported `assistant-provider.js` module.
 
 See [PRODUCTION_RELEASE.md](./PRODUCTION_RELEASE.md) and [PREVIEW_RELEASE.md](./PREVIEW_RELEASE.md).
 
