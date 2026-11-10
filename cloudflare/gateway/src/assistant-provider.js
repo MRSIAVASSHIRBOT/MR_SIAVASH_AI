@@ -1,5 +1,5 @@
 const DEFAULT_MODEL = "@cf/zai-org/glm-4.7-flash";
-const MAX_OUTPUT_TOKENS = 450;
+const MAX_OUTPUT_TOKENS = 1536;
 const MAX_MESSAGES = 10;
 
 export class AssistantProviderError extends Error {
@@ -12,9 +12,19 @@ export class AssistantProviderError extends Error {
 }
 
 function safeModel(value) {
-  return typeof value === "string" && /^@cf\/[a-z0-9][a-z0-9._/-]*$/i.test(value)
+  return typeof value === "string" && /^@cf\\/[a-z0-9][a-z0-9._/-]*$/i.test(value)
     ? value
     : DEFAULT_MODEL;
+}
+
+function contentText(value) {
+  if (typeof value === "string") return value.trim();
+  if (!Array.isArray(value)) return "";
+  return value
+    .map(part => typeof part === "string" ? part : typeof part?.text === "string" ? part.text : "")
+    .filter(Boolean)
+    .join("\n")
+    .trim();
 }
 
 function extractText(result) {
@@ -23,9 +33,16 @@ function extractText(result) {
     result?.response,
     result?.output_text,
     result?.result?.response,
-    result?.choices?.[0]?.message?.content
+    result?.choices?.[0]?.message?.content,
+    result?.result?.choices?.[0]?.message?.content,
+    result?.message?.content,
+    result?.result?.message?.content
   ];
-  return candidates.find(value => typeof value === "string" && value.trim())?.trim() || "";
+  for (const candidate of candidates) {
+    const text = contentText(candidate);
+    if (text) return text;
+  }
+  return "";
 }
 
 function normalizeUsage(result) {
@@ -49,16 +66,16 @@ function normalizeUsage(result) {
 export function classifyAssistantProviderError(error) {
   const message = String(error?.message ?? error ?? "").toLowerCase();
 
-  if (/\b(401|403)\b|unauthori[sz]ed|forbidden|authentication/.test(message)) {
+  if (/\\b(401|403)\\b|unauthori[sz]ed|forbidden|authentication/.test(message)) {
     return new AssistantProviderError("authentication", "The AI provider rejected its configured credentials.");
   }
-  if (/\b429\b|rate.?limit|too many requests|quota/.test(message)) {
+  if (/\\b429\\b|rate.?limit|too many requests|quota/.test(message)) {
     return new AssistantProviderError("rate_limit", "The AI provider rate limit or quota was reached.", { retryable: true });
   }
-  if (/\b(408|504)\b|timed?\s*out|timeout|abort/.test(message)) {
+  if (/\\b(408|504)\\b|timed?\\s*out|timeout|abort/.test(message)) {
     return new AssistantProviderError("timeout", "The AI provider request timed out.", { retryable: true });
   }
-  if (/\b(400|7003)\b|bad request|invalid request|unsupported model/.test(message)) {
+  if (/\\b(400|7003)\\b|bad request|invalid request|unsupported model/.test(message)) {
     return new AssistantProviderError("invalid_request", "The AI provider rejected the request format or model.");
   }
   return new AssistantProviderError("unavailable", "The AI provider is temporarily unavailable.", { retryable: true });
