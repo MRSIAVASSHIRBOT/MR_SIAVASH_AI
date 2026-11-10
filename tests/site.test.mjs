@@ -15,6 +15,7 @@ const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "ut
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
+const privacyText = await readFile(new URL("../privacy.html", import.meta.url), "utf8");
 const supportTickets = await readFile(new URL("../support-tickets.mjs", import.meta.url), "utf8");
 const boundedJson = await readFile(new URL("../bounded-json.js", import.meta.url), "utf8");
 const searchSource = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
@@ -195,7 +196,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v39"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v40"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -1355,7 +1356,8 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(html, /type="password"/);
   assert.match(support, /readJson\("\.\/search-index\.json"/);
   assert.match(boundedJson, /credentials:"omit"/);
-  assert.doesNotMatch(support, /mr-siavash-ai-gateway|Authorization|\/v1\/support/);
+  assert.match(support, /ASSISTANT_API/);
+  assert.doesNotMatch(support, /Authorization|\/v1\/support/);
   assert.match(supportTickets, /supportGate\(health\)/);
   assert.match(supportTickets, /features\?\.publicSupport/);
   assert.match(supportTickets, /supportTrackingGate\(health\)/);
@@ -1457,17 +1459,21 @@ test("local support guide retries loading its index after an initial offline fai
   assert.equal(button.disabled, false);
 });
 
-test("support UI accurately identifies its local, non-generative guide", () => {
-  assert.match(html, /راهنمای محلی سایت، ثبت درخواست و پیگیری امن گفتگو/);
-  assert.match(html, />راهنمای سایت<\/button>/);
-  assert.match(html, /راهنمای محلی سایت · بدون ارسال پیام به سرور؛ پاسخ بر پایه محتوای عمومی منتشرشده/);
-  assert.match(html, /سؤال یا عبارت مورد جست‌وجو/);
-  assert.match(html, />یافتن راهنما<\/button>/);
-  assert.doesNotMatch(html, /ارتباط مستقیم با پشتیبانی|ارجاع به پشتیبانی انسانی|گفتگو با ربات/);
-  assert.doesNotMatch(support, /handoffButton|\.\/v1\/|method:"POST"/);
+test("support assistant defaults to local search and gates optional online AI behind explicit consent", () => {
+  assert.match(html, /راهنمای محلی/);
+  assert.match(html, /دستیار هوشمند آنلاین/);
+  assert.match(html, /id="assistantOnlineConsent"/);
+  assert.match(html, /متن سؤال فعلی پس از تأیید تو به Gateway ارسال می‌شود/);
+  assert.match(support, /assistantMode = "local"/);
+  assert.match(support, /requestMode === "online" && !consent\?\.checked/);
+  assert.match(support, /body: JSON\.stringify\(\{ message: query \}\)/);
+  assert.match(support, /credentials: "omit"/);
+  assert.match(support, /referrerPolicy: "no-referrer"/);
+  assert.match(support, /ASSISTANT_API/);
   assert.ok(support.includes("window.MRSIAVASHReadJson"));
+  assert.match(privacyText, /برای هر سؤال، تأیید صریح لازم است/);
+  assert.match(privacyText, /شناسهٔ مشتق‌شده از IP و به‌صورت هش/);
 });
-
 
 test("support and global search delegate public JSON reads to the shared bounded loader", () => {
   assert.ok(support.includes("window.MRSIAVASHReadJson"));
@@ -1475,7 +1481,7 @@ test("support and global search delegate public JSON reads to the shared bounded
   assert.match(boundedJson, /reader.cancel/);
   assert.match(boundedJson, /controller.abort/);
   assert.match(boundedJson, /credentials:"omit"/);
-  assert.equal(support.includes("fetch("), false);
+  assert.match(support, /window\.fetch\(ASSISTANT_API/);
   assert.equal(searchSource.includes("fetch("), false);
 });
 
@@ -1513,8 +1519,8 @@ test("ticket tracking remains available without enabling new ticket intake", () 
 test("public privacy notice describes ticket data, one-time credentials and inactivity retention", async () => {
   const privacy = await readFile(new URL("../privacy.html", import.meta.url), "utf8");
   assert.match(privacy, /کلید خصوصی به‌صورت هش‌شده ذخیره می‌شود/);
-  assert.match(privacy, /مدت انتخاب‌شده برای ثبت آنلاین این سایت ۳۰ روز است/);
-  assert.match(privacy, /۳۰ روز بدون به‌روزرسانی/);
+  assert.match(privacy, /مدت نگهداری فعال تیکت‌های پشتیبانی در محیط Production برابر ۹۰ روز/);
+  assert.match(privacy, /۹۰ روز از آخرین به‌روزرسانی/);
   assert.match(privacy, /رمز عبور، کلید API/);
   assert.match(privacy, /فضای ذخیره‌سازی مرورگر/);
 });
