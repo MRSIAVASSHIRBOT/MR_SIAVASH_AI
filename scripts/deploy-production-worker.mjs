@@ -169,6 +169,65 @@ export async function waitForModulesRoute(fetchImpl, base, {
   throw new Error("Production module route did not become ready after " + attempts + " checks (" + reason + ").");
 }
 
+export async function waitForReadyRoute(fetchImpl, base, {
+  enableSupportRetention = false,
+  retentionDays = 90,
+  attempts = 30,
+  intervalMs = 2000,
+  sleepImpl = milliseconds => new Promise(resolve => setTimeout(resolve, milliseconds))
+} = {}) {
+  if (typeof fetchImpl !== "function" || typeof base !== "string" || !base.startsWith("https://")) {
+    throw new Error("A valid HTTPS Worker URL and fetch implementation are required for readiness propagation checks.");
+  }
+  if (!Number.isInteger(attempts) || attempts < 1 || attempts > 60 || !Number.isFinite(intervalMs) || intervalMs < 0) {
+    throw new Error("Worker readiness polling bounds are invalid.");
+  }
+  if (enableSupportRetention && (!Number.isInteger(Number(retentionDays)) || Number(retentionDays) < 30 || Number(retentionDays) > 365)) {
+    throw new Error("Expected support retention period is invalid.");
+  }
+
+  let lastStatus = null;
+  let lastReason = null;
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    try {
+      const response = await fetchImpl(base + "/v1/health/ready");
+      lastStatus = response.status;
+      if (![200, 503].includes(response.status)) {
+        throw new Error("Production readiness route returned unexpected HTTP " + response.status + ".");
+      }
+
+      let body;
+      try {
+        body = await response.json();
+      } catch {
+        throw new Error("Production readiness route returned invalid JSON.");
+      }
+      const databaseReady = body.status === "ready" && body.dependencies?.database === "ready";
+      const supportMatches = body.features?.publicSupport === enableSupportRetention;
+      const retentionMatches = !enableSupportRetention || body.features?.supportRetentionDays === Number(retentionDays);
+      if (response.status === 200 && databaseReady && supportMatches && retentionMatches) return body;
+
+      const mismatches = [];
+      if (!databaseReady) mismatches.push("database readiness");
+      if (!supportMatches) mismatches.push("public-support feature flag");
+      if (!retentionMatches) mismatches.push("support-retention days");
+      lastReason = mismatches.length ? "readiness does not yet match expected release settings: " + mismatches.join(", ") :
+        "readiness endpoint returned HTTP " + response.status + ".";
+    } catch (error) {
+      if (error.message.startsWith("Production readiness route returned unexpected") ||
+          error.message.startsWith("Production readiness route returned invalid JSON")) {
+        throw error;
+      }
+      lastReason = error.message;
+    }
+
+    if (attempt < attempts) await sleepImpl(intervalMs);
+  }
+
+  throw new Error("Production readiness did not match the approved release settings after " + attempts +
+    " checks (last HTTP status: " + lastStatus + "; " + lastReason + ").");
+}
+
 async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false, retentionDays = 90 } = {}) {
   const base = "https://" + WORKER + ".mrsiavashirbot.workers.dev";
   async function call(path, init, status) {
@@ -181,10 +240,7 @@ async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSuppo
 
   const live = await call("/v1/health/live", {}, 200);
   if (live.body.status !== "ok") throw new Error("Production liveness payload is invalid.");
-  const ready = await call("/v1/health/ready", {}, 200);
-  if (ready.body.status !== "ready" || ready.body.dependencies?.database !== "ready") throw new Error("Production D1 readiness payload is invalid.");
-  if (ready.body.features?.publicSupport !== enableSupportRetention) throw new Error("Production support readiness does not match the approved retention setting.");
-  if (enableSupportRetention && ready.body.features?.supportRetentionDays !== retentionDays) throw new Error("Production support retention days do not match the approved release input.");
+  await waitForReadyRoute(fetchImpl, base, { enableSupportRetention, retentionDays });
   await waitForModulesRoute(fetchImpl, base);
 
   const unknown = await call("/v1/support/tickets/MS-0000000000000000", {}, 404);

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildVersionMetadata, buildWorkerUploadForm, mergeCronSchedules, configureCronSchedules, releaseProductionWorker, waitForModulesRoute } from "./deploy-production-worker.mjs";
+import { buildVersionMetadata, buildWorkerUploadForm, mergeCronSchedules, configureCronSchedules, releaseProductionWorker, waitForModulesRoute, waitForReadyRoute } from "./deploy-production-worker.mjs";
 
 const settings = {
   compatibility_date: "2026-11-06",
@@ -181,8 +181,8 @@ test("production release smoke follows the explicit support-retention selection"
   assert.match(source, /enableSupportRetention \? 400 : 503/);
   assert.match(source, /support_retention_required/);
   assert.match(source, /consent_required/);
-  assert.match(source, /ready\.body\.features\?\.publicSupport !== enableSupportRetention/);
-  assert.match(source, /supportRetentionDays !== retentionDays/);
+  assert.match(source, /waitForReadyRoute\(fetchImpl, base, \{ enableSupportRetention, retentionDays \}\)/);
+  assert.match(source, /body\.features\?\.supportRetentionDays === Number\(retentionDays\)/);
   assert.match(source, /smokeProduction\(fetchImpl, \{ enableWorkersAI, enableSupportRetention, retentionDays \}\)/);
 });
 
@@ -255,4 +255,86 @@ test("production module propagation check rejects an incorrect module contract",
     intervalMs: 0,
     sleepImpl: async () => {}
   }), /nine-module contract/);
+});
+
+
+test("production readiness smoke waits for stale edge versions before accepting approved settings", async () => {
+  let calls = 0;
+  const waits = [];
+  const expected = {
+    status: "ready",
+    dependencies: { database: "ready" },
+    features: { publicSupport: true, supportRetentionDays: 90 }
+  };
+  const result = await waitForReadyRoute(async url => {
+    assert.equal(url, "https://gateway.example.test/v1/health/ready");
+    calls += 1;
+    const stale = {
+      status: "ready",
+      dependencies: { database: "ready" },
+      features: { publicSupport: false, supportRetentionDays: null }
+    };
+    return new Response(JSON.stringify(calls < 3 ? stale : expected), { status: 200 });
+  }, "https://gateway.example.test", {
+    enableSupportRetention: true,
+    retentionDays: 90,
+    attempts: 4,
+    intervalMs: 2000,
+    sleepImpl: async milliseconds => waits.push(milliseconds)
+  });
+
+  assert.deepEqual(result, expected);
+  assert.equal(calls, 3);
+  assert.deepEqual(waits, [2000, 2000]);
+});
+
+test("production readiness smoke retries temporary D1 unavailability and fails closed on persistent mismatch", async () => {
+  let calls = 0;
+  await assert.rejects(waitForReadyRoute(async () => {
+    calls += 1;
+    return new Response(JSON.stringify({
+      status: "not_ready",
+      dependencies: { database: "unavailable" },
+      features: { publicSupport: false, supportRetentionDays: null }
+    }), { status: 503 });
+  }, "https://gateway.example.test", {
+    enableSupportRetention: true,
+    retentionDays: 90,
+    attempts: 3,
+    intervalMs: 0,
+    sleepImpl: async () => {}
+  }), /did not match the approved release settings after 3 checks/);
+  assert.equal(calls, 3);
+});
+
+test("production readiness smoke does not retry unexpected authorization or server errors", async () => {
+  let calls = 0;
+  await assert.rejects(waitForReadyRoute(async () => {
+    calls += 1;
+    return new Response("Forbidden", { status: 403 });
+  }, "https://gateway.example.test", {
+    attempts: 5,
+    intervalMs: 0,
+    sleepImpl: async () => {}
+  }), /unexpected HTTP 403/);
+  assert.equal(calls, 1);
+});
+
+test("production readiness smoke still rejects a wrong retention period after propagation checks", async () => {
+  let calls = 0;
+  await assert.rejects(waitForReadyRoute(async () => {
+    calls += 1;
+    return new Response(JSON.stringify({
+      status: "ready",
+      dependencies: { database: "ready" },
+      features: { publicSupport: true, supportRetentionDays: 60 }
+    }), { status: 200 });
+  }, "https://gateway.example.test", {
+    enableSupportRetention: true,
+    retentionDays: 90,
+    attempts: 2,
+    intervalMs: 0,
+    sleepImpl: async () => {}
+  }), /support-retention days/);
+  assert.equal(calls, 2);
 });
