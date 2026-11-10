@@ -114,6 +114,45 @@ async function cloudflareRequest(path, { token, fetchImpl = fetch, ...options } 
   return payload.result;
 }
 
+function sleep(milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
+export async function waitForModulesRoute(fetchImpl, base, {
+  attempts = 6,
+  intervalMs = 2000,
+  sleepImpl = sleep
+} = {}) {
+  if (typeof fetchImpl !== "function" || typeof base !== "string" || !base) {
+    throw new Error("A fetch implementation and Worker base URL are required.");
+  }
+  if (!Number.isInteger(attempts) || attempts < 1 || !Number.isFinite(intervalMs) || intervalMs < 0) {
+    throw new Error("Module route retry settings are invalid.");
+  }
+
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const response = await fetchImpl(base + "/v1/modules");
+    if (response.status === 404 && attempt < attempts) {
+      await sleepImpl(intervalMs);
+      continue;
+    }
+    if (response.status !== 200) {
+      throw new Error("Production module route returned unexpected HTTP " + response.status + ".");
+    }
+    let body;
+    try {
+      body = await response.json();
+    } catch {
+      throw new Error("Production module route returned invalid JSON.");
+    }
+    if (!Array.isArray(body?.items) || body.items.length !== 9) {
+      throw new Error("Production module catalog does not match the reviewed nine-module contract.");
+    }
+    return body;
+  }
+  throw new Error("Production module route did not become ready after " + attempts + " checks.");
+}
+
 async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false, retentionDays = 90 } = {}) {
   const base = "https://" + WORKER + ".mrsiavashirbot.workers.dev";
   async function call(path, init, status) {
@@ -130,8 +169,7 @@ async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSuppo
   if (ready.body.status !== "ready" || ready.body.dependencies?.database !== "ready") throw new Error("Production D1 readiness payload is invalid.");
   if (ready.body.features?.publicSupport !== enableSupportRetention) throw new Error("Production support readiness does not match the approved retention setting.");
   if (enableSupportRetention && ready.body.features?.supportRetentionDays !== retentionDays) throw new Error("Production support retention days do not match the approved release input.");
-  const modules = await call("/v1/modules", {}, 200);
-  if (!Array.isArray(modules.body.items) || modules.body.items.length !== 9) throw new Error("Production module catalog does not match the reviewed nine-module contract.");
+  await waitForModulesRoute(fetchImpl, base);
 
   const unknown = await call("/v1/support/tickets/MS-0000000000000000", {}, 404);
   if (unknown.body.error?.code !== "ticket_not_found") throw new Error("Production public ticket route is not responding with the expected private-not-found result.");
