@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildVersionMetadata, buildWorkerUploadForm, mergeCronSchedules, configureCronSchedules, releaseProductionWorker } from "./deploy-production-worker.mjs";
+import { buildVersionMetadata, buildWorkerUploadForm, mergeCronSchedules, configureCronSchedules, releaseProductionWorker, waitForModulesRoute } from "./deploy-production-worker.mjs";
 
 const settings = {
   compatibility_date: "2026-11-06",
@@ -198,4 +198,61 @@ test("production workflow gates deploy=true to main before Cloudflare release ac
   assert.ok(cloudflarePosition > guardPosition, "main-ref guard must run before the Cloudflare release step");
   assert.match(workflow, /if: \$\{\{ inputs\.deploy \}\}/);
   assert.match(workflow, /if \[\[ "\$\{GITHUB_REF\}" != "refs\/heads\/main" \]\]/);
+});
+
+
+test("production module smoke waits for transient edge propagation before accepting the new route", async () => {
+  let calls = 0;
+  const waits = [];
+  const expected = { items: Array.from({ length: 9 }, (_, index) => ({ id: "module-" + index })) };
+  const result = await waitForModulesRoute(async url => {
+    assert.equal(url, "https://gateway.example.test/v1/modules");
+    calls += 1;
+    if (calls < 3) return new Response(JSON.stringify({ error: { code: "not_found" } }), { status: 404 });
+    return new Response(JSON.stringify(expected), { status: 200 });
+  }, "https://gateway.example.test", {
+    attempts: 4,
+    intervalMs: 2000,
+    sleepImpl: async milliseconds => waits.push(milliseconds)
+  });
+
+  assert.deepEqual(result, expected);
+  assert.equal(calls, 3);
+  assert.deepEqual(waits, [2000, 2000]);
+});
+
+test("production module propagation check fails closed when the route never appears", async () => {
+  let calls = 0;
+  await assert.rejects(waitForModulesRoute(async () => {
+    calls += 1;
+    return new Response(JSON.stringify({ error: { code: "not_found" } }), { status: 404 });
+  }, "https://gateway.example.test", {
+    attempts: 3,
+    intervalMs: 0,
+    sleepImpl: async () => {}
+  }), /did not become ready after 3 checks/);
+  assert.equal(calls, 3);
+});
+
+test("production module propagation check does not retry authorization failures", async () => {
+  let calls = 0;
+  await assert.rejects(waitForModulesRoute(async () => {
+    calls += 1;
+    return new Response("Forbidden", { status: 403 });
+  }, "https://gateway.example.test", {
+    attempts: 5,
+    intervalMs: 0,
+    sleepImpl: async () => {}
+  }), /unexpected HTTP 403/);
+  assert.equal(calls, 1);
+});
+
+test("production module propagation check rejects an incorrect module contract", async () => {
+  await assert.rejects(waitForModulesRoute(async () => new Response(JSON.stringify({
+    items: [{ id: "only-one" }]
+  }), { status: 200 }), "https://gateway.example.test", {
+    attempts: 2,
+    intervalMs: 0,
+    sleepImpl: async () => {}
+  }), /nine-module contract/);
 });
