@@ -114,7 +114,7 @@ async function cloudflareRequest(path, { token, fetchImpl = fetch, ...options } 
   return payload.result;
 }
 
-async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false, retentionDays = 30 } = {}) {
+async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false, retentionDays = 90 } = {}) {
   const base = "https://" + WORKER + ".mrsiavashirbot.workers.dev";
   async function call(path, init, status) {
     const response = await fetchImpl(base + path, init);
@@ -284,7 +284,7 @@ async function main() {
   const deploy = String(process.env.DEPLOY_WORKER || "").toLowerCase() === "true";
   const enableWorkersAI = String(process.env.ENABLE_WORKERS_AI || "").toLowerCase() === "true";
   const enableSupportRetention = String(process.env.ENABLE_SUPPORT_RETENTION || "").toLowerCase() === "true";
-  const retentionDays = Number(process.env.SUPPORT_RETENTION_DAYS || 30);
+  const retentionDays = Number(process.env.SUPPORT_RETENTION_DAYS || 90);
   const result = await releaseProductionWorker({
     token, accountId, expectedDatabaseId, deploy, enableWorkersAI, enableSupportRetention, retentionDays,
     commitSha: process.env.GITHUB_SHA || ""
