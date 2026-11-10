@@ -1459,6 +1459,118 @@ test("local support guide retries loading its index after an initial offline fai
   assert.equal(button.disabled, false);
 });
 
+test("online support sends only the current question after per-question consent", async () => {
+  let ready;
+  let submit;
+  let chooseOnline;
+  let fetchCalls = 0;
+  let requestUrl = "";
+  let requestOptions;
+  const submitButton = { disabled: false, textContent: "" };
+  const input = { value: "آموزش پایتون", focus() {} };
+  const consent = { checked: false, focus() {} };
+  const status = { textContent: "" };
+  const messages = {
+    children: [],
+    scrollHeight: 100,
+    append(...items) { this.children.push(...items); },
+    get childElementCount() { return this.children.length; }
+  };
+  const makeElement = () => ({
+    children: [],
+    hidden: false,
+    textContent: "",
+    className: "",
+    dataset: {},
+    append(...items) { this.children.push(...items); },
+    get childElementCount() { return this.children.length; },
+    setAttribute() {},
+    classList: { toggle() {} },
+    addEventListener(name, callback) {
+      if (name === "submit") submit = callback;
+      if (name === "click" && this.dataset.assistantMode === "online") chooseOnline = callback;
+    },
+    querySelector() { return submitButton; },
+    focus() {},
+    close() {},
+    showModal() {}
+  });
+  const localMode = makeElement();
+  localMode.dataset.assistantMode = "local";
+  const onlineMode = makeElement();
+  onlineMode.dataset.assistantMode = "online";
+  const form = makeElement();
+  const elements = new Map([
+    ["#supportDialog", makeElement()],
+    ["#supportLauncher", makeElement()],
+    ["#supportClose", makeElement()],
+    ["#assistantForm", form],
+    ["#assistantInput", input],
+    ["#assistantMessages", messages],
+    ["#assistantOnlineConsent", consent],
+    ["#assistantOnlineConsentLabel", makeElement()],
+    ["#assistantOnlineNotice", makeElement()],
+    ["#assistantOnlineStatus", status],
+    ["#assistantModeDescription", makeElement()]
+  ]);
+  const document = {
+    readyState: "loading",
+    addEventListener(name, callback) { if (name === "DOMContentLoaded") ready = callback; },
+    querySelector(selector) { return elements.get(selector) || null; },
+    querySelectorAll(selector) {
+      if (selector === "[data-assistant-mode]") return [localMode, onlineMode];
+      return [];
+    },
+    createElement() { return makeElement(); }
+  };
+  const window = {
+    MRSIAVASHReadJson: async path => path.includes("search-index")
+      ? { schema: "mr-siavash-ai-search-index", version: 1, items: [] }
+      : { schema: "mr-siavash-ai-module-registry", version: 1, modules: [] },
+    fetch: async (url, options) => {
+      fetchCalls++;
+      requestUrl = url;
+      requestOptions = options;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          answer: "دوره پایتون در سایت موجود است.",
+          mode: "ai_grounded",
+          sources: [{ title: "آموزش پایتون", href: "./python.html" }]
+        })
+      };
+    }
+  };
+  vm.runInNewContext(support, {
+    document, window, URL, TextEncoder, location: { href: "https://example.test/" }
+  });
+  ready();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(typeof submit, "function");
+  assert.equal(typeof chooseOnline, "function");
+  assert.equal(localMode.getAttribute?.("aria-pressed"), undefined);
+  chooseOnline();
+  assert.equal(consent.checked, false);
+  await submit({ preventDefault() {}, currentTarget: form });
+  assert.equal(fetchCalls, 0, "online request must not run without explicit consent");
+  assert.match(status.textContent, /تأیید/);
+  assert.equal(input.value, "آموزش پایتون", "the unanswered question remains available for editing");
+
+  consent.checked = true;
+  await submit({ preventDefault() {}, currentTarget: form });
+  assert.equal(fetchCalls, 1);
+  assert.equal(requestUrl, "https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev/v1/assistant/chat");
+  assert.equal(requestOptions.method, "POST");
+  assert.equal(requestOptions.credentials, "omit");
+  assert.equal(requestOptions.referrerPolicy, "no-referrer");
+  assert.deepEqual(Object.keys(JSON.parse(requestOptions.body)), ["message"]);
+  assert.equal(JSON.parse(requestOptions.body).message, "آموزش پایتون");
+  assert.equal(consent.checked, false, "consent is reset after each online request");
+  assert.ok(messages.children.some(node => String(node.textContent).includes("دوره پایتون")));
+  assert.equal(submitButton.disabled, false);
+});
+
 test("support assistant defaults to local search and gates optional online AI behind explicit consent", () => {
   assert.match(html, /راهنمای محلی/);
   assert.match(html, /دستیار هوشمند آنلاین/);
