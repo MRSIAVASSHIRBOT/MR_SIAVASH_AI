@@ -182,7 +182,7 @@ test("production release smoke follows the explicit support-retention selection"
   assert.match(source, /support_retention_required/);
   assert.match(source, /consent_required/);
   assert.match(source, /waitForReadyRoute\(fetchImpl, base, \{ enableSupportRetention, retentionDays \}\)/);
-  assert.match(source, /supportRetentionDays !== retentionDays/);
+  assert.match(source, /body\.features\?\.supportRetentionDays === Number\(retentionDays\)/);
   assert.match(source, /smokeProduction\(fetchImpl, \{ enableWorkersAI, enableSupportRetention, retentionDays \}\)/);
 });
 
