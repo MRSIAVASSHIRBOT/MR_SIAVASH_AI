@@ -90,3 +90,11 @@
 .support-consent{display:flex;align-items:flex-start;gap:10px;padding:11px 12px;border:1px solid var(--line);border-radius:10px;color:var(--text);font-size:12px;line-height:1.9}
 .support-consent input{width:18px;min-width:18px;height:18px;min-height:18px;margin-top:3px;accent-color:var(--green-bright)}
 .support-consent a{color:var(--green-bright);text-decoration:underline;text-underline-offset:3px}
+
+.assistant-mode-switch{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.assistant-mode-switch button{flex:1;min-height:42px;padding:9px 12px;border:1px solid var(--line-strong);border-radius:10px;background:#0b130e;color:var(--muted);font:inherit;font-size:11px;cursor:pointer}
+.assistant-mode-switch button[aria-pressed=true]{border-color:#78df6080;background:#183322;color:#dff5e4}
+.assistant-online-notice{margin:10px 0}
+.assistant-online-consent{margin:10px 0}
+#assistantOnlineStatus{min-height:1.5em;color:var(--muted);font-size:11px;line-height:1.8}
+.assistant-mode-switch button:focus-visible{outline:2px solid var(--green-bright);outline-offset:3px}
