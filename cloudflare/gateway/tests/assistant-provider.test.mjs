@@ -120,3 +120,27 @@ test("provider adapter makes retry and cancellation limits explicit", () => {
     cancellation: false
   });
 });
+
+
+test("provider output truncation never splits a UTF-16 surrogate pair", async () => {
+  const outputs = [
+    "a".repeat(2999) + "😀" + "tail",
+    "a".repeat(2998) + "😀" + "tail"
+  ];
+  let index = 0;
+  const provider = createAssistantProvider({
+    AI: { run: async () => ({ response: outputs[index++] }) }
+  });
+
+  const withoutRoomForPair = await provider.generate({
+    messages: [{ role: "user", content: "hello" }]
+  });
+  assert.equal(withoutRoomForPair.text, "a".repeat(2999));
+  assert.equal(withoutRoomForPair.text.length, 2999);
+
+  const exactBoundary = await provider.generate({
+    messages: [{ role: "user", content: "hello" }]
+  });
+  assert.equal(exactBoundary.text, "a".repeat(2998) + "😀");
+  assert.equal(exactBoundary.text.length, 3000);
+});
