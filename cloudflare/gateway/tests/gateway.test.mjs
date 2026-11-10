@@ -350,6 +350,29 @@ test("scheduled cleanup expires inactive support tickets, idempotency rows and r
  assert.ok(Number.isFinite(Date.parse(store.statements[1].values[0])));
  assert.ok(Number.isInteger(store.statements[2].values[0]));
 });
+test("scheduled cleanup emits aggregate telemetry without ticket or user data",async()=>{
+ const events=[],originalInfo=console.info;
+ const DB={
+  prepare(sql){return{sql,bind(){return this;}};},
+  async batch(){return[{meta:{changes:2}},{meta:{changes:3}},{meta:{changes:4}}];}
+ };
+ const scheduledTime=Date.UTC(2026,10,11,3,0,0);
+ console.info=(message)=>events.push(message);
+ try{
+  await worker.scheduled({scheduledTime},{DB,SUPPORT_RETENTION_DAYS:"90"});
+ }finally{
+  console.info=originalInfo;
+ }
+ assert.equal(events.length,1);
+ const event=JSON.parse(events[0]);
+ assert.deepEqual(event,{
+  event:"support_retention_cleanup_completed",
+  scheduled_time:new Date(scheduledTime).toISOString(),
+  retention_days:90,
+  deleted:{support_tickets:2,idempotency_records:3,rate_limit_buckets:4}
+ });
+ assert.doesNotMatch(events[0],/ticket_id|access_token|contact_email|message_body/i);
+});
 test("scheduled cleanup rejects unsafe retention settings before touching D1",async()=>{
  const store=retentionDb();
  await assert.rejects(worker.scheduled({}, {DB:store.db,SUPPORT_RETENTION_DAYS:"7"}),/between 30 and 365/);
