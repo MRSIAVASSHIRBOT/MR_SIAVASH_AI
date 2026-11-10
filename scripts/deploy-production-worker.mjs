@@ -99,6 +99,21 @@ export function configureCronSchedules(currentSchedules, enableSupportRetention,
   return enableSupportRetention ? mergeCronSchedules(preserved, cron) : preserved.map(item => ({ cron: item.cron }));
 }
 
+export function getFeatureRemovalRequirements(settings, schedules, {
+  enableWorkersAI = false,
+  enableSupportRetention = false
+} = {}) {
+  const bindings = Array.isArray(settings?.bindings) ? settings.bindings : [];
+  const cronSchedules = Array.isArray(schedules?.schedules) ? schedules.schedules : [];
+  const workersAIActive = bindings.some(item => item?.type === "ai" || item?.name === "AI_MODEL");
+  const supportRetentionActive = bindings.some(item => item?.name === "SUPPORT_RETENTION_DAYS") ||
+    cronSchedules.some(item => item?.cron === RETENTION_CRON);
+  return {
+    workersAI: workersAIActive && !enableWorkersAI,
+    supportRetention: supportRetentionActive && !enableSupportRetention
+  };
+}
+
 async function cloudflareRequest(path, { token, fetchImpl = fetch, ...options } = {}) {
   const headers = new Headers(options.headers || {});
   headers.set("Authorization", "Bearer " + token);
@@ -297,6 +312,7 @@ export async function releaseProductionWorker({
   deploy = false,
   enableWorkersAI = false,
   enableSupportRetention = false,
+  allowFeatureRemoval = false,
   retentionDays = 90,
   commitSha = "",
   fetchImpl = fetch,
@@ -312,6 +328,17 @@ export async function releaseProductionWorker({
     cloudflareRequest(prefix + "/deployments", { token, fetchImpl }),
     cloudflareRequest(prefix + "/schedules", { token, fetchImpl })
   ]);
+  const featureRemovals = getFeatureRemovalRequirements(settings, schedulesResult, { enableWorkersAI, enableSupportRetention });
+  const featuresToRemove = Object.entries(featureRemovals)
+    .filter(([, required]) => required)
+    .map(([name]) => name);
+  if (deploy && featuresToRemove.length && !allowFeatureRemoval) {
+    throw new Error(
+      "Production release would remove active feature configuration (" + featuresToRemove.join(", ") +
+      "); explicit owner approval is required via ALLOW_FEATURE_REMOVAL=true."
+    );
+  }
+
   const metadata = buildVersionMetadata(settings, { expectedDatabaseId, commitSha, enableWorkersAI, enableSupportRetention, retentionDays });
   if (!deploy) {
     return { validated: true, deployed: false, worker: WORKER, message: "Production bindings validated. No Worker version, schedule or live traffic was changed." };
@@ -394,9 +421,10 @@ async function main() {
   const deploy = String(process.env.DEPLOY_WORKER || "").toLowerCase() === "true";
   const enableWorkersAI = String(process.env.ENABLE_WORKERS_AI || "").toLowerCase() === "true";
   const enableSupportRetention = String(process.env.ENABLE_SUPPORT_RETENTION || "").toLowerCase() === "true";
+  const allowFeatureRemoval = String(process.env.ALLOW_FEATURE_REMOVAL || "").toLowerCase() === "true";
   const retentionDays = Number(process.env.SUPPORT_RETENTION_DAYS || 90);
   const result = await releaseProductionWorker({
-    token, accountId, expectedDatabaseId, deploy, enableWorkersAI, enableSupportRetention, retentionDays,
+    token, accountId, expectedDatabaseId, deploy, enableWorkersAI, enableSupportRetention, allowFeatureRemoval, retentionDays,
     commitSha: process.env.GITHUB_SHA || ""
   });
   console.log(JSON.stringify(result));

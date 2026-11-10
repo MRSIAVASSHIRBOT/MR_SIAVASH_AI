@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildVersionMetadata, buildWorkerUploadForm, mergeCronSchedules, configureCronSchedules, releaseProductionWorker, waitForModulesRoute, waitForReadyRoute } from "./deploy-production-worker.mjs";
+import { buildVersionMetadata, buildWorkerUploadForm, mergeCronSchedules, configureCronSchedules, getFeatureRemovalRequirements, releaseProductionWorker, waitForModulesRoute, waitForReadyRoute } from "./deploy-production-worker.mjs";
 
 const settings = {
   compatibility_date: "2026-11-06",
@@ -120,6 +120,109 @@ test("retention opt-out removes only its cleanup cron and preserves unrelated sc
     { cron: "15 * * * *" },
     { cron: "0 3 * * *" }
   ]);
+});
+
+test("active production features cannot be removed without separate owner approval", async () => {
+  const activeSettings = {
+    ...settings,
+    bindings: [
+      ...settings.bindings,
+      { name: "AI", type: "ai" },
+      { name: "AI_MODEL", type: "plain_text", text: "@cf/zai-org/glm-4.7-flash" },
+      { name: "SUPPORT_RETENTION_DAYS", type: "plain_text", text: "90" }
+    ]
+  };
+  const schedules = { schedules: [{ cron: "0 3 * * *" }] };
+  assert.deepEqual(
+    getFeatureRemovalRequirements(activeSettings, schedules, {
+      enableWorkersAI: false,
+      enableSupportRetention: false
+    }),
+    { workersAI: true, supportRetention: true }
+  );
+  assert.deepEqual(
+    getFeatureRemovalRequirements(activeSettings, schedules, {
+      enableWorkersAI: true,
+      enableSupportRetention: true
+    }),
+    { workersAI: false, supportRetention: false }
+  );
+
+  const calls = [];
+  const fetchImpl = async (url, init = {}) => {
+    const path = new URL(url).pathname;
+    const method = init.method || "GET";
+    calls.push({ path, method });
+    const result = path.endsWith("/settings")
+      ? activeSettings
+      : path.endsWith("/deployments")
+        ? { deployments: [{ versions: [{ version_id: "previous-version", percentage: 100 }] }] }
+        : path.endsWith("/schedules")
+          ? schedules
+          : null;
+    if (!result) throw new Error("Unexpected Cloudflare API path: " + path);
+    return new Response(JSON.stringify({ success: true, result }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" }
+    });
+  };
+
+  await assert.rejects(releaseProductionWorker({
+    token: "test-token",
+    accountId: "ae50292f7e60c0d6d0052727e61c4033",
+    expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f",
+    deploy: true,
+    enableWorkersAI: false,
+    enableSupportRetention: false,
+    commitSha: "a".repeat(40),
+    fetchImpl
+  }), /ALLOW_FEATURE_REMOVAL=true/);
+  assert.equal(calls.length, 3);
+  assert.ok(calls.every(call => call.method === "GET"));
+});
+
+test("explicit feature-removal approval is required before version upload can begin", async () => {
+  const activeSettings = {
+    ...settings,
+    bindings: [
+      ...settings.bindings,
+      { name: "AI", type: "ai" },
+      { name: "AI_MODEL", type: "plain_text", text: "@cf/zai-org/glm-4.7-flash" },
+      { name: "SUPPORT_RETENTION_DAYS", type: "plain_text", text: "90" }
+    ]
+  };
+  const calls = [];
+  const fetchImpl = async (url, init = {}) => {
+    const path = new URL(url).pathname;
+    const method = init.method || "GET";
+    calls.push({ path, method });
+    if (path.endsWith("/settings")) return new Response(JSON.stringify({ success: true, result: activeSettings }));
+    if (path.endsWith("/deployments")) return new Response(JSON.stringify({
+      success: true,
+      result: { deployments: [{ versions: [{ version_id: "previous-version", percentage: 100 }] }] }
+    }));
+    if (path.endsWith("/schedules")) return new Response(JSON.stringify({
+      success: true,
+      result: { schedules: [{ cron: "0 3 * * *" }] }
+    }));
+    if (path.endsWith("/versions") && method === "POST") throw new Error("stopped before upload");
+    throw new Error("Unexpected Cloudflare API path: " + path);
+  };
+
+  await assert.rejects(releaseProductionWorker({
+    token: "test-token",
+    accountId: "ae50292f7e60c0d6d0052727e61c4033",
+    expectedDatabaseId: "87c15170-7995-4929-b00c-20b5b491c05f",
+    deploy: true,
+    enableWorkersAI: false,
+    enableSupportRetention: false,
+    allowFeatureRemoval: true,
+    commitSha: "b".repeat(40),
+    sourceFiles: ["export default {};", "export function createAssistantProvider() {}"],
+    fetchImpl
+  }), /stopped before upload/);
+  assert.ok(calls.some(call => call.path.endsWith("/versions") && call.method === "POST"));
+  assert.ok(!calls.some(call => call.path.endsWith("/deployments") && call.method === "POST"));
 });
 
 test("validation-only production release performs reads and never uploads or changes traffic", async () => {
@@ -337,4 +440,11 @@ test("production readiness smoke still rejects a wrong retention period after pr
     sleepImpl: async () => {}
   }), /support-retention days/);
   assert.equal(calls, 2);
+});
+
+test("production workflow requires a separate feature-removal acknowledgement", async () => {
+  const workflow = await readFile(new URL("../.github/workflows/gateway-production.yml", import.meta.url), "utf8");
+  assert.ok(workflow.includes("allow_feature_removal:"));
+  assert.ok(workflow.includes("ALLOW_FEATURE_REMOVAL: ${{ inputs.allow_feature_removal }}"));
+  assert.match(workflow, /allow_feature_removal:[\\s\\S]*?default: false/);
 });
