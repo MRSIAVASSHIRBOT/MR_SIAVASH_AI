@@ -378,6 +378,23 @@ test("scheduled cleanup rejects unsafe retention settings before touching D1",as
  await assert.rejects(worker.scheduled({}, {DB:store.db,SUPPORT_RETENTION_DAYS:"7"}),/between 30 and 365/);
  assert.equal(store.statements.length,0);
 });
+test("scheduled cleanup emits no completion event when D1 batch fails",async()=>{
+ const events=[],originalInfo=console.info;
+ const DB={
+  prepare(sql){return{sql,bind(){return this;}};},
+  async batch(){throw new Error("database unavailable");}
+ };
+ console.info=(message)=>events.push(message);
+ try{
+  await assert.rejects(
+   worker.scheduled({scheduledTime:Date.UTC(2026,10,11,3,0,0)},{DB,SUPPORT_RETENTION_DAYS:"90"}),
+   /database unavailable/
+  );
+ }finally{
+  console.info=originalInfo;
+ }
+ assert.deepEqual(events,[]);
+});
 
 test("public support readiness is fail-closed until a valid retention policy is configured",async()=>{
  const database=()=>({prepare(sql){if(sql==="SELECT 1 AS ok")return{first:async()=>({ok:1})};throw new Error("unexpected SQL");}});
