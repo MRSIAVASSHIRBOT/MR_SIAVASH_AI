@@ -259,7 +259,7 @@ test("security and roadmap docs define production gates", async () => {
   assert.match(roadmap, /GitHub Pages deploy job was skipped for the pull-request run/);
   assert.match(roadmap, /Academy dashboard visual alignment with the site\x27s emerald palette is merged/);
   assert.match(roadmap, /Preview Worker traffic remains at 100% on version 6/);
-  assert.match(roadmap, /production has no scheduled retention cron or Workers AI binding/);
+  assert.match(roadmap, /Production remains without a scheduled retention cron or Workers AI binding/);
   assert.match(roadmap, /owner confirmed successful One-time PIN sign-in to the production admin console/);
   assert.match(roadmap, /administrator ticket workflows and Preview sign-in still require separate acceptance checks/);
   assert.doesNotMatch(roadmap, /Preview traffic remains rolled back to v3/);
