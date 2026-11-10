@@ -24,7 +24,7 @@ The account ID and dedicated D1 ID are non-secret identifiers pinned in the work
 
 ## Retention
 
-The Worker scheduled handler removes support tickets after the selected 30, 60, 90 or 180 days without an update, which also removes their messages through the D1 foreign-key cascade. It also removes expired idempotency records and rate-limit buckets. The preview workflow configures a daily 03:00 UTC cron with a 90-day period. Production retention is disabled by default. The chosen policy default for a future activation is 30 days; the workflow still requires `enable_support_retention=true` before it adds the retention binding and daily cleanup schedule. Do not activate automatic deletion until the existing production ticket records have been reviewed and the owner explicitly approves the deletion impact.
+The Worker scheduled handler removes support tickets after the selected 30, 60, 90 or 180 days without an update, which also removes their messages through the D1 foreign-key cascade. It also removes expired idempotency records and rate-limit buckets. The preview workflow configures a daily 03:00 UTC cron with a 90-day period. Production retention is opt-in and uses the owner-selected 90-day period when activated. The currently configured and selected production policy is 90 days; the workflow still requires `enable_support_retention=true` before it adds the retention binding and daily cleanup schedule. Do not activate automatic deletion until the existing production ticket records have been reviewed and the owner explicitly approves the deletion impact.
 
 ## Manual release procedure
 
@@ -32,8 +32,8 @@ The Worker scheduled handler removes support tickets after the selected 30, 60, 
 2. Confirm the production environment secret is configured and required reviewers are enabled.
 3. Run **Cloudflare Gateway Production Release** from `main` with `deploy=false` first. This performs a read-only binding validation.
 4. After reviewing the validation result, dispatch again from `main` with `deploy=true`.
-5. Keep `enable_workers_ai=false` unless AI usage is explicitly approved.
-6. Keep `enable_support_retention=false` until the owner explicitly approves automatic deletion of inactive support tickets. The selected period is 30 days. Because the cleanup query cascades to ticket messages, enabling it can permanently delete existing production records older than the inactivity window.
+5. Set `enable_workers_ai=true` only when the owner approves model inference and associated Workers AI usage. The selected model is `@cf/zai-org/glm-4.7-flash` and the release performs one grounded smoke inference.
+6. Set `enable_support_retention=true` only after reviewing the existing D1 impact count and recording the owner-approved 90-day inactivity period. Because the cleanup query cascades to ticket messages, enabling it can permanently delete existing production records older than the inactivity window.
 7. Confirm the workflow's post-deployment smoke checks and inspect Cloudflare logs. The workflow rolls back automatically if the checks fail.
 
 A successful preview is necessary but does not replace production approval. The production workflow must never be triggered automatically by a push or Pages deployment.
