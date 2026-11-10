@@ -24,7 +24,7 @@ test("production documentation distinguishes deployed routes from current source
   assert.match(gatewayReadme, /100% of production traffic/);
   assert.match(gatewayReadme, /version 12/);
   assert.match(gatewayReadme, /mode: ai_grounded/);
-  assert.match(gatewayReadme, /GET `\/v1\/modules`/);
+  assert.match(gatewayReadme, /GET \/v1\/modules/);
   assert.match(gatewayReadme, /POST.*v1\/support\/tickets/);
   assert.match(gatewayReadme, /explicit privacy acknowledgement/i);
   assert.match(gatewayReadme, /Verified production state — 2026-11-10/);
