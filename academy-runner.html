@@ -2,31 +2,81 @@
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src blob:">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>محیط اجرای ایزوله تمرین</title>
 </head>
 <body>
 <script>
 "use strict";
-function printable(value) {
-  if (typeof value === "string") return value;
-  try { const result = JSON.stringify(value); return typeof result === "string" ? result : String(value); } catch { return String(value); }
+let activeWorker = null;
+let activeWorkerUrl = null;
+
+function cleanupWorker() {
+  if (activeWorker) activeWorker.terminate();
+  if (activeWorkerUrl) URL.revokeObjectURL(activeWorkerUrl);
+  activeWorker = null;
+  activeWorkerUrl = null;
 }
+
+function sendResult(requestId, output, error) {
+  parent.postMessage({ type: "academy-result", requestId, output, error }, "*");
+}
+
 window.addEventListener("message", event => {
   if (event.source !== parent || !event.data || event.data.type !== "academy-run" ||
       typeof event.data.code !== "string" || event.data.code.length > 4000 ||
       typeof event.data.requestId !== "string") return;
-  const lines = [];
-  const capture = value => { if (lines.length < 20) lines.push(printable(value).slice(0, 500)); };
-  const sandboxConsole = { log: (...args) => capture(args.map(printable).join(" ")), info: (...args) => capture(args.map(printable).join(" ")), warn: (...args) => capture(args.map(printable).join(" ")), error: (...args) => capture(args.map(printable).join(" ")) };
+
+  cleanupWorker();
+  const requestId = event.data.requestId;
+  const workerSource = [
+    '"use strict";',
+    'function printable(value) { if (typeof value === "string") return value; try { const result = JSON.stringify(value); return typeof result === "string" ? result : String(value); } catch { return String(value); } }',
+    'self.addEventListener("message", event => {',
+    '  if (!event.data || typeof event.data.code !== "string" || event.data.code.length > 4000) return;',
+    '  const lines = [];',
+    '  const capture = value => { if (lines.length < 20) lines.push(printable(value).slice(0, 500)); };',
+    '  const sandboxConsole = { log: (...args) => capture(args.map(printable).join(" ")), info: (...args) => capture(args.map(printable).join(" ")), warn: (...args) => capture(args.map(printable).join(" ")), error: (...args) => capture(args.map(printable).join(" ")) };',
+    '  try { const execute = new Function("console", \'"use strict";\\n\' + event.data.code); execute(sandboxConsole); self.postMessage({ output: lines, error: null }); }',
+    '  catch (error) { self.postMessage({ output: lines, error: String(error && error.message || "خطای اجرا").slice(0, 500) }); }',
+    '});'
+  ].join("\n");
+
   try {
-    const execute = new Function("console", '"use strict";\n' + event.data.code);
-    execute(sandboxConsole);
-    parent.postMessage({ type: "academy-result", requestId: event.data.requestId, output: lines, error: null }, "*");
-  } catch (error) {
-    parent.postMessage({ type: "academy-result", requestId: event.data.requestId, output: lines, error: String(error && error.message || "خطای اجرا").slice(0, 500) }, "*");
+    const blob = new Blob([workerSource], { type: "text/javascript" });
+    activeWorkerUrl = URL.createObjectURL(blob);
+    activeWorker = new Worker(activeWorkerUrl);
+  } catch {
+    cleanupWorker();
+    sendResult(requestId, [], "ساخت محیط اجرای جداگانه ممکن نشد.");
+    return;
   }
+
+  let settled = false;
+  const finish = (output, error) => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(workerTimer);
+    cleanupWorker();
+    sendResult(requestId, output, error);
+  };
+  const workerTimer = setTimeout(
+    () => finish([], "زمان اجرای تمرین به پایان رسید؛ Worker متوقف شد."),
+    1500
+  );
+  activeWorker.onmessage = event => {
+    const data = event.data || {};
+    const output = Array.isArray(data.output)
+      ? data.output.slice(0, 20).map(value => String(value).slice(0, 500))
+      : [];
+    finish(output, typeof data.error === "string" ? data.error.slice(0, 500) : null);
+  };
+  activeWorker.onerror = event => {
+    event.preventDefault();
+    finish([], "اجرای تمرین با خطای محیط Worker متوقف شد.");
+  };
+  activeWorker.postMessage({ code: event.data.code });
 });
 </script>
 </body>
