@@ -6,6 +6,7 @@ const html = await readFile(new URL("../academy.html", import.meta.url), "utf8")
 const js = await readFile(new URL("../academy.js", import.meta.url), "utf8");
 const progressModule = await readFile(new URL("../academy-progress.mjs", import.meta.url), "utf8");
 const guideModule = await readFile(new URL("../academy-guides.mjs", import.meta.url), "utf8");
+const assessmentModule = await readFile(new URL("../academy-assessments.mjs", import.meta.url), "utf8");
 const css = await readFile(new URL("../academy.css", import.meta.url), "utf8");
 const home = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const search = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
@@ -106,4 +107,17 @@ test("all thirty Academy chapters have structured, safe-to-render learning guide
   assert.doesNotMatch(js, /\.innerHTML\s*=/);
   assert.match(css, /\.academy-guide-body/);
   assert.match(guideModule, /Object\.freeze/);
+});
+
+test("academy renders interactive assessments and capstone checklists safely", () => {
+  assert.match(js, /getAcademyAssessment/);
+  assert.match(js, /gradeAcademyAssessment/);
+  assert.match(js, /normalizeAcademyAssessmentState/);
+  assert.match(js, /academy\.assessments\.v1/);
+  assert.match(js, /renderCourseAssessment\(c,root\)/);
+  assert.match(js, /textContent=question\.prompt/);
+  assert.doesNotMatch(js, /\.innerHTML\s*=/);
+  assert.match(css, /\.academy-assessment-form/);
+  assert.match(css, /\.academy-capstone-checklist/);
+  assert.match(assessmentModule, /PASS_PERCENTAGE = 80/);
 });
