@@ -24,9 +24,13 @@ function sendResult(requestId, output, error) {
 }
 
 window.addEventListener("message", event => {
-  if (event.source !== parent || !event.data || event.data.type !== "academy-run" ||
-      typeof event.data.code !== "string" || event.data.code.length > 4000 ||
-      typeof event.data.requestId !== "string") return;
+  if (event.source !== parent || !event.data) return;
+  if (event.data.type === "academy-runner-ping") {
+    parent.postMessage({ type: "academy-runner-ready" }, "*");
+    return;
+  }
+  if (event.data.type !== "academy-run" || typeof event.data.code !== "string" ||
+      event.data.code.length > 4000 || typeof event.data.requestId !== "string") return;
 
   cleanupWorker();
   const requestId = event.data.requestId;
@@ -78,6 +82,10 @@ window.addEventListener("message", event => {
   };
   activeWorker.postMessage({ code: event.data.code });
 });
+
+// Initial notification is helpful when the parent is already listening;
+// the ping/ready handshake also recovers if this message arrives too early.
+parent.postMessage({ type: "academy-runner-ready" }, "*");
 </script>
 </body>
 </html>
