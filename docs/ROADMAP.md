@@ -43,7 +43,7 @@ Complete accessibility, security, reliability, privacy, observability, backup/re
 
 The Academy now provides six structured learning paths with 30 chapters, plus the separate 12-lesson Python course. Its dashboard summarizes completed chapters, total progress, paths with progress and completed courses. The resume action returns to the saved active course and next incomplete or last active chapter.
 
-Progress remains browser-local under the existing storage key, preserving prior completion arrays while adding validated resume metadata. The new pure progress module normalizes malformed, oversized, duplicate and out-of-range records; it does not introduce user accounts, cloud synchronization or server-side learner profiles. The module is included in the versioned offline shell (service-worker cache v41).
+Progress remains browser-local under the existing storage key, preserving prior completion arrays while adding validated resume metadata. The new pure progress module normalizes malformed, oversized, duplicate and out-of-range records; it does not introduce user accounts, cloud synchronization or server-side learner profiles. The module is included in the versioned offline shell (service-worker cache v42).
 
 Acceptance gates:
 - Legacy progress is preserved and normalized without changing the existing storage key.
@@ -72,3 +72,14 @@ Acceptance gates:
 MR_SIAVASH_AI remains the public identity, portfolio and learning surface. MR_SIAVASH_HUB_AI remains a separate local-first agent runtime. No shared identity, private data store, live API session or agent execution path exists between them.
 
 Stage 1 is implemented as a build-time generated, versioned snapshot of the Hub's public main-branch commit and latest CI metadata. The generator allowlists fields, bounds response size, validates GitHub URLs and falls back to an explicit unavailable state. It does not call the Hub API or report local runtime health. Stage 2 remains owner-initiated pairing; private features must preserve Hub-side authentication, ownership, policy checks, approvals and audit. Do not create a public tunnel to the local runtime, wildcard CORS, browser-stored long-lived credentials or direct browser access to private Hub data. See docs/decisions/0004-hub-integration-boundary.md.
+
+
+## Curated knowledge library — first content expansion
+
+The home experience now includes eight guides spanning technical learning and general digital literacy: deliberate practice, responsible AI use, software debugging, account security, information verification, file organization and backups, task decomposition, and technical career evidence. The guides use native disclosure elements, are keyboard accessible, searchable through the existing bounded search index, and included in the offline shell.
+
+Acceptance gates:
+- Existing academy course IDs and browser-local progress format remain unchanged.
+- Knowledge articles remain static reviewed content; no user-submitted HTML or runtime execution is introduced.
+- Search index remains within its 100-item client-side bound.
+- Offline shell is versioned atomically and existing PWA/navigation tests pass.
