@@ -18,7 +18,7 @@
   font-family: Vazirmatn, IRANSans, Tahoma, "Segoe UI", sans-serif;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; background: var(--bg); }
+html { scroll-behavior: smooth; background: var(--bg); overflow-x: clip; }
 body { margin: 0; min-height: 100vh; color: var(--text); background: radial-gradient(ellipse at 78% 0%, rgba(30,93,59,.16), transparent 40%), var(--bg); font-family: inherit; line-height: 1.75; }
 button, input { font: inherit; }
 button { color: inherit; }
