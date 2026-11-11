@@ -108,7 +108,14 @@ async function auditPage(page, route) {
       framesWithoutTitle: framesWithoutTitle.map(element => element.outerHTML.slice(0, 180)),
       unsafeBlankLinks: unsafeBlankLinks.map(element => element.outerHTML.slice(0, 180)),
       viewportWidth: window.innerWidth,
-      documentWidth: document.documentElement.scrollWidth
+      documentWidth: document.documentElement.scrollWidth,
+      contentOverflowElements: [...document.querySelectorAll("body *")].filter(element => {
+        const rect = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        const decorative = element.closest('[aria-hidden="true"]') ||
+          (style.position === "fixed" && style.pointerEvents === "none");
+        return !decorative && rect.width > 0 && rect.right > window.innerWidth + 2;
+      }).slice(0, 8).map(element => element.outerHTML.slice(0, 140))
     };
   });
 
@@ -121,16 +128,19 @@ async function auditPage(page, route) {
     "imagesWithoutAlt", "framesWithoutTitle", "unsafeBlankLinks"]) {
     if (structural[key].length) findings.push(key + ": " + JSON.stringify(structural[key]));
   }
-  if (structural.documentWidth > structural.viewportWidth + 2) {
-    findings.push("horizontal overflow at " + structural.viewportWidth + "px (" + structural.documentWidth + "px document)");
+  if (structural.contentOverflowElements.length) {
+    findings.push("mobile content overflow at " + structural.viewportWidth + "px: " +
+      JSON.stringify(structural.contentOverflowElements));
   }
 
   await page.setViewportSize({ width: 1280, height: 900 });
   const desktopWidth = await page.evaluate(() => {
-    const overflowingElements = [...document.querySelectorAll("body *")]
+    const contentOverflowElements = [...document.querySelectorAll("body *")]
       .map(element => {
         const rect = element.getBoundingClientRect();
         const style = getComputedStyle(element);
+        const decorative = element.closest('[aria-hidden="true"]') ||
+          (style.position === "fixed" && style.pointerEvents === "none");
         return {
           tag: element.tagName.toLowerCase(),
           id: element.id || "",
@@ -138,21 +148,22 @@ async function auditPage(page, route) {
           right: Math.round(rect.right),
           width: Math.round(rect.width),
           position: style.position,
+          decorative: Boolean(decorative),
           html: element.outerHTML.slice(0, 140)
         };
       })
-      .filter(item => item.width > 0 && item.right > window.innerWidth + 2)
+      .filter(item => !item.decorative && item.width > 0 && item.right > window.innerWidth + 2)
       .sort((a, b) => b.right - a.right)
       .slice(0, 8);
     return {
       viewport: window.innerWidth,
       document: document.documentElement.scrollWidth,
-      overflowingElements
+      contentOverflowElements
     };
   });
-  if (desktopWidth.document > desktopWidth.viewport + 2) {
-    findings.push("horizontal overflow at desktop width (" + desktopWidth.document + "px document); elements: " +
-      JSON.stringify(desktopWidth.overflowingElements));
+  if (desktopWidth.contentOverflowElements.length) {
+    findings.push("desktop content overflow at " + desktopWidth.viewport + "px: " +
+      JSON.stringify(desktopWidth.contentOverflowElements));
   }
   if (pageErrors.length) findings.push("uncaught page errors: " + pageErrors.join(" | "));
   page.off("pageerror", onPageError);
