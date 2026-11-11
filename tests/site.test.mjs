@@ -1819,7 +1819,7 @@ test("curated knowledge library is searchable and included in the offline shell"
     assert.equal(item.type, "page");
     assert.ok(item.href.startsWith("./index.html#"));
   }
-  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v43"'));
+  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v44"'));
 });
 
 test("Hub integration is documented as separate until the security gates pass", async () => {
