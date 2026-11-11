@@ -83,3 +83,8 @@ The migration validator exercises migrations in order against isolated SQLite, i
 MR_SIAVASH_AI is the public-facing identity, portfolio and learning surface. MR_SIAVASH_HUB_AI is a separate local-first control plane and agent runtime with its own authentication, owner-scoped data, policy checks, approvals and audit records. They currently have no shared identity, database, API session or live runtime connection.
 
 The public site does not call the Hub API or query its local runtime. Its first read-only integration is a build-time snapshot generated from two public GitHub endpoints: the Hub main-branch commit and latest main-branch CI run. Only allowlisted metadata is written to the versioned hub-status.json contract; API failure produces an explicit unavailable fallback. This is repository/CI metadata, not runtime health. The site must not expose a Hub port through a public tunnel or store Hub credentials in browser storage. Private memory, tasks, files and agent actions still require owner-initiated pairing and scoped authorization. See ADR-0004.
+
+
+## Academy chapter content model
+
+The six Academy paths retain their existing course IDs, lesson arrays and browser-local progress key. Detailed instructional material is stored separately in `academy-guides.mjs` and accessed by the stable `courseId + lessonIndex` pair. Each of the 30 guide records includes an objective, concepts, guided practice, independent challenge, assessment checklist and common pitfalls. The UI creates semantic disclosure and section elements and assigns all authored content through `textContent`; the guide module is part of the explicit offline shell allowlist (cache v44). This separation allows instructional content to expand without changing completion-index compatibility.
