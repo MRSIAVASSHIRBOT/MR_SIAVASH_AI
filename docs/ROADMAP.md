@@ -106,3 +106,18 @@ Acceptance gates:
 - Existing lesson completion and resume metadata remain unchanged.
 - The guide module is included in the versioned offline shell (service-worker cache v44).
 - Mobile layout, keyboard disclosure behavior and forced-colors support are covered by the shared Academy styles.
+
+
+## Academy assessment and capstone layer — 2026-11-11
+
+The six Academy learning paths now include five-question knowledge checks (30 questions total) and one practical capstone brief per path. Assessment results use an 80% pass threshold and show answer explanations only after submission. Each capstone includes deliverables and a self-review rubric.
+
+Learner assessment results and capstone checklist selections are stored locally under the separate `mr-siavash-ai.academy.assessments.v1` key. Existing lesson progress remains under `mr-siavash-ai.academy.v1`; neither is synchronized to a cloud account. A passed quiz is a local learning milestone, not a credential or externally verified certification.
+
+Acceptance gates:
+- Six course assessments, 30 unique questions and six capstone briefs are validated.
+- Missing or out-of-range answers are treated as unanswered; the pass threshold is 80%.
+- Assessment and checklist state is normalized against known course IDs and bounded indexes before persistence.
+- Questions, options, feedback and project content are rendered with DOM text nodes / `textContent`; no dynamic HTML execution is introduced.
+- The assessment module is part of the explicit offline shell allowlist (service-worker cache v45).
+- Existing lesson completion and resume state remain compatible.
