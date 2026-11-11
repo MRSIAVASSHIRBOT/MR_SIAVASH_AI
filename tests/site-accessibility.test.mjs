@@ -15,7 +15,7 @@ test("browser accessibility smoke audit checks semantics, accessible names and r
   for (const check of [
     "document title", "document language or direction", "main landmark", "visible h1",
     "duplicateIds", "unlabeledControls", "unnamedButtons", "unnamedLinks",
-    "imagesWithoutAlt", "framesWithoutTitle", "unsafeBlankLinks", "horizontal overflow"
+    "imagesWithoutAlt", "framesWithoutTitle", "unsafeBlankLinks", "content overflow"
   ]) assert.ok(script.includes(check), "missing accessibility check: " + check);
 });
 
