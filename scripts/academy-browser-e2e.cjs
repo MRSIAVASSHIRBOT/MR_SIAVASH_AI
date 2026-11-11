@@ -58,6 +58,8 @@ async function main() {
 
   // Isolated JavaScript runner: a real browser executes the starter challenge and returns its output.
   await page.locator("#academyPracticeRun").scrollIntoViewIfNeeded();
+  // The runner iframe is intentionally lazy-loaded; bring it into view before waiting for its load event.
+  await page.locator("#academyPracticeRunner").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     const button = document.querySelector("#academyPracticeRun");
     return button && !button.disabled;
