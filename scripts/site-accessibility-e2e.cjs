@@ -250,6 +250,11 @@ async function main() {
     for (const result of results) {
       process.stdout.write(" - " + result.route + ": " + result.title +
         (result.axeWarnings.length ? " (" + result.axeWarnings.length + " moderate/minor axe warning(s))" : "") + "\\n");
+      if (result.axeWarnings.length) {
+        process.stdout.write("   Axe non-blocking warnings: " + JSON.stringify(result.axeWarnings.map(item => ({
+          id: item.id, impact: item.impact, help: item.help, nodes: item.nodes
+        }))) + "\\n");
+      }
     }
     process.stdout.write("Checks: WCAG 2.1 A/AA and axe best-practice rules (critical/serious block CI), language/direction, title, main landmark, visible h1, unique IDs, labelled controls, named links/buttons, image alt, iframe title, safe external links, mobile/desktop content overflow, uncaught page errors.\\n");
   } finally {
