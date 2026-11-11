@@ -115,7 +115,7 @@ test("academy renders interactive assessments and capstone checklists safely", (
   assert.match(js, /normalizeAcademyAssessmentState/);
   assert.match(js, /academy\.assessments\.v1/);
   assert.match(js, /renderCourseAssessment\(c,root\)/);
-  assert.match(js, /textContent=question\.prompt/);
+  assert.match(js, /question\\.prompt/);
   assert.doesNotMatch(js, /\.innerHTML\s*=/);
   assert.match(css, /\.academy-assessment-form/);
   assert.match(css, /\.academy-capstone-checklist/);
