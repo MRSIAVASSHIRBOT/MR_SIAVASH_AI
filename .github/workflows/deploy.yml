@@ -30,7 +30,7 @@ jobs:
         with:
           node-version: 22
       - name: Install pinned Playwright
-        run: npm install --global playwright@1.65.0
+        run: npm install --global playwright@1.65.0 axe-core@4.10.3
       - name: Install Chromium and system dependencies
         run: playwright install chromium
       - name: Check JavaScript syntax
