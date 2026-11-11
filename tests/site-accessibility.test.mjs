@@ -22,8 +22,12 @@ test("browser accessibility smoke audit checks semantics, accessible names and r
 
 test("Portfolio feedback content remains inside the main landmark", async () => {
   const studio = await readFile(new URL("../studio.html", import.meta.url), "utf8");
-  assert.match(studio, /<main[\\s\\S]*id="feedback"[\\s\\S]*<\\/main>/);
-  assert.match(studio, /id="feedback" aria-labelledby="feedback-title"/);
+  const mainStart = studio.indexOf("<main");
+  const feedback = studio.indexOf('id="feedback"');
+  const mainEnd = studio.indexOf("</main>", feedback);
+  assert.ok(mainStart >= 0 && feedback > mainStart && mainEnd > feedback,
+    "the feedback section must be a descendant of the main landmark");
+  assert.ok(studio.includes('id="feedback" aria-labelledby="feedback-title"'));
 });
 
 test("CI runs the site accessibility audit in the pinned Chromium environment", () => {
