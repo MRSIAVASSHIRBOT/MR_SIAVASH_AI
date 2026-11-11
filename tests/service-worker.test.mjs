@@ -151,7 +151,9 @@ test("install precaches the complete shell before activating the worker", async 
   assert.ok(precache.precache.includes("https://example.test/app/studio-portfolio.css"));
   assert.ok(precache.precache.includes("https://example.test/app/studio-portfolio.js"));
   assert.equal(precache.precache.length, 34);
-  assert.ok(precache.precache.includes("https://example.test/app/academy-assessments.mjs"));\n  assert.ok(precache.precache.includes("https://example.test/app/academy-portfolio.mjs"));\n  assert.ok(precache.precache.includes("https://example.test/app/academy-tutor.js"));
+  assert.ok(precache.precache.includes("https://example.test/app/academy-assessments.mjs"));
+  assert.ok(precache.precache.includes("https://example.test/app/academy-portfolio.mjs"));
+  assert.ok(precache.precache.includes("https://example.test/app/academy-tutor.js"));
 });
 
 test("install does not activate a worker when atomic shell precache fails", async () => {
