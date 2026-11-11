@@ -1,0 +1,112 @@
+# MR_SIAVASH_AI — verified release and acceptance status
+
+**Verification date:** 2026-11-11  
+**Repository:** `MRSIAVASSHIRBOT/MR_SIAVASH_AI`  
+**Default branch head:** `1616545a2e204cb378e2c824299412ca20ef598b`  
+**Production Worker:** `mr-siavash-ai-gateway`  
+**Status authority:** This dated record supersedes older deployment snapshots elsewhere in the repository. It records only checks completed on or before the verification date; pending checks are not marked complete.
+
+## Executive status
+
+The current static site and Production Gateway release are deployed and responding. Version 14 receives 100% of Production Worker traffic. API readiness, module catalog, CORS policy, PWA offline shell, responsive page rendering, and core browser interactions were verified.
+
+**The complete product vision is not finished.** Two operational acceptance items remain open: the first scheduled retention-cleanup execution (which cannot occur until its next scheduled time) and repository branch protection. End-to-end administrator ticket workflow acceptance and the broader account/cloud-workspace/remote-agent roadmap also remain outside the verified release.
+
+## Source and Production deployment
+
+| Item | Verified value |
+| --- | --- |
+| Main source commit | `1616545a2e204cb378e2c824299412ca20ef598b` |
+| Production workflow run | [43021042712](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/43021042712) |
+| Worker version ID | `62e8a337-d804-4748-8bb2-d5e0180ee2f8` |
+| Production traffic | 100% on version 14 |
+| Deployment time | 2026-11-11 12:31:27 UTC |
+| Workers AI model | `@cf/zai-org/glm-4.7-flash` |
+| D1 binding | `DB` points to the existing Production database |
+| Support retention | 90 days, owner-selected |
+| Cron | `0 3 * * *` UTC |
+| Allowed website origin | `https://mrsiavasshirbot.github.io` |
+| Observability | Persistent logs/traces enabled; query-string redaction enabled |
+
+The production release workflow reported validation and deployment success. Its release checks covered liveness/readiness, module catalog, support consent and retention gates, trusted/untrusted CORS, privacy-safe observability configuration, and a grounded Workers AI response with non-empty sources. The release gate reported 67 passing tests, with OpenAPI and isolated D1 migration validation successful.
+
+## Live API checks
+
+| Check | Result |
+| --- | --- |
+| `GET /v1/health/live` | HTTP 200; status `ok` |
+| `GET /v1/health/ready` | HTTP 200; D1 ready; public support and tracking enabled; consent required; 90-day retention |
+| `GET /v1/modules` | HTTP 200; nine public module IDs returned |
+| Trusted-origin CORS preflight | HTTP 204; exact Pages origin allowed |
+| Untrusted-origin CORS preflight | HTTP 403; no CORS grant |
+| Observability query for post-deploy error events | No matching error events in the queried window |
+
+The absence of matching error events applies only to the queried observability window; it is not a guarantee that no errors occurred outside that window.
+
+## Browser and PWA acceptance
+
+The deployed Pages site was opened in headless Chromium.
+
+- The home, Academy, Python course, Digital Studio, privacy, and support-admin entry pages returned HTTP 200.
+- Desktop page inspection found no browser console or uncaught page errors.
+- On a 390-pixel mobile viewport, all six pages rendered without horizontal overflow.
+- Global search opened, accepted a Persian query, and returned matching results.
+- Module detail dialog opened and closed.
+- Workspace task creation, completion toggle, and deletion worked in browser-local storage.
+- Academy search and level filtering worked.
+- Python lesson completion worked.
+- Digital Studio project search and category filtering worked.
+- The support form remained gated until the readiness endpoint reported the configured retention policy; privacy acknowledgement remained a required control.
+- The service worker reached the activated state and served the application shell after the browser was switched offline.
+- The web manifest returned HTTP 200 and parsed successfully; it declares standalone display and an app icon.
+
+No real support ticket was submitted and no production D1 record was changed during these checks.
+
+## AI response latency
+
+The grounded assistant endpoint returned HTTP 200 with `mode: ai_grounded` and source references in repeated direct smoke requests. Observed response times were approximately 13.1–15.1 seconds in this test window. One request exceeded the 15-second browser timeout and the UI correctly displayed its timeout fallback; subsequent direct requests succeeded. This is a latency/UX risk near the configured timeout, not evidence that the endpoint is consistently available. Continue monitoring provider latency; do not claim an uninterrupted AI service.
+
+## Remaining acceptance work
+
+### 1. First scheduled retention execution — pending
+
+- Production Cron remains configured for `0 3 * * *` UTC.
+- The next execution after the version 14 deployment is scheduled for **2026-11-12 03:00 UTC (06:30 Asia/Tehran)**.
+- A previously created read-only automation checks at **06:45 Asia/Tehran** on 2026-11-12 for the cleanup event `support_retention_cleanup_completed`, invocation outcome, aggregate-only telemetry, version/traffic, and related issue status.
+- Until that check completes, the first version-14 scheduled cleanup is **not yet verified**.
+- Do not manually invoke cleanup, delete D1 rows, or alter the selected retention period to simulate a scheduled run.
+
+Tracking: [Issue #140](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/140).
+
+### 2. Protect the main branch — owner/admin action pending
+
+The repository currently reports `main.protected = false` and no configured repository rulesets. The available GitHub integration did not expose the required branch-protection/ruleset write permission. Recommended policy:
+
+- Require pull requests to merge into `main`.
+- Require the current-head Quality workflow to pass.
+- Require branches to be up to date or use a reviewed merge queue.
+- Block force pushes and branch deletion.
+- Restrict bypass to the repository owner; avoid a mandatory approval rule that could lock out a sole maintainer.
+
+No branch-protection settings were changed.
+
+Tracking: [Issue #70](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/70).
+
+### 3. Additional product acceptance — not claimed complete
+
+- End-to-end administrator browser acceptance: Access sign-in, inbox, ticket detail, reply, status update, and privacy-safe handling still require a controlled authorized session.
+- Backup/restore and operational incident-recovery exercise remain separate acceptance work.
+- Consumer accounts, private profiles, cloud workspace synchronization, billing, and remote agent execution are not live features.
+- `MR_SIAVASH_HUB_AI` remains a separate local-first project. The public site exposes only a build-time snapshot of public GitHub metadata; it does not connect to Hub runtime, private memory, tasks, files, or agent tools.
+- Academy progress and workspace tasks remain browser-local; no cross-device sync is provided.
+
+## Safety and data boundary
+
+Production D1 contains support records. Their contents were not inspected or exported during this verification. Do not reset the database, reapply migrations 0001–0003, expose ticket contents, or change retention policy without explicit approval. The browser QA used synthetic local test data only and did not create support tickets.
+
+## Open work
+
+- [Issue #140 — first scheduled retention run and telemetry acceptance](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/140)
+- [Issue #70 — main branch protection and current-head CI](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/70)
+
+**Release verdict:** Production version 14 and the deployed web experience passed the checks listed above. The release is operationally active, but the project must not be labeled “fully complete” until the scheduled cleanup event, repository governance, and remaining explicitly scoped acceptance work are verified.
