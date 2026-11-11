@@ -44,7 +44,7 @@ test("project case studies show current main commits, CI evidence and unreleased
   assert.match(html, /تحلیل ایستای NEXUS/);
   assert.match(html, /کد هدف را اجرا نمی‌کند/);
   assert.match(html, /Backend CI/);
-  assert.match(html, /264 تست خودکار/);
+  assert.match(html, /۲۶۴ تست خودکار/);
   assert.match(html, /نسخهٔ v50/);
   assert.match(html, /PR باز \(#18/);
   assert.match(html, /#20/);
