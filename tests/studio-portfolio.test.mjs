@@ -38,19 +38,32 @@ test("studio metadata supports indexing, canonical identity, and installation", 
   assert.match(html, /name="description"/);
 });
 
-test("project case studies show current scope, limitations, and source evidence", () => {
-  for (const sha of ["9556c73", "ea39d3f", "ce2f099"]) assert.ok(html.includes(sha));
-  assert.doesNotMatch(html, /0c6d847|2fd420b|15de05b/);
-  assert.match(html, /read-only/);
-  assert.match(html, /Web Worker/);
-  assert.match(html, /رضایت جداگانه/);
-  assert.match(html, /سیاست نگهداری امن/);
-  assert.match(html, /درگاه پرداخت Sandbox/);
-  assert.match(html, /۲۵۹ تست خودکار/);
+test("project case studies show current main commits, CI evidence and unreleased PR boundaries", () => {
+  for (const sha of ["f8e52ea", "29a23ac", "ce2f099"]) assert.ok(html.includes(sha));
+  assert.doesNotMatch(html, /9556c73|ea39d3f|0c6d847|2fd420b|15de05b|۲۵۹ تست/);
+  assert.match(html, /تحلیل ایستای NEXUS/);
+  assert.match(html, /کد هدف را اجرا نمی‌کند/);
+  assert.match(html, /Backend CI/);
+  assert.match(html, /264 تست خودکار/);
+  assert.match(html, /نسخهٔ v50/);
+  assert.match(html, /PR باز \(#18/);
+  assert.match(html, /#20/);
   assert.match(html, /۱۱ نوامبر ۲۰۲۶/);
 });
 
+test("print-ready portfolio carries the same current evidence as interactive case studies", () => {
+  const printStart = html.indexOf('<section id="resumePrint"');
+  const printEnd = html.indexOf("</section>", html.indexOf("<footer>", printStart));
+  const print = html.slice(printStart, printEnd);
+  for (const sha of ["f8e52ea", "29a23ac", "ce2f099"]) assert.ok(print.includes(sha));
+  assert.match(print, /۲۶۴ تست/);
+  assert.match(print, /ممیزی axe\/WCAG 2\.1 A\/AA/);
+  assert.match(print, /PR #18/);
+  assert.match(print, /PR #20/);
+});
+
 test("support copy accurately explains consent-gated AI and readiness-gated ticket intake", () => {
+  assert.match(html, /راهنمای محلی پیش‌فرض است/);
   assert.match(html, /دستیار آنلاین فقط با رضایت جداگانه/);
   assert.match(html, /ثبت و پیگیری تیکت نیز تنها پس از تأیید آمادگی سرویس، پایگاه داده و سیاست نگهداری امن فعال خواهد بود/);
   assert.match(html, /GitHub Issues/);
