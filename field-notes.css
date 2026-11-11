@@ -183,7 +183,7 @@ a { text-underline-offset: 4px; }
 }
 .studio-art-mark { color: rgba(220,239,221,.9); font-size: clamp(130px, 20vw, 230px); }
 .studio-art-note { border-radius: 8px; background: var(--paper); color: var(--ink); box-shadow: 0 24px 55px rgba(0,0,0,.28); }
-.studio-art-note small { color: #52715a; }
+.studio-art-note small { color: #405a45; }
 .studio-art-note span { color: #536458; }
 .section-block { padding-top: 58px; padding-bottom: 58px; border-bottom: 1px solid var(--line); }
 .journey-grid, .focus-grid, .project-grid, .path-grid, .resource-grid { gap: 14px; }
