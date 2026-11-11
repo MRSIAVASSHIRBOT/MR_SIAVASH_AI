@@ -48,6 +48,7 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
   }
   function resetRunner() {
     runnerReady = false;
+    runButton.disabled = true;
     frame.src = "./academy-runner.html";
   }
   function run() {
@@ -71,7 +72,14 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
     frame.contentWindow.postMessage({ type: "academy-run", requestId, code }, "*");
   }
   window.addEventListener("message", event => {
-    if (event.source !== frame.contentWindow || !pending || !event.data || event.data.type !== "academy-result" || event.data.requestId !== pending.requestId) return;
+    if (event.source !== frame.contentWindow || !event.data) return;
+    if (event.data.type === "academy-runner-ready") {
+      runnerReady = true;
+      if (!pending) runButton.disabled = false;
+      status.textContent = "محیط اجرای تمرین آماده است.";
+      return;
+    }
+    if (!pending || event.data.type !== "academy-result" || event.data.requestId !== pending.requestId) return;
     window.clearTimeout(timeout);
     const challengeId = pending.challengeId;
     pending = null;
@@ -88,8 +96,17 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
   });
   runButton.addEventListener("click", run);
   $("#academyPracticeReset").addEventListener("click", () => select(selected));
-  frame.addEventListener("load", () => { runnerReady = true; if (!pending) runButton.disabled = false; });
-  frame.addEventListener("error", () => { runButton.disabled = true; status.textContent = "بارگذاری محیط اجرای تمرین ناموفق بود."; });
+  frame.addEventListener("load", () => {
+    if (frame.contentWindow) frame.contentWindow.postMessage({ type: "academy-runner-ping" }, "*");
+  });
+  frame.addEventListener("error", () => {
+    runnerReady = false;
+    runButton.disabled = true;
+    status.textContent = "بارگذاری محیط اجرای تمرین ناموفق بود.";
+  });
   renderList();
   select(selected);
+  // The iframe may finish loading before this module registers its listeners.
+  // A ping/ready handshake makes initialization deterministic in either order.
+  if (frame.contentWindow) frame.contentWindow.postMessage({ type: "academy-runner-ping" }, "*");
 })();
