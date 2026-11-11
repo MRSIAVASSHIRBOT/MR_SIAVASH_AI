@@ -53,7 +53,7 @@ test("academy navigation, global search, and offline shell are integrated", () =
   assert.match(sw, /"\.\/academy\.css"/);
   assert.match(sw, /"\.\/academy\.js"/);
   assert.match(sw, /"\.\/academy-progress\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v42"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v43"/);
 });
 
 test("academy layout supports mobile, keyboard, and reduced-motion preferences", () => {
@@ -68,7 +68,7 @@ test("Academy dashboard and browser-local progress boundaries are documented", (
   assert.match(architecture, /existing mr-siavash-ai\.academy\.v1 key/);
   assert.match(architecture, /no cloud sync or learner account/);
   assert.match(roadmap, /Learning Academy progress dashboard/);
-  assert.match(roadmap, /service-worker cache v42/);
+  assert.match(roadmap, /service-worker cache v43/);
   assert.match(roadmap, /no cloud account or remote execution is implied/);
 });
 
