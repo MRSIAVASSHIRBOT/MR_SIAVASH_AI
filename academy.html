@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#07110c"><meta name="color-scheme" content="dark">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev; form-action 'self'; frame-src 'self'; upgrade-insecure-requests">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="description" content="آکادمی MR_SIAVASH_AI؛ مسیرهای یادگیری HTML، CSS، JavaScript، Git، Linux و امنیت وب."><meta name="robots" content="index,follow,max-image-preview:large"><link rel="canonical" href="https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/academy.html"><meta property="og:title" content="آکادمی برنامه‌نویسی | MR_SIAVASH_AI"><meta property="og:description" content="مسیرهای فارسی و ساختاریافته برای یادگیری برنامه‌نویسی، ابزارهای مهندسی و امنیت دفاعی."><meta property="og:type" content="website"><meta property="og:url" content="https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/academy.html"><meta name="twitter:card" content="summary">
 <title>آکادمی برنامه‌نویسی | MR_SIAVASH_AI</title>
 <link rel="icon" href="./favicon.svg"><link rel="manifest" href="./manifest.webmanifest"><link rel="stylesheet" href="./styles.css">
-<link rel="stylesheet" href="./studio.css"><link rel="stylesheet" href="./academy.css"><link rel="stylesheet" href="./experience-next.css"><link rel="stylesheet" href="./atelier.css"><link rel="stylesheet" href="./field-notes.css"><script src="./ui-sounds.js" defer></script><script type="module" src="./academy.js"></script><script type="module" src="./academy-portfolio.mjs"></script><script type="module" src="./academy-tutor.js"></script>
+<link rel="stylesheet" href="./studio.css"><link rel="stylesheet" href="./academy.css"><link rel="stylesheet" href="./experience-next.css"><link rel="stylesheet" href="./atelier.css"><link rel="stylesheet" href="./field-notes.css"><script src="./ui-sounds.js" defer></script><script type="module" src="./academy.js"></script><script type="module" src="./academy-portfolio.mjs"></script><script type="module" src="./academy-tutor.js"></script><script type="module" src="./academy-practice.js"></script>
 </head>
 <body><div class="app-shell">
 <header class="topbar"><a class="brand" href="./index.html"><span class="brand-mark">M<i>/</i></span><span class="brand-copy"><strong>MR_SIAVASH_AI</strong><small>LEARNING ACADEMY</small></span></a><div class="topbar-actions"><button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" aria-label="فعال‌کردن صداهای رابط کاربری" title="صداهای رابط خاموش هستند"><span class="sound-icon" aria-hidden="true">♪</span><span class="sound-label">صدا خاموش</span></button><a class="button button-quiet" href="./index.html">بازگشت به سایت ↗</a></div></header>
@@ -42,7 +42,30 @@
 </section>
 <section><div class="academy-section-head"><div><div class="eyebrow">CHOOSE YOUR PATH</div><h2>مسیر یادگیری را انتخاب کن</h2></div><span id="visibleCount">۶ دوره</span></div><div id="courseGrid" class="course-grid"></div><p id="courseEmpty" class="academy-empty" hidden>دوره‌ای با این عبارت پیدا نشد.</p></section>
 <section class="academy-learning" id="learningPanel" aria-live="polite"><div class="academy-learning-empty"><span>↗</span><h2>یک مسیر را انتخاب کن</h2><p>با انتخاب هر دوره، فصل‌ها، اهداف یادگیری و نمونه‌های آن نمایش داده می‌شوند.</p></div></section>
+<section class="academy-practice" id="academyPractice" aria-labelledby="academyPracticeHeading">
+  <div class="eyebrow">SAFE JAVASCRIPT PRACTICE</div>
+  <h2 id="academyPracticeHeading">تمرینگاه تعاملی JavaScript</h2>
+  <p class="academy-practice-intro">تمرین‌های کوتاه را در قاب جداشده مرورگر اجرا کن. خروجی فقط برای بررسی تمرین استفاده می‌شود و پیشرفت در همین مرورگر ذخیره خواهد شد.</p>
+  <div class="academy-practice-layout">
+    <nav id="academyPracticeList" class="academy-practice-list" aria-label="فهرست تمرین‌ها"></nav>
+    <div class="academy-practice-workspace">
+      <h3 id="academyPracticeTitle"></h3>
+      <p id="academyPracticeBrief"></p>
+      <label for="academyPracticeCode">کد JavaScript</label>
+      <textarea id="academyPracticeCode" rows="10" maxlength="4000" spellcheck="false" dir="ltr" autocomplete="off"></textarea>
+      <div class="academy-practice-actions">
+        <button id="academyPracticeRun" class="button button-primary" type="button" disabled>اجرای تمرین</button>
+        <button id="academyPracticeReset" class="button button-quiet" type="button">بازنشانی کد</button>
+      </div>
+      <p id="academyPracticeStatus" role="status" aria-live="polite"></p>
+      <details><summary>راهنمای تمرین</summary><p id="academyPracticeHint"></p></details>
+      <div class="academy-practice-output-wrap"><strong>خروجی برنامه</strong><pre id="academyPracticeOutput" dir="ltr">خروجی اجرا اینجا نمایش داده می‌شود.</pre></div>
+    </div>
+  </div>
+  <iframe id="academyPracticeRunner" class="academy-practice-runner" src="./academy-runner.html" title="محیط اجرای جداشده تمرین JavaScript" sandbox="allow-scripts" loading="lazy"></iframe>
+  <p class="academy-practice-safety">مرز امنیتی: کد فقط در iframe با sandbox و سیاست منع شبکه اجرا می‌شود؛ این محیط آموزشی جایگزین sandbox سروریِ مقاوم در برابر کد مخرب نیست. کد ناشناس را اجرا نکن. اجرای طولانی با بازنشانی قاب متوقف می‌شود، اما محدودیت زمان و منابع تضمین سخت‌افزاری ندارد.</p>
+</section>
 <section class="academy-existing"><div><div class="eyebrow">ALREADY AVAILABLE</div><h2>دوره پایتون مقدماتی</h2><p>۱۲ درس تعاملی، مثال‌های Python 3، تمرین و ذخیره پیشرفت در مرورگر.</p></div><a class="button button-primary" href="./python.html">ورود به دوره پایتون ↗</a></section>
-<p class="academy-note">پیشرفت این نسخه فقط در همین مرورگر ذخیره می‌شود و هنوز حساب کاربری یا همگام‌سازی ابری ندارد. نمونه‌کدها برای یادگیری‌اند؛ آن‌ها را در محیط محلی خود اجرا کن.</p><p class="academy-status" id="academyStatus" role="status" aria-live="polite"></p>
+<p class="academy-note"><a class="button button-quiet" href="./academy-content-studio.html">فضای تدوین پیش‌نویس محلی ↗</a> پیشرفت این نسخه فقط در همین مرورگر ذخیره می‌شود و هنوز حساب کاربری یا همگام‌سازی ابری ندارد. نمونه‌کدها برای یادگیری‌اند؛ آن‌ها را در محیط محلی خود اجرا کن.</p><p class="academy-status" id="academyStatus" role="status" aria-live="polite"></p>
 </main><footer class="site-footer"><a class="footer-brand" href="./index.html">MR_SIAVASH_AI</a><span>یادگیری با تمرین ساخته می‌شود.</span><a href="./python.html">دوره پایتون ↗</a></footer>
 </div></body></html>

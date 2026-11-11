@@ -29,6 +29,10 @@ test("academy exposes six structured courses and thirty chapters", () => {
   assert.match(html, /id="academyDashboardContent"/);
   assert.match(html, /id="academyPortfolioContent"/);
   assert.match(html, /id="academyTutorForm"/);
+  assert.match(html, /id="academyPracticeRunner"/);
+  assert.match(html, /sandbox="allow-scripts"/);
+  assert.match(html, /frame-src/);
+  assert.match(html, /academy-content-studio/);
   assert.match(html, /connect-src.*mr-siavash-ai-gateway/);
   assert.match(html, /type="module" src="\.\/academy\.js"/);
   assert.match(js, /resolveAcademyResume/);
@@ -59,7 +63,7 @@ test("academy navigation, global search, and offline shell are integrated", () =
   assert.match(sw, /"\.\/academy\.js"/);
   assert.match(sw, /"\.\/academy-progress\.mjs"/);
   assert.match(sw, /"\.\/academy-guides\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v46"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v48"/);
 });
 
 test("academy layout supports mobile, keyboard, and reduced-motion preferences", () => {

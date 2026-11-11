@@ -129,3 +129,11 @@ Acceptance gates:
 - Tutor: frontend integration with the existing verified-context Gateway assistant; bounded message, timeout, no credentials, no action execution, and same-origin source-link validation.
 - Existing dashboard, 30 chapter guides, six assessments/capstones, public knowledge library and protected support administration are reused rather than duplicated.
 - Remaining production work: isolated interactive coding execution, a complete challenge/achievement progression model, Academy-specific content administration, and end-to-end browser acceptance. These require separate sandbox and operational acceptance gates; they must not be described as complete merely because static UI exists.
+
+
+## Academy practice and authoring extension (2026-11-11)
+
+- Added six beginner JavaScript challenges with expected-output grading, attempt counts, validated local progress, and portfolio achievements.
+- Added a separate sandboxed iframe runner with a no-network child CSP and bounded message/output handling. This is not a server-grade hostile-code execution service and has no guaranteed hard CPU/memory quotas.
+- Added a local-only curriculum draft workspace with bounded fields, a 100-draft cap, JSON import/export, and no publish capability. Publication remains a reviewed repository change.
+- Remaining: a server-backed isolated code execution service with enforced resource quotas; authenticated, persistent curriculum CMS with reviewed publication workflow; browser-level end-to-end testing on real devices.

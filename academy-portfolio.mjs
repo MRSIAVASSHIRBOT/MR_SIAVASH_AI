@@ -1,27 +1,35 @@
 import { normalizeAcademyProgress, summarizeAcademyProgress } from "./academy-progress.mjs";
 import { normalizeAcademyAssessmentState, getAcademyAssessment, getAcademyCourseIds } from "./academy-assessments.mjs";
+import { normalizeAcademyPracticeState, getAcademyPracticeStorageKey, getAcademyChallenges } from "./academy-practice.mjs";
 
 const COURSES = getAcademyCourseIds().map(id => ({ id, lessons: Array.from({ length: 5 }, (_, index) => index) }));
 const PROGRESS_KEY = "mr-siavash-ai.academy.v1";
 const ASSESSMENT_KEY = "mr-siavash-ai.academy.assessments.v1";
+const PRACTICE_KEY = getAcademyPracticeStorageKey();
 const $ = selector => document.querySelector(selector);
 
 function readState() {
   let progressRaw = "{}";
   let assessmentRaw = "{}";
+  let practiceRaw = "{}";
   try { progressRaw = localStorage.getItem(PROGRESS_KEY) || "{}"; } catch {}
   try { assessmentRaw = localStorage.getItem(ASSESSMENT_KEY) || "{}"; } catch {}
+  try { practiceRaw = localStorage.getItem(PRACTICE_KEY) || "{}"; } catch {}
   const normalized = normalizeAcademyProgress(progressRaw, COURSES);
   return {
     progress: normalized.progress,
     summary: summarizeAcademyProgress(COURSES, normalized.progress),
     meta: normalized.meta,
-    assessments: normalizeAcademyAssessmentState(assessmentRaw)
+    assessments: normalizeAcademyAssessmentState(assessmentRaw),
+    practice: normalizeAcademyPracticeState(practiceRaw)
   };
 }
 
 function deriveAchievements(state) {
   const achievements = [];
+  const practiceCount = state.practice.completed.length;
+  if (practiceCount > 0) achievements.push({ id: "practice-first", title: "شروع کدنویسی عملی", detail: "حداقل یک تمرین JavaScript با خروجی مورد انتظار تکمیل شده است." });
+  if (practiceCount === getAcademyChallenges().length) achievements.push({ id: "practice-all", title: "تکمیل تمرینگاه JavaScript", detail: "تمام تمرین‌های فعلی تمرینگاه با خروجی مورد انتظار تکمیل شده‌اند." });
   const started = COURSES.filter(course => (state.progress[course.id] || []).length > 0).length;
   if (state.summary.completedLessons > 0) achievements.push({ id: "first-step", title: "اولین قدم", detail: "حداقل یک فصل آموزشی تکمیل شده است." });
   if (started >= 3) achievements.push({ id: "explorer", title: "کاوشگر یادگیری", detail: "در سه مسیر یا بیشتر فعالیت ثبت شده است." });
@@ -60,6 +68,7 @@ function buildExport(state, achievements) {
     notice: "این گزارش خوداظهاری مبتنی بر داده‌های همین مرورگر است؛ مدرک رسمی، تأیید هویت یا داوری مستقل مهارت محسوب نمی‌شود.",
     summary: state.summary,
     courses,
+    practice: { completedChallenges: state.practice.completed, totalChallenges: getAcademyChallenges().length, attempts: state.practice.attempts },
     achievements
   };
 }
@@ -75,6 +84,7 @@ function render() {
     ["پیشرفت", state.summary.percentage + "٪"],
     ["فصل‌های تکمیل‌شده", state.summary.completedLessons + " / " + state.summary.totalLessons],
     ["آزمون‌های قبول‌شده", Object.values(state.assessments.results).filter(item => item.passed).length],
+    ["تمرین‌های تکمیل‌شده", state.practice.completed.length + " / " + getAcademyChallenges().length],
     ["دستاوردها", achievements.length]
   ];
   for (const [label, value] of stats) {
@@ -132,8 +142,9 @@ function render() {
 function init() {
   render();
   window.addEventListener("storage", event => {
-    if (!event.key || event.key === PROGRESS_KEY || event.key === ASSESSMENT_KEY) render();
+    if (!event.key || event.key === PROGRESS_KEY || event.key === ASSESSMENT_KEY || event.key === PRACTICE_KEY) render();
   });
+  window.addEventListener("academy:practice-updated", render);
   document.addEventListener("change", event => {
     if (event.target.closest("#academyPortfolioContent")) render();
   });

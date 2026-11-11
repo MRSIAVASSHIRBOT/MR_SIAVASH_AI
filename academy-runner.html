@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; media-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'; worker-src 'none'">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>محیط اجرای ایزوله تمرین</title>
+</head>
+<body>
+<script>
+"use strict";
+function printable(value) {
+  if (typeof value === "string") return value;
+  try { const result = JSON.stringify(value); return typeof result === "string" ? result : String(value); } catch { return String(value); }
+}
+window.addEventListener("message", event => {
+  if (event.source !== parent || !event.data || event.data.type !== "academy-run" ||
+      typeof event.data.code !== "string" || event.data.code.length > 4000 ||
+      typeof event.data.requestId !== "string") return;
+  const lines = [];
+  const capture = value => { if (lines.length < 20) lines.push(printable(value).slice(0, 500)); };
+  const sandboxConsole = { log: (...args) => capture(args.map(printable).join(" ")), info: (...args) => capture(args.map(printable).join(" ")), warn: (...args) => capture(args.map(printable).join(" ")), error: (...args) => capture(args.map(printable).join(" ")) };
+  try {
+    const execute = new Function("console", '"use strict";\n' + event.data.code);
+    execute(sandboxConsole);
+    parent.postMessage({ type: "academy-result", requestId: event.data.requestId, output: lines, error: null }, "*");
+  } catch (error) {
+    parent.postMessage({ type: "academy-result", requestId: event.data.requestId, output: lines, error: String(error && error.message || "خطای اجرا").slice(0, 500) }, "*");
+  }
+});
+</script>
+</body>
+</html>

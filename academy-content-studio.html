@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
+<meta name="theme-color" content="#07110c">
+<title>تدوین پیش‌نویس آموزشی | MR_SIAVASH_AI</title>
+<link rel="stylesheet" href="./styles.css"><link rel="stylesheet" href="./academy.css">
+<script type="module" src="./academy-content-studio.js"></script>
+</head>
+<body><div class="app-shell">
+<header class="topbar"><a class="brand" href="./academy.html"><span class="brand-mark">M<i>/</i></span><span class="brand-copy"><strong>MR_SIAVASH_AI</strong><small>ACADEMY CONTENT DRAFTS</small></span></a><a class="button button-quiet" href="./academy.html">بازگشت به آکادمی ↗</a></header>
+<main class="academy-page academy-content-studio">
+<section class="academy-hero"><div><div class="eyebrow">LOCAL AUTHORING WORKSPACE</div><h1>تدوین <span>پیش‌نویس آموزشی.</span></h1><p>ساختاردهی ایده‌ها و محتوای دوره‌ها، ذخیره پیش‌نویس در مرورگر و انتقال فایل JSON برای بازبینی و انتشار کنترل‌شده.</p></div><div class="academy-orbit" aria-hidden="true"><span>WRITE</span><b>REVIEW</b><i>REFINE</i></div></section>
+<section class="academy-content-notice" role="note"><strong>محدودهٔ این ابزار:</strong> پیش‌نویس‌ها فقط در مرورگر فعلی ذخیره می‌شوند. این صفحه به مخزن GitHub یا پایگاه داده متصل نیست و امکان انتشار مستقیم ندارد. محتوای خروجی باید پیش از انتشار بازبینی و از مسیر تغییرات کنترل‌شده وارد مخزن شود.</section>
+<div class="academy-content-layout">
+<section class="academy-content-form">
+<h2>پیش‌نویس جدید یا ویرایش</h2>
+<form id="academyDraftForm">
+<label for="academyDraftCourse">مسیر آموزشی</label><select id="academyDraftCourse" required><option value="html">HTML</option><option value="css">CSS</option><option value="javascript">JavaScript</option><option value="git">Git</option><option value="linux">Linux</option><option value="web-security">امنیت وب دفاعی</option></select>
+<label for="academyDraftTitle">عنوان درس</label><input id="academyDraftTitle" maxlength="120" required>
+<label for="academyDraftObjective">هدف یادگیری</label><textarea id="academyDraftObjective" rows="3" maxlength="1000" required></textarea>
+<label for="academyDraftContent">محتوای آموزشی</label><textarea id="academyDraftContent" rows="8" maxlength="8000" required></textarea>
+<label for="academyDraftExercise">تمرین یا پروژه کوچک</label><textarea id="academyDraftExercise" rows="4" maxlength="2000"></textarea>
+<label for="academyDraftCriteria">معیارهای ارزیابی (هر مورد در یک خط)</label><textarea id="academyDraftCriteria" rows="4" maxlength="2000"></textarea>
+<div class="academy-content-actions"><button class="button button-primary" type="submit">ذخیره پیش‌نویس</button><button class="button button-quiet" id="academyDraftNew" type="button">پاک‌کردن فرم</button></div>
+<p id="academyDraftStatus" role="status" aria-live="polite"></p>
+</form>
+</section>
+<aside class="academy-content-list">
+<h2>پیش‌نویس‌های محلی</h2><div id="academyDraftList" class="academy-draft-list"></div>
+<div class="academy-content-actions"><button class="button button-primary" id="academyDraftExport" type="button">خروجی JSON</button><label class="button button-quiet academy-import-label" for="academyDraftImport">واردکردن JSON</label><input id="academyDraftImport" type="file" accept="application/json,.json" hidden></div>
+<p class="academy-content-caption">حداکثر ۱۰۰ پیش‌نویس در این مرورگر نگهداری می‌شود. خروجی JSON را در محل امن نگه دار.</p>
+</aside>
+</div>
+</main><footer class="site-footer"><a class="footer-brand" href="./academy.html">MR_SIAVASH_AI</a><span>پیش‌نویس، بازبینی، انتشار کنترل‌شده.</span><a href="./academy.html">بازگشت به آکادمی ↗</a></footer>
+</div></body></html>
