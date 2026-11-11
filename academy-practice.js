@@ -16,7 +16,8 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
   const frame = $("#academyPracticeRunner");
   const KEY = getAcademyPracticeStorageKey();
   let selected = getAcademyChallenges()[0]?.id;
-  let pending = null;\n  let runnerReady = false;
+  let pending = null;
+  let runnerReady = false;
   let timeout = 0;
   let state = normalizeAcademyPracticeState(readStored());
 
@@ -75,7 +76,9 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
     pending = null;
     runButton.disabled = false;
     const lines = Array.isArray(event.data.output) ? event.data.output.slice(0, 20).map(value => String(value).slice(0, 500)) : [];
-    output.textContent = (lines.length ? lines.join("\n") : "خروجی متنی تولید نشد.") + (event.data.error ? "\nخطا: " + String(event.data.error).slice(0, 500) : "");
+    output.textContent = (lines.length ? lines.join("
+") : "خروجی متنی تولید نشد.") + (event.data.error ? "
+خطا: " + String(event.data.error).slice(0, 500) : "");
     if (event.data.error) { status.textContent = "کد با خطا متوقف شد؛ پیام خطا را بررسی کن."; return; }
     const result = gradeAcademyChallenge(challengeId, lines);
     state = recordAcademyPracticeAttempt(state, challengeId, result.passed);
