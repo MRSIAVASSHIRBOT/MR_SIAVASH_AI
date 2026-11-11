@@ -83,7 +83,8 @@ function render() {
     ["پیشرفت", state.summary.percentage + "٪"],
     ["فصل‌های تکمیل‌شده", state.summary.completedLessons + " / " + state.summary.totalLessons],
     ["آزمون‌های قبول‌شده", Object.values(state.assessments.results).filter(item => item.passed).length],
-    ["تمرین‌های تکمیل‌شده", state.practice.completed.length + " / " + getAcademyChallenges().length],\n    ["دستاوردها", achievements.length]
+    ["تمرین‌های تکمیل‌شده", state.practice.completed.length + " / " + getAcademyChallenges().length],
+    ["دستاوردها", achievements.length]
   ];
   for (const [label, value] of stats) {
     const card = element("div", "academy-portfolio-stat");
