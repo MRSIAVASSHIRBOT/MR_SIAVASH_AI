@@ -4,6 +4,7 @@ const http = require("node:http");
 const fs = require("node:fs/promises");
 const path = require("node:path");
 const { chromium } = require("playwright");
+const AXE_PATH = require.resolve("axe-core");
 
 const ROOT = path.resolve(__dirname, "..");
 const ROUTES = ["index.html", "studio.html", "academy.html", "python.html", "privacy.html"];
@@ -25,6 +26,16 @@ function createServer() {
   return http.createServer(async (request, response) => {
     try {
       const url = new URL(request.url || "/", "http://127.0.0.1");
+      if (url.pathname === "/__axe.min.js") {
+        const axeSource = await fs.readFile(AXE_PATH);
+        response.writeHead(200, {
+          "Content-Type": "text/javascript; charset=utf-8",
+          "Cache-Control": "no-store",
+          "X-Content-Type-Options": "nosniff"
+        });
+        response.end(axeSource);
+        return;
+      }
       const pathname = decodeURIComponent(url.pathname === "/" ? "/index.html" : url.pathname);
       const filePath = path.resolve(ROOT, "." + pathname);
       if (filePath !== ROOT && !filePath.startsWith(ROOT + path.sep)) {
@@ -51,6 +62,34 @@ async function auditPage(page, route) {
 
   const response = await page.goto("http://127.0.0.1:4174/" + route, { waitUntil: "load", timeout: 20000 });
   if (!response || !response.ok()) throw new Error(route + ": page returned an unsuccessful response");
+  // Scroll through reveal-on-view sections so axe measures the settled, fully revealed text rather than an in-progress opacity transition.
+  await page.evaluate(async () => {
+    const targets = [...document.querySelectorAll("[data-reveal]")];
+    for (const target of targets) {
+      target.scrollIntoView({ block: "center", behavior: "instant" });
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
+  await page.waitForTimeout(350);
+
+  // Serve axe from the same origin so the site's strict script-src 'self' policy remains enforced.
+  await page.addScriptTag({ url: "http://127.0.0.1:4174/__axe.min.js" });
+  const axeAudit = await page.evaluate(async () => {
+    const result = await window.axe.run(document, {
+      runOnly: { type: "tag", values: ["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "best-practice"] }
+    });
+    return result.violations.map(violation => ({
+      id: violation.id,
+      impact: violation.impact,
+      help: violation.help,
+      nodes: violation.nodes.slice(0, 4).map(node => ({
+        target: node.target,
+        summary: (node.failureSummary || "").slice(0, 260)
+      }))
+    }));
+  });
 
   const structural = await page.evaluate(() => {
     const visible = element => {
@@ -165,10 +204,19 @@ async function auditPage(page, route) {
     findings.push("desktop content overflow at " + desktopWidth.viewport + "px: " +
       JSON.stringify(desktopWidth.contentOverflowElements));
   }
+  const severeAxeViolations = axeAudit.filter(violation =>
+    violation.impact === "critical" || violation.impact === "serious"
+  );
+  const axeWarnings = axeAudit.filter(violation =>
+    violation.impact !== "critical" && violation.impact !== "serious"
+  );
+  if (severeAxeViolations.length) {
+    findings.push("axe WCAG critical/serious violations: " + JSON.stringify(severeAxeViolations));
+  }
   if (pageErrors.length) findings.push("uncaught page errors: " + pageErrors.join(" | "));
   page.off("pageerror", onPageError);
 
-  return { route, findings, title: structural.title };
+  return { route, findings, title: structural.title, axeWarnings };
 }
 
 async function main() {
@@ -198,9 +246,17 @@ async function main() {
       throw new Error(failures.length + " route(s) failed accessibility/responsive smoke checks");
     }
 
-    process.stdout.write("Site accessibility smoke: PASS\\n");
-    for (const result of results) process.stdout.write(" - " + result.route + ": " + result.title + "\\n");
-    process.stdout.write("Checks: language/direction, title, main landmark, visible h1, unique IDs, labelled controls, named links/buttons, image alt, iframe title, safe external links, mobile/desktop overflow, uncaught page errors.\\n");
+    process.stdout.write("Site accessibility and WCAG axe smoke: PASS\\n");
+    for (const result of results) {
+      process.stdout.write(" - " + result.route + ": " + result.title +
+        (result.axeWarnings.length ? " (" + result.axeWarnings.length + " moderate/minor axe warning(s))" : "") + "\\n");
+      if (result.axeWarnings.length) {
+        process.stdout.write("   Axe non-blocking warnings: " + JSON.stringify(result.axeWarnings.map(item => ({
+          id: item.id, impact: item.impact, help: item.help, nodes: item.nodes
+        }))) + "\\n");
+      }
+    }
+    process.stdout.write("Checks: WCAG 2.1 A/AA and axe best-practice rules (critical/serious block CI), language/direction, title, main landmark, visible h1, unique IDs, labelled controls, named links/buttons, image alt, iframe title, safe external links, mobile/desktop content overflow, uncaught page errors.\\n");
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));

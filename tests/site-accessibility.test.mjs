@@ -15,11 +15,23 @@ test("browser accessibility smoke audit checks semantics, accessible names and r
   for (const check of [
     "document title", "document language or direction", "main landmark", "visible h1",
     "duplicateIds", "unlabeledControls", "unnamedButtons", "unnamedLinks",
-    "imagesWithoutAlt", "framesWithoutTitle", "unsafeBlankLinks", "content overflow"
+    "imagesWithoutAlt", "framesWithoutTitle", "unsafeBlankLinks", "content overflow",
+    "axe.run", "wcag21aa", "critical/serious violations"
   ]) assert.ok(script.includes(check), "missing accessibility check: " + check);
 });
 
+test("Portfolio feedback content remains inside the main landmark", async () => {
+  const studio = await readFile(new URL("../studio.html", import.meta.url), "utf8");
+  const mainStart = studio.indexOf("<main");
+  const feedback = studio.indexOf('id="feedback"');
+  const mainEnd = studio.indexOf("</main>", feedback);
+  assert.ok(mainStart >= 0 && feedback > mainStart && mainEnd > feedback,
+    "the feedback section must be a descendant of the main landmark");
+  assert.ok(studio.includes('id="feedback" aria-labelledby="feedback-title"'));
+});
+
 test("CI runs the site accessibility audit in the pinned Chromium environment", () => {
+  assert.match(workflow, /npm install --global playwright@1\.65\.0 axe-core@4\.10\.3/);
   assert.match(workflow, /node --check scripts\/site-accessibility-e2e\.cjs/);
   assert.match(workflow, /Run site accessibility and responsive smoke audit/);
   assert.match(workflow, /node scripts\/site-accessibility-e2e\.cjs/);
