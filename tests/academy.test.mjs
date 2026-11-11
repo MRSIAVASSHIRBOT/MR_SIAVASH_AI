@@ -26,7 +26,10 @@ test("academy exposes six structured courses and thirty chapters", () => {
   assert.match(progressModule, /value\.length > 4096/);
   assert.match(html, /id="learningPanel"/);
   assert.match(html, /id="academyStatus" role="status"/);
-  assert.match(html, /id="academyDashboardContent"/);\n  assert.match(html, /id="academyPortfolioContent"/);\n  assert.match(html, /id="academyTutorForm"/);\n  assert.match(html, /connect-src.*mr-siavash-ai-gateway/);
+  assert.match(html, /id="academyDashboardContent"/);
+  assert.match(html, /id="academyPortfolioContent"/);
+  assert.match(html, /id="academyTutorForm"/);
+  assert.match(html, /connect-src.*mr-siavash-ai-gateway/);
   assert.match(html, /type="module" src="\.\/academy\.js"/);
   assert.match(js, /resolveAcademyResume/);
   assert.match(js, /summarizeAcademyProgress/);
