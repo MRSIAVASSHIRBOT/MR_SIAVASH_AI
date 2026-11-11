@@ -126,12 +126,33 @@ async function auditPage(page, route) {
   }
 
   await page.setViewportSize({ width: 1280, height: 900 });
-  const desktopWidth = await page.evaluate(() => ({
-    viewport: window.innerWidth,
-    document: document.documentElement.scrollWidth
-  }));
+  const desktopWidth = await page.evaluate(() => {
+    const overflowingElements = [...document.querySelectorAll("body *")]
+      .map(element => {
+        const rect = element.getBoundingClientRect();
+        const style = getComputedStyle(element);
+        return {
+          tag: element.tagName.toLowerCase(),
+          id: element.id || "",
+          className: typeof element.className === "string" ? element.className.slice(0, 90) : "",
+          right: Math.round(rect.right),
+          width: Math.round(rect.width),
+          position: style.position,
+          html: element.outerHTML.slice(0, 140)
+        };
+      })
+      .filter(item => item.width > 0 && item.right > window.innerWidth + 2)
+      .sort((a, b) => b.right - a.right)
+      .slice(0, 8);
+    return {
+      viewport: window.innerWidth,
+      document: document.documentElement.scrollWidth,
+      overflowingElements
+    };
+  });
   if (desktopWidth.document > desktopWidth.viewport + 2) {
-    findings.push("horizontal overflow at desktop width (" + desktopWidth.document + "px document)");
+    findings.push("horizontal overflow at desktop width (" + desktopWidth.document + "px document); elements: " +
+      JSON.stringify(desktopWidth.overflowingElements));
   }
   if (pageErrors.length) findings.push("uncaught page errors: " + pageErrors.join(" | "));
   page.off("pageerror", onPageError);
