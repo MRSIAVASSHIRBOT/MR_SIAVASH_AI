@@ -43,7 +43,7 @@ Complete accessibility, security, reliability, privacy, observability, backup/re
 
 The Academy now provides six structured learning paths with 30 chapters, plus the separate 12-lesson Python course. Its dashboard summarizes completed chapters, total progress, paths with progress and completed courses. The resume action returns to the saved active course and next incomplete or last active chapter.
 
-Progress remains browser-local under the existing storage key, preserving prior completion arrays while adding validated resume metadata. The new pure progress module normalizes malformed, oversized, duplicate and out-of-range records; it does not introduce user accounts, cloud synchronization or server-side learner profiles. The module is included in the versioned offline shell (service-worker cache v42).
+Progress remains browser-local under the existing storage key, preserving prior completion arrays while adding validated resume metadata. The new pure progress module normalizes malformed, oversized, duplicate and out-of-range records; it does not introduce user accounts, cloud synchronization or server-side learner profiles. The module is included in the versioned offline shell (service-worker cache v43).
 
 Acceptance gates:
 - Legacy progress is preserved and normalized without changing the existing storage key.
@@ -83,3 +83,14 @@ Acceptance gates:
 - Knowledge articles remain static reviewed content; no user-submitted HTML or runtime execution is introduced.
 - Search index remains within its 100-item client-side bound.
 - Offline shell is versioned atomically and existing PWA/navigation tests pass.
+
+
+## Python practice lab — 2026-11-11
+
+The beginner Python path retains its original 12 lesson IDs and browser-local progress key. Every lesson now has a separate practical task with explicit steps, acceptance criteria, and a sample output. The task panel is rendered through textContent and DOM node creation; arbitrary learner code is not executed in the browser. The course remains offline-capable through the versioned static shell (v43).
+
+Acceptance gates:
+- All 12 lessons have exactly one task, a non-empty set of steps and criteria, and a sample output.
+- Existing multiple-choice knowledge checks and local progress format remain compatible.
+- No browser-side Python runtime, third-party CDN, or arbitrary code execution is introduced.
+- Responsive layout, reduced-motion preference, keyboard access, and offline precache remain covered by tests.
