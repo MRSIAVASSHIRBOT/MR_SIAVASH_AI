@@ -32,7 +32,7 @@ jobs:
       - name: Install pinned Playwright
         run: npm install --global playwright@1.65.0
       - name: Install Chromium and system dependencies
-        run: playwright install --with-deps chromium
+        run: playwright install chromium
       - name: Check JavaScript syntax
         run: |
           node --check app.js
