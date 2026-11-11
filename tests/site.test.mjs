@@ -253,6 +253,15 @@ test("security and roadmap docs define production gates", async () => {
   assert.doesNotMatch(roadmap, /^#\s*$/m);
   assert.doesNotMatch(roadmap, /source\.Product roadmap/);
   assert.match(roadmap, /parallel workstreams/);
+  assert.match(roadmap, /Latest public-site release verified 2026-11-11/);
+  assert.match(roadmap, /main commit `c19db5fec591e6bcd5be2d0a46828395854a4f3a`/);
+  assert.match(roadmap, /Pages workflow run \\[43054525410\\]/);
+  assert.match(roadmap, /264\/264 Node tests/);
+  assert.match(roadmap, /five-route axe-core accessibility audit/);
+  assert.match(roadmap, /Production Gateway smoke run \\[43054525494\\]/);
+  assert.match(roadmap, /Preview Gateway smoke run \\[43054525426\\]/);
+  assert.match(roadmap, /Last full Cloudflare control-plane readback: 2026-11-10/);
+
   assert.match(roadmap, /main commit `971a5e702876a0bc78b19c55b8b0daf358471c5b`/);
   assert.match(roadmap, /Production release workflow run `42801780384` completed successfully/);
   assert.match(roadmap, /Worker version `146709f7-8158-40c8-aa80-b8b0772787f1` receiving 100% of traffic/);
