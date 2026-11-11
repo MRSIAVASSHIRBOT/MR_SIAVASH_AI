@@ -49,3 +49,10 @@ test("content authoring remains browser-local and has no publish API", async () 
   assert.ok(!js.includes("fetch("));
   assert.ok(!js.includes(".innerHTML ="));
 });
+
+test("draft create, update, delete and import persist candidate state before committing it in memory", async () => {
+  const js = await readFile(new URL("../academy-content-studio.js", import.meta.url), "utf8");
+  assert.match(js, /function persist\(nextDrafts = drafts\)/);
+  assert.equal((js.match(/if \(!persist\(nextDrafts\)\) return;\s*drafts = nextDrafts;/g) || []).length, 3);
+  assert.doesNotMatch(js, /drafts\s*=\s*[^;]+;\s*persist\(\)/);
+});
