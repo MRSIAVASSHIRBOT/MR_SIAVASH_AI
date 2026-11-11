@@ -83,6 +83,7 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
     const result = gradeAcademyChallenge(challengeId, lines);
     state = recordAcademyPracticeAttempt(state, challengeId, result.passed);
     save();
+    window.dispatchEvent(new CustomEvent("academy:practice-updated"));
     status.textContent = result.message + " · " + state.attempts[challengeId] + " تلاش";
     renderList();
   });
