@@ -18,7 +18,7 @@
   font-family: Vazirmatn, IRANSans, Tahoma, "Segoe UI", sans-serif;
 }
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; background: var(--bg); }
+html { scroll-behavior: smooth; background: var(--bg); overflow-x: clip; }
 body { margin: 0; min-height: 100vh; color: var(--text); background: radial-gradient(ellipse at 78% 0%, rgba(30,93,59,.16), transparent 40%), var(--bg); font-family: inherit; line-height: 1.75; }
 button, input { font: inherit; }
 button { color: inherit; }
@@ -27,7 +27,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 ::selection { background: rgba(116,214,154,.28); color: white; }
 .ambient { position: fixed; z-index: -1; pointer-events: none; border-radius: 50%; filter: blur(80px); opacity: .12; }
 .ambient-one { width: 340px; height: 340px; top: 18%; left: -190px; background: #398d5c; }
-.ambient-two { width: 280px; height: 280px; top: 64%; right: -170px; background: #276847; }
+.ambient-two { width: 280px; height: 280px; top: 64%; right: 0; background: radial-gradient(circle at 100% 50%, #276847 0%, transparent 72%); }
 .app-shell { width: min(1240px, calc(100% - 64px)); margin: 0 auto; }
 .skip-link { position: absolute; top: -60px; right: 18px; z-index: 100; background: var(--green); color: #09120c; padding: 8px 14px; border-radius: 8px; }
 .skip-link:focus { top: 12px; }

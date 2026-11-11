@@ -49,6 +49,7 @@ jobs:
           node --check cloudflare/gateway/src/index.js
           node --check scripts/deploy-production-worker.mjs
           node --check scripts/generate-hub-public-status.mjs
+          node --check scripts/site-accessibility-e2e.cjs
       - name: Validate OpenAPI design contract
         run: ruby scripts/validate-openapi.rb
       - name: Run repository tests
@@ -59,6 +60,10 @@ jobs:
         run: |
           export NODE_PATH="$(npm root -g)"
           node scripts/academy-browser-e2e.cjs
+      - name: Run site accessibility and responsive smoke audit
+        run: |
+          export NODE_PATH="$(npm root -g)"
+          node scripts/site-accessibility-e2e.cjs
 
   deploy:
     name: Deploy static site
