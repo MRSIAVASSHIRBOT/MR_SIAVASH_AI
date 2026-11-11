@@ -21,8 +21,10 @@
       return Array.isArray(parsed) ? parsed.slice(0, 100).map(validate).filter(Boolean) : [];
     } catch { return []; }
   }
-  function persist() {
-    try { localStorage.setItem(KEY, JSON.stringify(drafts)); return true; }
+  // Persist a candidate snapshot before replacing in-memory state. Failed writes
+  // leave the last known-good draft list untouched and never report success.
+  function persist(nextDrafts = drafts) {
+    try { localStorage.setItem(KEY, JSON.stringify(nextDrafts)); return true; }
     catch { status.textContent = "ذخیره محلی ناموفق بود؛ فضای ذخیره‌سازی مرورگر را بررسی کن."; return false; }
   }
   function el(tag, cls, value) { const node = document.createElement(tag); if (cls) node.className = cls; if (value !== undefined) node.textContent = value; return node; }
@@ -48,8 +50,11 @@
   }
   function clearForm() { selectedId=null; form.reset(); status.textContent="فرم برای پیش‌نویس جدید آماده است."; render(); }
   function removeDraft(id) {
-    drafts=drafts.filter(x=>x.id!==id); if(selectedId===id) clearForm();
-    persist(); render(); status.textContent="پیش‌نویس از حافظه محلی حذف شد.";
+    const nextDrafts = drafts.filter(x=>x.id!==id);
+    if (!persist(nextDrafts)) return;
+    drafts = nextDrafts;
+    if(selectedId===id) clearForm();
+    render(); status.textContent="پیش‌نویس از حافظه محلی حذف شد.";
   }
   form.addEventListener("submit",event=>{
     event.preventDefault();
@@ -58,9 +63,12 @@
       criteria:$("#academyDraftCriteria").value.split("\n"),updatedAt:new Date().toISOString()});
     if(!item){status.textContent="مسیر، عنوان، هدف و محتوای آموزشی معتبر لازم است.";return;}
     const index=drafts.findIndex(x=>x.id===item.id);
+    const nextDrafts = drafts.slice();
     if(index<0&&drafts.length>=100){status.textContent="سقف ۱۰۰ پیش‌نویس پر شده است؛ ابتدا موردی را خروجی بگیر یا حذف کن.";return;}
-    if(index>=0)drafts[index]=item;else drafts.unshift(item);
-    if(!persist())return; selectedId=item.id; render(); status.textContent="پیش‌نویس در همین مرورگر ذخیره شد؛ هنوز منتشر نشده است.";
+    if(index>=0)nextDrafts[index]=item;else nextDrafts.unshift(item);
+    if (!persist(nextDrafts)) return;
+    drafts = nextDrafts;
+    selectedId=item.id; render(); status.textContent="پیش‌نویس در همین مرورگر ذخیره شد؛ هنوز منتشر نشده است.";
   });
   $("#academyDraftNew").addEventListener("click",clearForm);
   $("#academyDraftExport").addEventListener("click",()=>{
@@ -75,8 +83,10 @@
       if(parsed?.schema!=="mr-siavash-ai-academy-drafts"||parsed.version!==1||!Array.isArray(parsed.drafts))throw new Error("ساختار فایل معتبر نیست.");
       const incoming=parsed.drafts.slice(0,100).map(validate).filter(Boolean), merged=new Map(drafts.map(x=>[x.id,x]));
       for(const item of incoming)merged.set(item.id,item);
-      drafts=[...merged.values()].slice(0,100);
-      if(!persist())return;render();status.textContent=incoming.length+" پیش‌نویس معتبر وارد شد.";
+      const nextDrafts = [...merged.values()].slice(0,100);
+      if (!persist(nextDrafts)) return;
+      drafts = nextDrafts;
+      render();status.textContent=incoming.length+" پیش‌نویس معتبر وارد شد.";
     }catch{status.textContent="فایل JSON قابل‌خواندن یا مطابق قالب آکادمی نیست.";}
     finally{event.target.value="";}
   });
