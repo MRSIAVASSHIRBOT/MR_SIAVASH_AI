@@ -1,0 +1,64 @@
+name: Academy browser acceptance tests
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "academy.html"
+      - "academy*.js"
+      - "academy*.mjs"
+      - "academy*.css"
+      - "academy-runner.html"
+      - "styles.css"
+      - "studio.css"
+      - "experience-next.css"
+      - "atelier.css"
+      - "field-notes.css"
+      - "scripts/academy-browser-e2e.cjs"
+      - ".github/workflows/academy-browser-e2e.yml"
+  push:
+    branches: [main]
+    paths:
+      - "academy.html"
+      - "academy*.js"
+      - "academy*.mjs"
+      - "academy*.css"
+      - "academy-runner.html"
+      - "styles.css"
+      - "studio.css"
+      - "experience-next.css"
+      - "atelier.css"
+      - "field-notes.css"
+      - "scripts/academy-browser-e2e.cjs"
+      - ".github/workflows/academy-browser-e2e.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: academy-browser-e2e-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  chromium:
+    name: Chromium end-to-end acceptance
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+      - name: Install pinned Playwright
+        run: npm install --global playwright@1.56.1
+      - name: Install Chromium and system dependencies
+        run: playwright install --with-deps chromium
+      - name: Run Academy browser acceptance suite
+        env:
+          NODE_PATH: ${{ runner.tool_cache }}/node-global-placeholder
+        run: |
+          export NODE_PATH="$(npm root -g)"
+          node scripts/academy-browser-e2e.cjs
