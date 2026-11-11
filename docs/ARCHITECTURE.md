@@ -95,3 +95,8 @@ The six Academy paths retain their existing course IDs, lesson arrays and browse
 `academy-assessments.mjs` owns immutable assessment definitions for the six stable course IDs. Each path has five multiple-choice questions with one keyed answer and a post-submission explanation, plus a capstone brief, deliverable checklist and self-review rubric. `gradeAcademyAssessment` returns a deterministic score and applies the 80% pass threshold.
 
 The UI renders question fieldsets, native radio inputs and checklist controls with semantic DOM elements. Learner results and project checklist selections are normalized and serialized separately from lesson completion, using `mr-siavash-ai.academy.assessments.v1`; the existing `mr-siavash-ai.academy.v1` progress contract is unchanged. Both stores are browser-local only. The module is precached by service-worker shell v45.
+
+
+## Academy portfolio and tutor boundary
+
+The Academy portfolio module derives achievements and course summaries from the existing validated browser-local progress and assessment stores. It exports a versioned JSON report and offers print output. The report is explicitly self-reported local evidence, not an identity-verified credential or independent project review. The Academy tutor calls the existing public Gateway route `POST /v1/assistant/chat` with a bounded message, no credentials, browser-stored secrets, or action execution, and a 15-second timeout. The Gateway enforces a 1,200-character message limit, rate limiting, verified knowledge retrieval, and a grounded response contract; the browser only renders source links that resolve to the same site origin. Both modules are in the exact offline shell allowlist (cache v46).

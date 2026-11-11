@@ -63,3 +63,36 @@
 .academy-capstone-progress{color:#a8e2b7;font-size:.88rem}
 @media(max-width:650px){.academy-assessment,.academy-capstone{padding:15px;border-radius:15px}.academy-question{padding:11px}}
 @media(forced-colors:active){.academy-question,.academy-assessment,.academy-capstone{border:1px solid CanvasText}}
+
+/* Learning portfolio and grounded tutor */
+.academy-portfolio,.academy-tutor{margin:28px 0;padding:22px;border:1px solid #2d4435;border-radius:22px;background:linear-gradient(145deg,#152019,#0f1511)}
+.academy-portfolio-content{display:grid;gap:18px}
+.academy-portfolio-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.academy-portfolio-stat,.academy-portfolio-course,.academy-portfolio-achievement{padding:14px;border:1px solid #2b4032;border-radius:13px;background:#101812}
+.academy-portfolio-stat{display:grid;gap:5px}
+.academy-portfolio-stat strong{font-size:1.35rem;color:#a8e2b7;font-variant-numeric:tabular-nums}
+.academy-portfolio-stat span,.academy-portfolio-course p,.academy-portfolio-achievement p{color:#aebdb2;font-size:.8rem;line-height:1.8}
+.academy-portfolio-subtitle{margin:5px 0 0;color:#e4f2e7;font-size:1rem}
+.academy-portfolio-courses{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.academy-portfolio-course h4{margin:0 0 8px;color:#a8e2b7}
+.academy-portfolio-course p{margin:4px 0}
+.academy-portfolio-achievements{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.academy-portfolio-achievement strong{color:#e4f2e7}
+.academy-portfolio-achievement p{margin:5px 0 0}
+.academy-portfolio-actions{display:flex;flex-wrap:wrap;gap:10px}
+.academy-portfolio-notice,.academy-portfolio-empty{margin:0;color:#aebdb2;font-size:.78rem;line-height:1.9}
+.academy-tutor h2{margin:7px 0;color:#edf5ef;font-size:1.35rem}
+.academy-tutor>p{color:#b9cbbd;line-height:1.9}
+.academy-tutor-form{display:grid;gap:10px}
+.academy-tutor-form label{color:#e4f2e7;font-weight:700}
+.academy-tutor-form textarea{width:100%;resize:vertical;padding:12px;border:1px solid #355640;border-radius:12px;background:#0b120d;color:#edf5ef;font:inherit;line-height:1.8}
+.academy-tutor-form button{justify-self:start}
+.academy-tutor-form button:disabled{opacity:.65;cursor:wait}
+.academy-tutor-status{min-height:1.5em;color:#a8e2b7;font-size:.84rem}
+.academy-tutor-answer{white-space:pre-wrap;color:#e4f2e7;line-height:2}
+.academy-tutor-sources{display:flex;flex-wrap:wrap;gap:10px}
+.academy-tutor-sources a{color:#a8e2b7;text-decoration:underline;text-underline-offset:3px}
+@media(max-width:800px){.academy-portfolio-courses{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.academy-portfolio,.academy-tutor{padding:16px;border-radius:17px}.academy-portfolio-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.academy-portfolio-courses,.academy-portfolio-achievements{grid-template-columns:1fr}.academy-portfolio-actions{flex-direction:column}.academy-portfolio-actions button,.academy-tutor-form button{width:100%}}
+@media print{.topbar,.academy-toolbar,.academy-tutor,.academy-portfolio-actions{display:none!important}.academy-portfolio{break-inside:avoid;background:#fff;color:#111}.academy-portfolio-stat,.academy-portfolio-course,.academy-portfolio-achievement{background:#fff;border-color:#999}.academy-portfolio-stat strong,.academy-portfolio-course h4,.academy-portfolio-achievement strong{color:#164b2b}}
+@media(forced-colors:active){.academy-portfolio,.academy-tutor,.academy-portfolio-stat,.academy-portfolio-course,.academy-portfolio-achievement{border:1px solid CanvasText}}
