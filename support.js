@@ -121,13 +121,25 @@
   }
 
   async function askOnline(query) {
-    const response = await window.fetch(ASSISTANT_API, {
-      method: "POST", credentials: "omit", cache: "no-store", referrerPolicy: "no-referrer",
-      headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify({ message: query })
-    });
-    let data = {};
-    try { data = await response.json(); } catch {}
+    const controller = typeof AbortController === "function" ? new AbortController() : null;
+    const timeoutId = controller ? window.setTimeout(() => controller.abort(), 15000) : null;
+    let response, data = {};
+    try {
+      response = await window.fetch(ASSISTANT_API, {
+        method: "POST", credentials: "omit", cache: "no-store", referrerPolicy: "no-referrer",
+        headers: { Accept: "application/json", "Content-Type": "application/json" },
+        body: JSON.stringify({ message: query }),
+        ...(controller ? { signal: controller.signal } : {})
+      });
+      try { data = await response.json(); } catch (error) { if (error?.name === "AbortError") throw error; }
+    } catch (error) {
+      if (error?.name === "AbortError") {
+        throw new Error("پاسخ آنلاین بیش از ۱۵ ثانیه طول کشید؛ اتصال را بررسی کن یا از راهنمای محلی استفاده کن.");
+      }
+      throw new Error("ارتباط آنلاین برقرار نشد؛ اتصال را بررسی کن یا از راهنمای محلی استفاده کن.");
+    } finally {
+      if (timeoutId !== null) window.clearTimeout(timeoutId);
+    }
     if (!response.ok) {
       if (response.status === 429) throw new Error("تعداد درخواست‌ها زیاد شده است؛ کمی بعد دوباره تلاش کن.");
       if (response.status === 503) throw new Error("سرویس هوشمند فعلاً آماده نیست. راهنمای محلی همچنان در دسترس است.");
