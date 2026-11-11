@@ -20,3 +20,19 @@
 @media(forced-colors:active){.academy-dashboard,.academy-dashboard-metric,.academy-dashboard-resume{border:1px solid CanvasText}}
 
 .academy-page :where(button,a,input):focus-visible{outline:2px solid #9bd8aa;outline-offset:3px}
+
+/* Structured chapter guides */
+.academy-guide{margin-top:13px;border:1px solid #304a37;border-radius:13px;background:#0d1510;overflow:hidden}
+.academy-guide[open]{border-color:#527c5d;background:#111c14}
+.academy-guide>summary{padding:12px 14px;color:#a8e2b7;font-size:.84rem;font-weight:700;cursor:pointer;list-style:none}
+.academy-guide>summary::-webkit-details-marker{display:none}
+.academy-guide>summary:after{content:"＋";float:left;color:#9bd8aa}
+.academy-guide[open]>summary:after{content:"−"}
+.academy-guide>summary:focus-visible{outline:2px solid #a8e2b7;outline-offset:-3px}
+.academy-guide-body{display:grid;gap:12px;padding:0 14px 15px;color:#c3d1c6;font-size:.84rem;line-height:1.95}
+.academy-guide-section h4{margin:8px 0 4px;color:#e4f2e7;font-size:.88rem}
+.academy-guide-section p{margin:0}
+.academy-guide-section ul{margin:4px 0;padding-inline-start:22px}
+.academy-guide-section li{margin:3px 0}
+@media(max-width:650px){.academy-guide-body{font-size:.82rem;padding-inline:12px}}
+@media(forced-colors:active){.academy-guide{border:1px solid CanvasText}}
