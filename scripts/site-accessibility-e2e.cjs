@@ -62,6 +62,18 @@ async function auditPage(page, route) {
 
   const response = await page.goto("http://127.0.0.1:4174/" + route, { waitUntil: "load", timeout: 20000 });
   if (!response || !response.ok()) throw new Error(route + ": page returned an unsuccessful response");
+  // Scroll through reveal-on-view sections so axe measures the settled, fully revealed text rather than an in-progress opacity transition.
+  await page.evaluate(async () => {
+    const targets = [...document.querySelectorAll("[data-reveal]")];
+    for (const target of targets) {
+      target.scrollIntoView({ block: "center", behavior: "instant" });
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+  });
+  await page.waitForTimeout(350);
+
   // Serve axe from the same origin so the site's strict script-src 'self' policy remains enforced.
   await page.addScriptTag({ url: "http://127.0.0.1:4174/__axe.min.js" });
   const axeAudit = await page.evaluate(async () => {
