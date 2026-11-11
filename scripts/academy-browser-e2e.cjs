@@ -56,10 +56,8 @@ async function main() {
   assert.equal(await page.locator(".academy-lesson .lesson-complete").first().isChecked(), true,
     "completed lesson should survive a reload");
 
-  // Isolated JavaScript runner: a real browser executes the starter challenge and returns its output.
+  // Isolated JavaScript runner: wait for the child-to-parent readiness handshake before executing.
   await page.locator("#academyPracticeRun").scrollIntoViewIfNeeded();
-  // The runner iframe is intentionally lazy-loaded; bring it into view before waiting for its load event.
-  await page.locator("#academyPracticeRunner").scrollIntoViewIfNeeded();
   await page.waitForFunction(() => {
     const button = document.querySelector("#academyPracticeRun");
     return button && !button.disabled;
