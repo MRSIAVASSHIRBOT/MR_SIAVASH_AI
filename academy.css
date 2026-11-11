@@ -36,3 +36,30 @@
 .academy-guide-section li{margin:3px 0}
 @media(max-width:650px){.academy-guide-body{font-size:.82rem;padding-inline:12px}}
 @media(forced-colors:active){.academy-guide{border:1px solid CanvasText}}
+
+/* Interactive course assessments and capstone projects */
+.academy-assessment,.academy-capstone{margin-top:24px;padding:22px;border:1px solid rgba(117,197,141,.2);border-radius:20px;background:linear-gradient(145deg,rgba(18,31,23,.96),rgba(11,19,14,.98))}
+.academy-assessment h3,.academy-capstone h3{margin:0 0 10px;color:#e4f2e7;font-size:1.15rem}
+.academy-assessment-intro,.academy-assessment-previous,.academy-capstone>p{color:#b9cbbd;line-height:1.9}
+.academy-assessment-form{display:grid;gap:14px;margin-top:18px}
+.academy-question{min-width:0;margin:0;padding:15px;border:1px solid #304a37;border-radius:14px}
+.academy-question legend{padding:0 6px;color:#e4f2e7;font-weight:700;line-height:1.8}
+.academy-answer-option,.academy-capstone-checklist label{display:flex;align-items:flex-start;gap:10px;padding:9px 8px;border-radius:9px;color:#c3d1c6;line-height:1.8;cursor:pointer}
+.academy-answer-option:hover,.academy-capstone-checklist label:hover{background:rgba(117,197,141,.07)}
+.academy-answer-option input,.academy-capstone-checklist input{flex:0 0 auto;width:18px;height:18px;margin:4px 0 0;accent-color:#75c58d}
+.academy-answer-option input:focus-visible,.academy-capstone-checklist input:focus-visible{outline:2px solid #a8e2b7;outline-offset:3px}
+.academy-assessment-status{min-height:1.5em;color:#a8e2b7;line-height:1.8}
+.academy-assessment-feedback{display:grid;gap:12px}
+.academy-assessment-feedback:empty{display:none}
+.academy-assessment-feedback>h4{margin:8px 0;color:#a8e2b7}
+.academy-answer-review{padding:13px;border-inline-start:3px solid #527c5d;border-radius:8px;background:#111c14}
+.academy-answer-review strong{display:block;color:#e4f2e7;line-height:1.8}
+.academy-answer-review p{margin:7px 0 0;color:#b9cbbd;line-height:1.85}
+.academy-capstone{margin-top:18px;background:rgba(10,18,13,.82)}
+.academy-capstone h4{margin:18px 0 8px;color:#a8e2b7}
+.academy-capstone-checklist,.academy-capstone-rubric{margin:0;padding-inline-start:22px;color:#c3d1c6;line-height:1.9}
+.academy-capstone-checklist{list-style:none;padding:0}
+.academy-capstone-checklist li{border-bottom:1px solid rgba(117,197,141,.1)}
+.academy-capstone-progress{color:#a8e2b7;font-size:.88rem}
+@media(max-width:650px){.academy-assessment,.academy-capstone{padding:15px;border-radius:15px}.academy-question{padding:11px}}
+@media(forced-colors:active){.academy-question,.academy-assessment,.academy-capstone{border:1px solid CanvasText}}
