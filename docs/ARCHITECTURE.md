@@ -88,3 +88,10 @@ The public site does not call the Hub API or query its local runtime. Its first 
 ## Academy chapter content model
 
 The six Academy paths retain their existing course IDs, lesson arrays and browser-local progress key. Detailed instructional material is stored separately in `academy-guides.mjs` and accessed by the stable `courseId + lessonIndex` pair. Each of the 30 guide records includes an objective, concepts, guided practice, independent challenge, assessment checklist and common pitfalls. The UI creates semantic disclosure and section elements and assigns all authored content through `textContent`; the guide module is part of the explicit offline shell allowlist (cache v44). This separation allows instructional content to expand without changing completion-index compatibility.
+
+
+## Academy assessment and capstone model
+
+`academy-assessments.mjs` owns immutable assessment definitions for the six stable course IDs. Each path has five multiple-choice questions with one keyed answer and a post-submission explanation, plus a capstone brief, deliverable checklist and self-review rubric. `gradeAcademyAssessment` returns a deterministic score and applies the 80% pass threshold.
+
+The UI renders question fieldsets, native radio inputs and checklist controls with semantic DOM elements. Learner results and project checklist selections are normalized and serialized separately from lesson completion, using `mr-siavash-ai.academy.assessments.v1`; the existing `mr-siavash-ai.academy.v1` progress contract is unchanged. Both stores are browser-local only. The module is precached by service-worker shell v45.
