@@ -131,7 +131,7 @@
         body: JSON.stringify({ message: query }),
         ...(controller ? { signal: controller.signal } : {})
       });
-      try { data = await response.json(); } catch {}
+      try { data = await response.json(); } catch (error) { if (error?.name === "AbortError") throw error; }
     } catch (error) {
       if (error?.name === "AbortError") {
         throw new Error("پاسخ آنلاین بیش از ۱۵ ثانیه طول کشید؛ اتصال را بررسی کن یا از راهنمای محلی استفاده کن.");
