@@ -16,7 +16,7 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
   const frame = $("#academyPracticeRunner");
   const KEY = getAcademyPracticeStorageKey();
   let selected = getAcademyChallenges()[0]?.id;
-  let pending = null;
+  let pending = null;\n  let runnerReady = false;
   let timeout = 0;
   let state = normalizeAcademyPracticeState(readStored());
 
@@ -52,7 +52,7 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
     if (pending) { status.textContent = "یک اجرا در حال انجام است."; return; }
     const code = editor.value;
     if (!code.trim() || code.length > 4000) { status.textContent = "کد باید بین ۱ تا ۴۰۰۰ نویسه باشد."; return; }
-    if (!frame.contentWindow) { status.textContent = "محیط اجرا هنوز آماده نیست."; return; }
+    if (!runnerReady || !frame.contentWindow) { status.textContent = "محیط اجرا هنوز آماده نیست؛ کمی صبر کن."; return; }
     const requestId = (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random());
     pending = { requestId, challengeId: selected };
     runButton.disabled = true;
@@ -85,7 +85,7 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
   });
   runButton.addEventListener("click", run);
   $("#academyPracticeReset").addEventListener("click", () => select(selected));
-  frame.addEventListener("load", () => { if (!pending) runButton.disabled = false; });
+  frame.addEventListener("load", () => { runnerReady = true; if (!pending) runButton.disabled = false; });
   frame.addEventListener("error", () => { runButton.disabled = true; status.textContent = "بارگذاری محیط اجرای تمرین ناموفق بود."; });
   renderList();
   select(selected);
