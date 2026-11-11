@@ -68,6 +68,7 @@ function buildExport(state, achievements) {
     notice: "این گزارش خوداظهاری مبتنی بر داده‌های همین مرورگر است؛ مدرک رسمی، تأیید هویت یا داوری مستقل مهارت محسوب نمی‌شود.",
     summary: state.summary,
     courses,
+    practice: { completedChallenges: state.practice.completed, totalChallenges: getAcademyChallenges().length, attempts: state.practice.attempts },
     achievements
   };
 }
@@ -143,6 +144,7 @@ function init() {
   window.addEventListener("storage", event => {
     if (!event.key || event.key === PROGRESS_KEY || event.key === ASSESSMENT_KEY || event.key === PRACTICE_KEY) render();
   });
+  window.addEventListener("academy:practice-updated", render);
   document.addEventListener("change", event => {
     if (event.target.closest("#academyPortfolioContent")) render();
   });
