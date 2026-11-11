@@ -36,8 +36,8 @@ Production and Preview each have a dedicated Cloudflare Access self-hosted appli
 ## Browser quality and accessibility checks
 
 - The pinned Chromium workflow runs real-browser acceptance for Academy learning progress, the isolated JavaScript practice runner, local draft CRUD/export, storage-failure recovery, and mobile search.
-- A separate browser smoke audit checks the primary public routes for document language/direction, title, main landmark, visible heading, unique IDs, labelled form controls, accessible names for links and buttons, image alternative text, iframe titles, safe external links, mobile/desktop horizontal overflow, and uncaught page errors.
-- These are structural and responsive smoke checks, not a formal WCAG conformance claim or a substitute for manual keyboard, screen-reader, and color-contrast evaluation.
+- A separate pinned Chromium audit checks the five primary public routes with axe-core against WCAG 2.1 A/AA and axe best-practice rules; critical and serious violations fail CI. Structural checks also cover language/direction, title, main landmark, visible heading, unique IDs, labelled controls, accessible names, image alternative text, iframe titles, safe external links, mobile/desktop content overflow, and uncaught page errors.
+- This automated subset is not a formal WCAG conformance claim. Manual keyboard, screen-reader, zoom/reflow, and real-device evaluation remain necessary.
 
 ## Repository structure
 
