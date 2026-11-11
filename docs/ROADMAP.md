@@ -94,3 +94,15 @@ Acceptance gates:
 - Existing multiple-choice knowledge checks and local progress format remain compatible.
 - No browser-side Python runtime, third-party CDN, or arbitrary code execution is introduced.
 - Responsive layout, reduced-motion preference, keyboard access, and offline precache remain covered by tests.
+
+
+## Academy chapter-depth expansion — 2026-11-11
+
+All 30 chapters across HTML, CSS, JavaScript, Git/GitHub, Linux and defensive web security now have a structured companion guide. Each guide defines a learning objective, key concepts, guided practice, an independent challenge, acceptance criteria and common mistakes. The content is maintained in `academy-guides.mjs`, separate from the course/progress model so existing course IDs and browser-local completion records remain stable.
+
+Acceptance gates:
+- Exactly six paths and 30 complete chapter guides are validated by tests.
+- Guide content is rendered using DOM nodes and `textContent`; no user-controlled HTML execution is introduced.
+- Existing lesson completion and resume metadata remain unchanged.
+- The guide module is included in the versioned offline shell (service-worker cache v44).
+- Mobile layout, keyboard disclosure behavior and forced-colors support are covered by the shared Academy styles.

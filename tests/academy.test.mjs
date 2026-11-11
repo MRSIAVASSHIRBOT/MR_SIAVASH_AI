@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 const html = await readFile(new URL("../academy.html", import.meta.url), "utf8");
 const js = await readFile(new URL("../academy.js", import.meta.url), "utf8");
 const progressModule = await readFile(new URL("../academy-progress.mjs", import.meta.url), "utf8");
+const guideModule = await readFile(new URL("../academy-guides.mjs", import.meta.url), "utf8");
 const css = await readFile(new URL("../academy.css", import.meta.url), "utf8");
 const home = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const search = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
@@ -53,7 +54,8 @@ test("academy navigation, global search, and offline shell are integrated", () =
   assert.match(sw, /"\.\/academy\.css"/);
   assert.match(sw, /"\.\/academy\.js"/);
   assert.match(sw, /"\.\/academy-progress\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v43"/);
+  assert.match(sw, /"\.\/academy-guides\.mjs"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v44"/);
 });
 
 test("academy layout supports mobile, keyboard, and reduced-motion preferences", () => {
@@ -79,4 +81,29 @@ test("academy visual system stays aligned with the forest and emerald site palet
   assert.match(css, /#a8e2b7/);
   assert.match(css, /:focus-visible\{outline:2px solid #9bd8aa/);
   assert.doesNotMatch(css, /#9c8cff|#68dff5|#b7aaff/);
+});
+
+test("all thirty Academy chapters have structured, safe-to-render learning guides", async () => {
+  const module = await import("../academy-guides.mjs");
+  const stats = module.getAcademyGuideStats();
+  assert.deepEqual(stats, { courses: 6, chapters: 30 });
+  for (const courseId of ["html", "css", "javascript", "git", "linux", "web-security"]) {
+    for (let index = 0; index < 5; index += 1) {
+      const guide = module.getAcademyGuide(courseId, index);
+      assert.ok(guide, courseId + " chapter " + index);
+      assert.ok(guide.goal.length > 8);
+      assert.ok(guide.concepts.length >= 3);
+      assert.ok(guide.practice.length > 20);
+      assert.ok(guide.challenge.length > 20);
+      assert.ok(guide.checklist.length >= 3);
+      assert.ok(guide.pitfalls.length >= 2);
+    }
+  }
+  assert.equal(module.getAcademyGuide("unknown", 0), null);
+  assert.equal(module.getAcademyGuide("html", -1), null);
+  assert.match(js, /getAcademyGuide/);
+  assert.match(js, /appendGuideList/);
+  assert.doesNotMatch(js, /\.innerHTML\s*=/);
+  assert.match(css, /\.academy-guide-body/);
+  assert.match(guideModule, /Object\.freeze/);
 });
