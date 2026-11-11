@@ -33,6 +33,12 @@ Remote agent execution from this site, consumer user accounts, private profiles,
 
 Production and Preview each have a dedicated Cloudflare Access self-hosted application protecting `/admin` and `/v1/admin/*` with the same single-administrator allow policy. The Worker independently validates the Access JWT signature, issuer, audience, expiry, not-before time and administrator email allowlist. Anonymous requests to protected paths are blocked at the Access edge; end-to-end authorized browser-session acceptance testing remains outstanding. The Production Worker is configured with the Cloudflare Workers AI binding and model `@cf/zai-org/glm-4.7-flash`. The reviewed release smoke test exercised `POST /v1/assistant/chat` and required a grounded response with source references. This verifies the tested request path, not a guarantee of uninterrupted model availability or answer correctness. Do not enter secrets, passwords, private keys, or sensitive personal data into the static site.
 
+## Browser quality and accessibility checks
+
+- The pinned Chromium workflow runs real-browser acceptance for Academy learning progress, the isolated JavaScript practice runner, local draft CRUD/export, storage-failure recovery, and mobile search.
+- A separate browser smoke audit checks the primary public routes for document language/direction, title, main landmark, visible heading, unique IDs, labelled form controls, accessible names for links and buttons, image alternative text, iframe titles, safe external links, mobile/desktop horizontal overflow, and uncaught page errors.
+- These are structural and responsive smoke checks, not a formal WCAG conformance claim or a substitute for manual keyboard, screen-reader, and color-contrast evaluation.
+
 ## Repository structure
 
 - index.html — application shell and page sections
