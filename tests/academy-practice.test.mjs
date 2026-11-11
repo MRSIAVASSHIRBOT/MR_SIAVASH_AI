@@ -41,6 +41,18 @@ test("runner uses a no-network iframe and a terminable worker execution boundary
   assert.ok(!ui.includes(".innerHTML ="));
 });
 
+test("practice runner readiness uses an eager iframe and a race-safe ping handshake", async () => {
+  const page = await readFile(new URL("../academy.html", import.meta.url), "utf8");
+  const runner = await readFile(new URL("../academy-runner.html", import.meta.url), "utf8");
+  const ui = await readFile(new URL("../academy-practice.js", import.meta.url), "utf8");
+  assert.match(page, /id="academyPracticeRunner"[^>]*loading="eager"/);
+  assert.ok(runner.includes('event.data.type === "academy-runner-ping"'));
+  assert.ok(runner.includes('type: "academy-runner-ready"'));
+  assert.ok(ui.includes('event.data.type === "academy-runner-ready"'));
+  assert.ok(ui.includes('type: "academy-runner-ping"'));
+  assert.ok(ui.includes('frame.addEventListener("load"'));
+});
+
 test("content authoring remains browser-local and has no publish API", async () => {
   const html = await readFile(new URL("../academy-content-studio.html", import.meta.url), "utf8");
   const js = await readFile(new URL("../academy-content-studio.js", import.meta.url), "utf8");
