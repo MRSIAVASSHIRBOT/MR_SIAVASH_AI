@@ -96,3 +96,26 @@
 @media(max-width:650px){.academy-portfolio,.academy-tutor{padding:16px;border-radius:17px}.academy-portfolio-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.academy-portfolio-courses,.academy-portfolio-achievements{grid-template-columns:1fr}.academy-portfolio-actions{flex-direction:column}.academy-portfolio-actions button,.academy-tutor-form button{width:100%}}
 @media print{.topbar,.academy-toolbar,.academy-tutor,.academy-portfolio-actions{display:none!important}.academy-portfolio{break-inside:avoid;background:#fff;color:#111}.academy-portfolio-stat,.academy-portfolio-course,.academy-portfolio-achievement{background:#fff;border-color:#999}.academy-portfolio-stat strong,.academy-portfolio-course h4,.academy-portfolio-achievement strong{color:#164b2b}}
 @media(forced-colors:active){.academy-portfolio,.academy-tutor,.academy-portfolio-stat,.academy-portfolio-course,.academy-portfolio-achievement{border:1px solid CanvasText}}
+
+/* Isolated practice lab */
+.academy-practice{margin:28px 0;padding:24px;border:1px solid #2d4435;border-radius:22px;background:linear-gradient(145deg,#152019,#0d140f)}
+.academy-practice h2{margin:8px 0;color:#e5f5e9;font-size:1.45rem}
+.academy-practice-intro,.academy-practice-safety{color:#b6c9ba;line-height:1.9;font-size:.86rem}
+.academy-practice-layout{display:grid;grid-template-columns:minmax(190px,.65fr) minmax(0,2fr);gap:16px;margin-top:18px}
+.academy-practice-list{display:grid;align-content:start;gap:8px}
+.academy-practice-choice{padding:12px;border:1px solid #2b4433;border-radius:11px;background:#101912;color:#cfe3d4;text-align:right;font:inherit;cursor:pointer}
+.academy-practice-choice[aria-pressed=true]{border-color:#7bc994;background:#1b3826;color:#f0fff3}
+.academy-practice-workspace{min-width:0;padding:18px;border:1px solid #2b4433;border-radius:15px;background:#101812}
+.academy-practice-workspace h3{margin:0 0 8px;color:#a8e2b7}
+.academy-practice-workspace>p{color:#bdcdbf;line-height:1.9}
+.academy-practice-workspace label,.academy-practice-output-wrap strong{display:block;margin:12px 0 8px;color:#e2f1e6;font-weight:700}
+#academyPracticeCode{width:100%;min-height:190px;padding:14px;border:1px solid #355640;border-radius:12px;background:#080e0a;color:#d9f4e1;font:13px/1.8 ui-monospace,SFMono-Regular,Consolas,monospace;tab-size:2;direction:ltr;text-align:left;resize:vertical}
+.academy-practice-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+#academyPracticeStatus{min-height:1.6em;color:#a8e2b7;font-size:.85rem}
+.academy-practice-workspace details{color:#b6c9ba;line-height:1.9}
+.academy-practice-workspace summary{cursor:pointer;color:#a8e2b7}
+.academy-practice-output-wrap pre{min-height:52px;max-height:220px;overflow:auto;padding:13px;border:1px solid #293d30;border-radius:10px;background:#080e0a;color:#cdebd5;white-space:pre-wrap;overflow-wrap:anywhere;text-align:left;font:13px/1.8 ui-monospace,SFMono-Regular,Consolas,monospace}
+.academy-practice-runner{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0}
+.academy-practice-safety{margin-top:14px;font-size:.75rem}
+@media(max-width:720px){.academy-practice{padding:16px}.academy-practice-layout{grid-template-columns:1fr}.academy-practice-list{grid-template-columns:repeat(2,minmax(0,1fr))}.academy-practice-choice{font-size:.8rem}.academy-practice-actions{flex-direction:column}.academy-practice-actions button{width:100%}}
+@media(forced-colors:active){.academy-practice,.academy-practice-choice,.academy-practice-workspace{border:1px solid CanvasText}}
