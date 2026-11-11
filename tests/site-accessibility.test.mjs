@@ -15,11 +15,13 @@ test("browser accessibility smoke audit checks semantics, accessible names and r
   for (const check of [
     "document title", "document language or direction", "main landmark", "visible h1",
     "duplicateIds", "unlabeledControls", "unnamedButtons", "unnamedLinks",
-    "imagesWithoutAlt", "framesWithoutTitle", "unsafeBlankLinks", "content overflow"
+    "imagesWithoutAlt", "framesWithoutTitle", "unsafeBlankLinks", "content overflow",
+    "axe.run", "wcag21aa", "critical/serious violations"
   ]) assert.ok(script.includes(check), "missing accessibility check: " + check);
 });
 
 test("CI runs the site accessibility audit in the pinned Chromium environment", () => {
+  assert.match(workflow, /npm install --global playwright@1\.65\.0 axe-core@4\.10\.3/);
   assert.match(workflow, /node --check scripts\/site-accessibility-e2e\.cjs/);
   assert.match(workflow, /Run site accessibility and responsive smoke audit/);
   assert.match(workflow, /node scripts\/site-accessibility-e2e\.cjs/);
