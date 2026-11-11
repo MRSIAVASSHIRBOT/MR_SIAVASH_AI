@@ -47,6 +47,7 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
     renderList();
   }
   function resetRunner() {
+    runnerReady = false;
     frame.src = "./academy-runner.html";
   }
   function run() {
@@ -58,13 +59,13 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
     pending = { requestId, challengeId: selected };
     runButton.disabled = true;
     output.textContent = "در حال اجرا...";
-    status.textContent = "کد در قاب جداشده و بدون دسترسی شبکه اجرا می‌شود.";
+    status.textContent = "کد در Web Worker جداگانه و بدون دسترسی شبکه اجرا می‌شود.";
     timeout = window.setTimeout(() => {
       if (!pending || pending.requestId !== requestId) return;
       pending = null;
       runButton.disabled = false;
-      output.textContent = "زمان اجرا از حد مجاز رابط بیشتر شد؛ محیط اجرا بازنشانی شد.";
-      status.textContent = "اجرای طولانی متوقف شد. کد را بررسی کن.";
+      output.textContent = "پاسخی در مهلت تعیین‌شده دریافت نشد؛ محیط اجرا بازنشانی شد.";
+      status.textContent = "مهلت اجرای تمرین تمام شد. محیط اجرا دوباره آماده می‌شود.";
       resetRunner();
     }, 1800);
     frame.contentWindow.postMessage({ type: "academy-run", requestId, code }, "*");
@@ -76,10 +77,8 @@ import { getAcademyChallenges, getAcademyChallenge, normalizeAcademyPracticeStat
     pending = null;
     runButton.disabled = false;
     const lines = Array.isArray(event.data.output) ? event.data.output.slice(0, 20).map(value => String(value).slice(0, 500)) : [];
-    output.textContent = (lines.length ? lines.join("
-") : "خروجی متنی تولید نشد.") + (event.data.error ? "
-خطا: " + String(event.data.error).slice(0, 500) : "");
-    if (event.data.error) { status.textContent = "کد با خطا متوقف شد؛ پیام خطا را بررسی کن."; return; }
+    output.textContent = (lines.length ? lines.join("\n") : "خروجی متنی تولید نشد.") + (event.data.error ? "\nخطا: " + String(event.data.error).slice(0, 500) : "");
+    if (event.data.error) { status.textContent = "کد با خطا یا پایان مهلت اجرا متوقف شد؛ پیام را بررسی کن."; return; }
     const result = gradeAcademyChallenge(challengeId, lines);
     state = recordAcademyPracticeAttempt(state, challengeId, result.passed);
     save();
