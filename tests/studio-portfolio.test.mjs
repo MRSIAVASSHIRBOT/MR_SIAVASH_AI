@@ -39,17 +39,22 @@ test("studio metadata supports indexing, canonical identity, and installation", 
 });
 
 test("project case studies show current scope, limitations, and source evidence", () => {
-  for (const sha of ["0c6d847", "2fd420b", "15de05b"]) assert.ok(html.includes(sha));
-  assert.match(html, /Worker جداگانه/);
-  assert.match(html, /ثبت تیکت جدید.*غیرفعال است/);
+  for (const sha of ["9556c73", "ea39d3f", "ce2f099"]) assert.ok(html.includes(sha));
+  assert.doesNotMatch(html, /0c6d847|2fd420b|15de05b/);
+  assert.match(html, /read-only/);
+  assert.match(html, /Web Worker/);
+  assert.match(html, /رضایت جداگانه/);
+  assert.match(html, /سیاست نگهداری امن/);
   assert.match(html, /درگاه پرداخت Sandbox/);
-  assert.match(html, /Production-ready فرض کرد/);
-  assert.match(html, /۹ نوامبر ۲۰۲۶/);
+  assert.match(html, /۲۵۹ تست خودکار/);
+  assert.match(html, /۱۱ نوامبر ۲۰۲۶/);
 });
 
-test("support copy does not imply ticket intake is currently available", () => {
-  assert.match(html, /ثبت تیکت آنلاین در نسخهٔ فعلی غیرفعال است/);
+test("support copy accurately explains consent-gated AI and readiness-gated ticket intake", () => {
+  assert.match(html, /دستیار آنلاین فقط با رضایت جداگانه/);
+  assert.match(html, /ثبت و پیگیری تیکت نیز تنها پس از تأیید آمادگی سرویس، پایگاه داده و سیاست نگهداری امن فعال خواهد بود/);
   assert.match(html, /GitHub Issues/);
+  assert.doesNotMatch(html, /ثبت تیکت آنلاین در نسخهٔ فعلی غیرفعال است/);
 });
 
 test("print action produces a dedicated concise portfolio, not the whole interactive page", () => {
@@ -59,6 +64,12 @@ test("print action produces a dedicated concise portfolio, not the whole interac
   assert.match(css, /body>\*:not\(#resumePrint\)/);
   assert.match(css, /#resumePrint\{display:block!important/);
   assert.match(js, /window\.print\(\)/);
+});
+
+test("home metrics distinguish personal cloud workspace from bounded gateway services", async () => {
+  const home = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  assert.match(home, /۰ حساب کاربری و فضای کار ابری شخصی/);
+  assert.doesNotMatch(home, /سرویس محصولی ابری متصل در این نسخه/);
 });
 
 test("studio bookmark storage is local and allowlisted", () => {
