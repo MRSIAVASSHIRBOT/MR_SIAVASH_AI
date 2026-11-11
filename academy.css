@@ -119,3 +119,25 @@
 .academy-practice-safety{margin-top:14px;font-size:.75rem}
 @media(max-width:720px){.academy-practice{padding:16px}.academy-practice-layout{grid-template-columns:1fr}.academy-practice-list{grid-template-columns:repeat(2,minmax(0,1fr))}.academy-practice-choice{font-size:.8rem}.academy-practice-actions{flex-direction:column}.academy-practice-actions button{width:100%}}
 @media(forced-colors:active){.academy-practice,.academy-practice-choice,.academy-practice-workspace{border:1px solid CanvasText}}
+
+/* Local curriculum draft studio */
+.academy-content-studio .academy-hero{margin-bottom:18px}
+.academy-content-notice{margin:18px 0;padding:16px;border:1px solid #526a45;border-radius:14px;background:#182218;color:#d5e6d6;line-height:2}
+.academy-content-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.8fr);gap:16px}
+.academy-content-form,.academy-content-list{padding:20px;border:1px solid #2d4435;border-radius:17px;background:#111a14}
+.academy-content-form h2,.academy-content-list h2{margin:0 0 16px;color:#dff1e3;font-size:1.15rem}
+.academy-content-form form{display:grid;gap:9px}
+.academy-content-form label{margin-top:7px;color:#c5d8c9;font-size:.88rem}
+.academy-content-form input,.academy-content-form select,.academy-content-form textarea{width:100%;padding:11px;border:1px solid #355640;border-radius:10px;background:#0a110c;color:#edf5ef;font:inherit;line-height:1.8}
+.academy-content-form textarea{resize:vertical}
+.academy-content-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:14px}
+#academyDraftStatus{min-height:1.5em;color:#a8e2b7;font-size:.84rem;line-height:1.8}
+.academy-draft-list{display:grid;gap:8px}
+.academy-draft-row{display:flex;align-items:center;gap:8px}
+.academy-draft-open{flex:1;min-width:0;padding:11px;border:1px solid #2c4434;border-radius:10px;background:#0d1510;color:#d8eadc;text-align:right;overflow-wrap:anywhere}
+.academy-draft-open[aria-pressed=true]{border-color:#7bc994;background:#1b3826}
+.academy-draft-remove{padding:9px;border:1px solid #60413c;border-radius:9px;background:#211411;color:#f0c7bf}
+.academy-import-label{display:inline-flex;align-items:center;cursor:pointer}
+.academy-content-caption{color:#aebdb2;font-size:.78rem;line-height:1.9}
+@media(max-width:760px){.academy-content-layout{grid-template-columns:1fr}.academy-content-form,.academy-content-list{padding:15px}.academy-content-actions{flex-direction:column}.academy-content-actions .button{width:100%;justify-content:center}}
+@media(forced-colors:active){.academy-content-notice,.academy-content-form,.academy-content-list,.academy-draft-open{border:1px solid CanvasText}}
