@@ -65,7 +65,7 @@ test("print-ready portfolio carries the same current evidence as interactive cas
 test("support copy accurately explains consent-gated AI and readiness-gated ticket intake", () => {
   assert.match(html, /راهنمای محلی پیش‌فرض است/);
   assert.match(html, /دستیار آنلاین فقط با رضایت جداگانه/);
-  assert.match(html, /ثبت و پیگیری تیکت نیز تنها پس از تأیید آمادگی سرویس، پایگاه داده و سیاست نگهداری امن فعال خواهد بود/);
+  assert.match(html, /ثبت و پیگیری تیکت تنها پس از تأیید آمادگی Gateway، پایگاه داده و سیاست نگهداری امن فعال خواهد شد/);
   assert.match(html, /GitHub Issues/);
   assert.doesNotMatch(html, /ثبت تیکت آنلاین در نسخهٔ فعلی غیرفعال است/);
 });
