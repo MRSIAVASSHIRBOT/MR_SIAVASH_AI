@@ -55,7 +55,7 @@ test("academy navigation, global search, and offline shell are integrated", () =
   assert.match(sw, /"\.\/academy\.js"/);
   assert.match(sw, /"\.\/academy-progress\.mjs"/);
   assert.match(sw, /"\.\/academy-guides\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v43"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v44"/);
 });
 
 test("academy layout supports mobile, keyboard, and reduced-motion preferences", () => {
@@ -103,7 +103,7 @@ test("all thirty Academy chapters have structured, safe-to-render learning guide
   assert.equal(module.getAcademyGuide("html", -1), null);
   assert.match(js, /getAcademyGuide/);
   assert.match(js, /appendGuideList/);
-  assert.doesNotMatch(js, /\.innerHTML\\s*=/);
+  assert.doesNotMatch(js, /\.innerHTML\s*=/);
   assert.match(css, /\.academy-guide-body/);
-  assert.match(guideModule, /Object\\.freeze/);
+  assert.match(guideModule, /Object\.freeze/);
 });
