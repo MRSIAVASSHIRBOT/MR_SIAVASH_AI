@@ -68,7 +68,7 @@ test("print action produces a dedicated concise portfolio, not the whole interac
 
 test("home metrics distinguish personal cloud workspace from bounded gateway services", async () => {
   const home = await readFile(new URL("../index.html", import.meta.url), "utf8");
-  assert.match(home, /۰ حساب کاربری و فضای کار ابری شخصی/);
+  assert.match(home, /<strong>۰<\/strong><span>حساب کاربری و فضای کار ابری شخصی<\/span>/);
   assert.doesNotMatch(home, /سرویس محصولی ابری متصل در این نسخه/);
 });
 
