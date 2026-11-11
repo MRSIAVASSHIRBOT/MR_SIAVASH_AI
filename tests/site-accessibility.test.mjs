@@ -20,6 +20,12 @@ test("browser accessibility smoke audit checks semantics, accessible names and r
   ]) assert.ok(script.includes(check), "missing accessibility check: " + check);
 });
 
+test("Portfolio feedback content remains inside the main landmark", async () => {
+  const studio = await readFile(new URL("../studio.html", import.meta.url), "utf8");
+  assert.match(studio, /<main[\\s\\S]*id="feedback"[\\s\\S]*<\\/main>/);
+  assert.match(studio, /id="feedback" aria-labelledby="feedback-title"/);
+});
+
 test("CI runs the site accessibility audit in the pinned Chromium environment", () => {
   assert.match(workflow, /npm install --global playwright@1\.65\.0 axe-core@4\.10\.3/);
   assert.match(workflow, /node --check scripts\/site-accessibility-e2e\.cjs/);
