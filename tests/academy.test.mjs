@@ -28,7 +28,7 @@ test("academy exposes six structured courses and thirty chapters", () => {
   assert.match(html, /id="academyStatus" role="status"/);
   assert.match(html, /id="academyDashboardContent"/);
   assert.match(html, /id="academyPortfolioContent"/);
-  assert.match(html, /id="academyTutorForm"/);
+  assert.match(html, /id="academyTutorForm"/);\n  assert.match(html, /id="academyPracticeRunner"/);\n  assert.match(html, /sandbox="allow-scripts"/);\n  assert.match(html, /frame-src/);\n  assert.match(html, /academy-content-studio/);
   assert.match(html, /connect-src.*mr-siavash-ai-gateway/);
   assert.match(html, /type="module" src="\.\/academy\.js"/);
   assert.match(js, /resolveAcademyResume/);
