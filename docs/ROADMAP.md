@@ -121,3 +121,11 @@ Acceptance gates:
 - Questions, options, feedback and project content are rendered with DOM text nodes / `textContent`; no dynamic HTML execution is introduced.
 - The assessment module is part of the explicit offline shell allowlist (service-worker cache v45).
 - Existing lesson completion and resume state remain compatible.
+
+
+## Academy platform expansion (2026-11-11)
+
+- Portfolio: browser-local learner report, per-path progress and assessment/capstone checklist status, derived achievements, JSON export and print output. Evidence is self-reported and not an official credential.
+- Tutor: frontend integration with the existing verified-context Gateway assistant; bounded message, timeout, no credentials, no action execution, and same-origin source-link validation.
+- Existing dashboard, 30 chapter guides, six assessments/capstones, public knowledge library and protected support administration are reused rather than duplicated.
+- Remaining production work: isolated interactive coding execution, a complete challenge/achievement progression model, Academy-specific content administration, and end-to-end browser acceptance. These require separate sandbox and operational acceptance gates; they must not be described as complete merely because static UI exists.
