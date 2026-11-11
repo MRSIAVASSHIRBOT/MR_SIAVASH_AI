@@ -25,13 +25,16 @@ test("practice state normalization and serialization reject unknown identifiers 
   assert.deepEqual(recordAcademyPracticeAttempt(state, "js-variables", true), { version: 1, completed: ["js-variables"], attempts: { "js-variables": 3 } });
 });
 
-test("runner has a restrictive no-network sandbox policy", async () => {
+test("runner uses a no-network iframe and a terminable worker execution boundary", async () => {
   const html = await readFile(new URL("../academy-runner.html", import.meta.url), "utf8");
   const ui = await readFile(new URL("../academy-practice.js", import.meta.url), "utf8");
   assert.ok(html.includes("default-src 'none'"));
   assert.ok(html.includes("connect-src 'none'"));
   assert.ok(html.includes("frame-src 'none'"));
-  assert.ok(html.includes("worker-src 'none'"));
+  assert.ok(html.includes("worker-src blob:"));
+  assert.ok(html.includes("new Worker(activeWorkerUrl)"));
+  assert.ok(html.includes("activeWorker.terminate()"));
+  assert.ok(html.includes("1500"));
   assert.ok(!html.includes("https://"));
   assert.ok(ui.includes("event.source !== frame.contentWindow"));
   assert.ok(ui.includes("1800"));
