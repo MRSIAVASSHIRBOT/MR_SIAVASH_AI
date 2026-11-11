@@ -48,7 +48,7 @@ async function main() {
   await firstLesson.check();
   await page.waitForFunction(() => {
     const value = JSON.parse(localStorage.getItem("mr-siavash-ai.academy.v1") || "{}");
-    return Array.isArray(value.progress?.html) && value.progress.html.includes(0);
+    return Array.isArray(value.html) && value.html.includes(0);
   });
   await page.reload({ waitUntil: "networkidle" });
   await page.locator(".course-card").first().waitFor();
