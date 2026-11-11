@@ -311,3 +311,29 @@ a { text-underline-offset: 4px; }
   body { background: #fff !important; color: #111 !important; }
   body::before { display: none !important; }
 }
+
+/* Knowledge library */
+.knowledge-library{margin:64px 0;padding:32px;border:1px solid rgba(131,214,156,.2);border-radius:26px;background:linear-gradient(145deg,#132218,#09110c)}
+.knowledge-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:24px}
+.knowledge-heading h2{margin:8px 0;color:#eff8f0;font-size:clamp(1.7rem,3vw,2.5rem)}
+.knowledge-heading p{max-width:660px;margin:0;color:#aebdb2;line-height:1.9}
+.knowledge-count,.knowledge-kind{color:#9bd8aa;font-size:.78rem}
+.knowledge-count{padding:8px 12px;border:1px solid #355640;border-radius:999px}
+.knowledge-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.knowledge-card{align-self:start;border:1px solid #2c4031;border-radius:16px;background:#101812;overflow:hidden}
+.knowledge-card[open]{border-color:#527c5d;background:#131f16}
+.knowledge-card summary{display:grid;gap:9px;min-height:125px;padding:19px;cursor:pointer;list-style:none}
+.knowledge-card summary::-webkit-details-marker{display:none}
+.knowledge-card summary:after{content:'＋';justify-self:end;color:#9bd8aa}
+.knowledge-card[open] summary:after{content:'−'}
+.knowledge-card summary strong{color:#eff8f0;font-size:1.02rem;line-height:1.7}
+.knowledge-summary{color:#aebdb2;font-size:.84rem;line-height:1.8}
+.knowledge-body{padding:0 19px 20px;color:#c3d1c6;font-size:.88rem;line-height:2}
+.knowledge-body h3{margin:15px 0 5px;color:#e9f4eb;font-size:.94rem}
+.knowledge-body ol,.knowledge-body ul{padding-inline-start:22px;margin:8px 0}
+.knowledge-body li{margin:4px 0}
+.knowledge-takeaway{padding:12px 14px;border-right:2px solid #79c991;background:rgba(121,201,145,.07);border-radius:8px}
+.knowledge-card summary:focus-visible{outline:2px solid #a8e2b7;outline-offset:-3px}
+@media(max-width:760px){.knowledge-grid{grid-template-columns:1fr}.knowledge-heading{align-items:flex-start;flex-direction:column}.knowledge-card summary{min-height:0}}
+@media(prefers-reduced-motion:reduce){.knowledge-card{transition:none}}
+@media(forced-colors:active){.knowledge-library,.knowledge-card{border:1px solid CanvasText}}
