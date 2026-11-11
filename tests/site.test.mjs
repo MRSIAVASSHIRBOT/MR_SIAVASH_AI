@@ -196,7 +196,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v49"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v50"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -253,6 +253,15 @@ test("security and roadmap docs define production gates", async () => {
   assert.doesNotMatch(roadmap, /^#\s*$/m);
   assert.doesNotMatch(roadmap, /source\.Product roadmap/);
   assert.match(roadmap, /parallel workstreams/);
+  assert.match(roadmap, /Latest public-site release verified 2026-11-11/);
+  assert.match(roadmap, /main commit `c19db5fec591e6bcd5be2d0a46828395854a4f3a`/);
+  assert.ok(roadmap.includes("Pages workflow run [43054525410]"));
+  assert.match(roadmap, /264\/264 Node tests/);
+  assert.match(roadmap, /five-route axe-core accessibility audit/);
+  assert.ok(roadmap.includes("Production Gateway smoke run [43054525494]"));
+  assert.ok(roadmap.includes("Preview Gateway smoke run [43054525426]"));
+  assert.match(roadmap, /Last full Cloudflare control-plane readback: 2026-11-10/);
+
   assert.match(roadmap, /main commit `971a5e702876a0bc78b19c55b8b0daf358471c5b`/);
   assert.match(roadmap, /Production release workflow run `42801780384` completed successfully/);
   assert.match(roadmap, /Worker version `146709f7-8158-40c8-aa80-b8b0772787f1` receiving 100% of traffic/);
@@ -280,7 +289,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v49"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v50"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -453,7 +462,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v49"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v50"/);
 });
 
 
@@ -1245,7 +1254,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v49"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v50"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1306,7 +1315,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyCss, /#a8e2b7/);
   assert.doesNotMatch(academyCss, /#9c8cff|#68dff5|#b7aaff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v49"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v50"/);
 });
 
 
@@ -1367,7 +1376,7 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(supportTickets, /consent: \$\("#supportConsent"\)\.checked/);
   assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
   assert.match(sw, /"\.\/support-tickets\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v49"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v50"/);
 });
 
 test("local support guide retries loading its index after an initial offline failure", async () => {
@@ -1707,7 +1716,7 @@ test("emerald flagship experience layer overrides the conflicting studio palette
   assert.match(experienceNextCss, /:focus-visible/);
   assert.equal((experienceNextCss.match(/\{/g)||[]).length,(experienceNextCss.match(/\}/g)||[]).length);
   assert.match(sw, /"\.\/experience-next\.css"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v49"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v50"/);
 });
 
 
@@ -1802,7 +1811,7 @@ test("all local assets referenced by public HTML pages exist and core routes are
     if (["index.html", "studio.html", "academy.html", "python.html", "privacy.html"].includes(asset)) continue;
     assert.ok(shell.has(asset), asset + " is referenced by a public page but missing from the offline shell");
   }
-  assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v49"/);
+  assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v50"/);
 });
 
 
@@ -1819,7 +1828,7 @@ test("curated knowledge library is searchable and included in the offline shell"
     assert.equal(item.type, "page");
     assert.ok(item.href.startsWith("./index.html#"));
   }
-  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v49"'));
+  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v50"'));
 });
 
 test("Hub integration is documented as separate until the security gates pass", async () => {

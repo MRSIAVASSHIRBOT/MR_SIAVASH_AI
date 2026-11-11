@@ -32,6 +32,11 @@ test("production documentation distinguishes deployed routes from current source
   assert.match(gatewayReadme, /daily `0 3 \* \* \*` UTC schedule/);
   assert.match(gatewayReadme, /Preview Worker traffic is at 100%/);
   assert.match(gatewayReadme, /\`AI\` \(Workers AI\)/);
+  assert.match(roadmap, /Latest public-site release verified 2026-11-11/);
+  assert.ok(roadmap.includes("Production Gateway smoke run [43054525494]"));
+  assert.ok(roadmap.includes("Preview Gateway smoke run [43054525426]"));
+  assert.match(roadmap, /not a fresh Cloudflare control-plane deployment\/version readback/);
+  assert.match(roadmap, /not a current 2026-11-11 control-plane assertion/);
   assert.match(roadmap, /66ccb720-01cb-43e0-9b14-6d1500fa2581/);
   assert.match(roadmap, /971a5e702876a0bc78b19c55b8b0daf358471c5b/);
   assert.match(roadmap, /Production release workflow run `42801780384` completed successfully/);
