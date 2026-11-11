@@ -33,8 +33,8 @@ test("production documentation distinguishes deployed routes from current source
   assert.match(gatewayReadme, /Preview Worker traffic is at 100%/);
   assert.match(gatewayReadme, /\`AI\` \(Workers AI\)/);
   assert.match(roadmap, /Latest public-site release verified 2026-11-11/);
-  assert.match(roadmap, /Production Gateway smoke run \\[43054525494\\]/);
-  assert.match(roadmap, /Preview Gateway smoke run \\[43054525426\\]/);
+  assert.ok(roadmap.includes("Production Gateway smoke run [43054525494]"));
+  assert.ok(roadmap.includes("Preview Gateway smoke run [43054525426]"));
   assert.match(roadmap, /not a fresh Cloudflare control-plane deployment\/version readback/);
   assert.match(roadmap, /not a current 2026-11-11 control-plane assertion/);
   assert.match(roadmap, /66ccb720-01cb-43e0-9b14-6d1500fa2581/);
