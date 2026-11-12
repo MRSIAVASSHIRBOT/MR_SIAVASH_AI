@@ -63,7 +63,7 @@ test("academy navigation, global search, and offline shell are integrated", () =
   assert.match(sw, /"\.\/academy\.js"/);
   assert.match(sw, /"\.\/academy-progress\.mjs"/);
   assert.match(sw, /"\.\/academy-guides\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v50"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v51"/);
 });
 
 test("academy layout supports mobile, keyboard, and reduced-motion preferences", () => {
