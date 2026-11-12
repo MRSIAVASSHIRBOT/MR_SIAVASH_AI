@@ -25,7 +25,33 @@ const sha=async s=>{const b=await crypto.subtle.digest("SHA-256",new TextEncoder
 function token(){const b=new Uint8Array(32);crypto.getRandomValues(b);return Array.from(b,x=>x.toString(16).padStart(2,"0")).join("");}
 async function limit(db,scope,req,max){const ip=req.headers.get("CF-Connecting-IP")||"unknown",bucket=await sha(scope+":"+ip);const row=await db.prepare("INSERT INTO api_rate_limits(bucket,window_started_at,request_count,expires_at) VALUES(?,unixepoch(),1,unixepoch()+3600) ON CONFLICT(bucket) DO UPDATE SET request_count=CASE WHEN excluded.window_started_at>=api_rate_limits.window_started_at+60 THEN 1 ELSE api_rate_limits.request_count+1 END,window_started_at=CASE WHEN excluded.window_started_at>=api_rate_limits.window_started_at+60 THEN excluded.window_started_at ELSE api_rate_limits.window_started_at END,expires_at=unixepoch()+3600 RETURNING request_count").bind(bucket).first();return Boolean(row&&row.request_count<=max);}
 const norm=s=>String(s||"").normalize("NFKC").toLowerCase().replace(/[يى]/g,"ی").replace(/ك/g,"ک").replace(/[\u064b-\u065f\u0670\u0640]/g," ").replace(/[^\p{L}\p{N}]+/gu," ").trim();
-function knowledge(q){const terms=norm(q).split(/\s+/).filter(x=>x.length>1);return FAQ.map(x=>({...x,score:terms.filter(t=>norm(x.title+" "+x.text+" "+x.keywords).includes(t)).length})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,3);}
+const STOP_WORDS=new Set(["از","به","با","در","را","که","این","آن","و","یا","برای","یک","من","تو","شما","آیا","چطور","چگونه","چی","چه","است","هست","می","شود","کنم","کنید"]);
+const termsOf=value=>norm(value).split(/\s+/).filter(term=>term.length>1&&!STOP_WORDS.has(term));
+const countTerm=(terms,term)=>terms.reduce((count,value)=>count+(value===term?1:0),0);
+export function knowledge(q){
+ const queryTerms=[...new Set(termsOf(q))];
+ if(!queryTerms.length)return [];
+ const phrase=norm(q);
+ return FAQ.map((item,index)=>{
+  const titleTerms=termsOf(item.title);
+  const bodyTerms=termsOf(item.text);
+  const keywordTerms=termsOf(item.keywords);
+  const matched=queryTerms.filter(term=>titleTerms.includes(term)||bodyTerms.includes(term)||keywordTerms.includes(term));
+  let score=0;
+  for(const term of matched){
+   score+=Math.min(countTerm(titleTerms,term),2)*3.2;
+   score+=Math.min(countTerm(keywordTerms,term),2)*2.2;
+   score+=Math.min(countTerm(bodyTerms,term),3);
+  }
+  const searchable=norm(item.title+" "+item.text+" "+item.keywords);
+  const phraseBoost=phrase.length>=5&&searchable.includes(phrase)?3:0;
+  const coverage=matched.length/queryTerms.length;
+  return {...item,score:score*(0.6+0.4*coverage)+phraseBoost,matchedTerms:matched.length,coverage,index};
+ }).filter(item=>item.matchedTerms>0&&item.coverage>=(queryTerms.length===1?1:0.34))
+  .sort((a,b)=>b.score-a.score||b.matchedTerms-a.matchedTerms||a.index-b.index)
+  .slice(0,3)
+  .map(({index,...item})=>item);
+}
 async function assistant(req,env,id){
  if(!env.DB)return json(req,env,id,503,fail("database_unavailable","سرویس پشتیبانی موقتاً در دسترس نیست.",id));
  const p=await body(req);
