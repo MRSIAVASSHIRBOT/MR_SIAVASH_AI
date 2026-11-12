@@ -49,7 +49,7 @@ test("project case studies show current main commits, CI evidence and unreleased
   assert.match(html, /Video Render Integration/);
   assert.match(html, /Backend CI/);
   assert.match(html, /۲۶۴ تست خودکار/);
-  assert.match(html, /نسخهٔ v50/);
+  assert.match(html, /نسخهٔ v51/);
   assert.match(html, /PR باز \(#18/);
   assert.match(html, /#20/);
   assert.match(html, /PR #22/);
@@ -141,6 +141,8 @@ test("studio sections and visitor routes are discoverable through global search"
   for (const id of ["page-studio", "page-projects", "page-learning-paths", "page-engineering-lab", "page-research-notes", "page-reference-library", "page-service-status", "page-visitor-journey", "page-project-evidence", "page-feedback"]) {
     assert.ok(ids.has(id), "missing search item: " + id);
   }
+  assert.ok(search.items.find(item => item.id === "page-projects").description.includes("MR_SIAVASH_EL_AI"));
+  assert.ok(search.items.find(item => item.id === "page-project-evidence").description.includes("EL_AI"));
 });
 
 
