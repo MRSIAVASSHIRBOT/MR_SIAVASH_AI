@@ -18,6 +18,7 @@ test("studio exposes clear visitor journeys and all primary sections", () => {
   assert.match(html, /MR_SIAVASH_HUB_AI/);
   assert.match(html, /MR_SIAVASH_AI/);
   assert.match(html, /Gshop/);
+  assert.match(html, /MR_SIAVASH_EL_AI/);
 });
 
 test("studio HTML has valid local anchors and no accidental escaped newline text", () => {
@@ -39,7 +40,7 @@ test("studio metadata supports indexing, canonical identity, and installation", 
 });
 
 test("project case studies show current main commits, CI evidence and unreleased PR boundaries", () => {
-  for (const sha of ["fcfde61", "f8e52ea", "29a23ac", "ce2f099"]) assert.ok(html.includes(sha));
+  for (const sha of ["fcfde61", "f8e52ea", "29a23ac", "ce2f099", "281fd5e"]) assert.ok(html.includes(sha));
   assert.doesNotMatch(html, /9556c73|ea39d3f|0c6d847|2fd420b|15de05b|۲۵۹ تست/);
   assert.match(html, /تحلیل ایستای NEXUS/);
   assert.match(html, /کد هدف را اجرا نمی‌کند/);
@@ -52,6 +53,10 @@ test("project case studies show current main commits, CI evidence and unreleased
   assert.match(html, /PR باز \(#18/);
   assert.match(html, /#20/);
   assert.match(html, /PR #22/);
+  assert.match(html, /MR_SIAVASH_EL_AI\/pull\/11/);
+  assert.match(html, /MR_SIAVASH_EL_AI\/pull\/12/);
+  assert.match(html, /هیچ توکن ربات تلگرام پیکربندی نشده/);
+  assert.match(html, /اتصال زندهٔ ربات انجام نشده/);
   assert.match(html, /۱۲ نوامبر ۲۰۲۶/);
 });
 
@@ -65,6 +70,9 @@ test("print-ready portfolio carries the same current evidence as interactive cas
   assert.match(print, /PR #18/);
   assert.match(print, /PR #20/);
   assert.match(print, /PR #22/);
+  assert.match(print, /281fd5e/);
+  assert.match(print, /PR #11/);
+  assert.match(print, /PR #12/);
   assert.match(print, /CI-only/);
 });
 
@@ -93,7 +101,7 @@ test("home metrics distinguish personal cloud workspace from bounded gateway ser
 
 test("studio bookmark storage is local and allowlisted", () => {
   assert.match(js, /mr-siavash-ai\.studio\.saved\.v1/);
-  assert.match(js, /\["hub","site","gshop"\]/);
+  assert.match(js, /\["hub","site","gshop","elai"\]/);
   assert.match(html, /فقط روی همین مرورگر/);
   assert.match(js, /fetch\("\.\/hub-status\.json"/);
   assert.doesNotMatch(js, /XMLHttpRequest|sendBeacon/);
@@ -111,6 +119,7 @@ test("studio registers and is included in the offline shell", () => {
   assert.match(html, /studio-portfolio\.css/);
   assert.match(html, /studio-portfolio\.js/);
   assert.match(js, /serviceWorker\.register\("\.\/sw\.js"\)/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v51"/);
   for (const asset of ["studio.html", "studio-portfolio.css", "studio-portfolio.js"]) {
     assert.ok(sw.includes('"./' + asset + '"'), "missing offline asset: " + asset);
   }
