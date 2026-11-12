@@ -2,5 +2,8 @@
   "name": "@mr-siavash-ai/cloudflare-gateway",
   "private": true,
   "type": "module",
-  "description": "Isolated Cloudflare Worker API gateway foundation for MR_SIAVASH_AI"
+  "description": "Isolated Cloudflare Worker API gateway foundation for MR_SIAVASH_AI",
+  "scripts": {
+    "test": "node --test"
+  }
 }
