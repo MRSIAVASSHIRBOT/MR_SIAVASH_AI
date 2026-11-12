@@ -51,7 +51,8 @@ test("project case studies show current main commits, CI evidence and unreleased
   assert.match(html, /نسخهٔ v50/);
   assert.match(html, /PR باز \(#18/);
   assert.match(html, /#20/);
-  assert.match(html, /۱۱ نوامبر ۲۰۲۶/);
+  assert.match(html, /PR #22/);
+  assert.match(html, /۱۲ نوامبر ۲۰۲۶/);
 });
 
 test("print-ready portfolio carries the same current evidence as interactive case studies", () => {
@@ -63,6 +64,7 @@ test("print-ready portfolio carries the same current evidence as interactive cas
   assert.match(print, /ممیزی axe\/WCAG 2\.1 A\/AA/);
   assert.match(print, /PR #18/);
   assert.match(print, /PR #20/);
+  assert.match(print, /PR #22/);
   assert.match(print, /CI-only/);
 });
 
