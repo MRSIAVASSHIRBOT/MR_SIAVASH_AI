@@ -1,0 +1,32 @@
+name: Gateway CI
+
+on:
+  pull_request:
+    branches: ["**"]
+  push:
+    branches: ["main", "feat/**"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gateway-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check gateway syntax
+        run: |
+          node --check cloudflare/gateway/src/index.js
+          node --check cloudflare/gateway/src/assistant-provider.js
+      - name: Run gateway tests
+        run: npm test --prefix cloudflare/gateway
