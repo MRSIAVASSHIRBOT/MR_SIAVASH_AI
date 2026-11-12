@@ -45,8 +45,8 @@ test("atelier respects mobile, touch, keyboard, reduced motion and forced colors
   assert.match(atelier, /:focus-visible/);
 });
 
-test("offline shell caches the atelier stylesheet with cache version 50", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v50"/);
+test("offline shell caches the atelier stylesheet with cache version 51", () => {
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v51"/);
   assert.match(sw, /"\.\/atelier\.css"/);
   assert.doesNotMatch(sw, /"\.\/experience-signature\.css"/);
 });
