@@ -715,13 +715,18 @@
       "id": "page-projects",
       "type": "page",
       "title": "پروژه‌های منتخب",
-      "description": "MR_SIAVASH_HUB_AI، MR_SIAVASH_AI و Gshop با پیوند به مخزن‌های اصلی.",
+      "description": "MR_SIAVASH_HUB_AI، MR_SIAVASH_AI، Gshop و MR_SIAVASH_EL_AI با پیوند به مخزن‌های اصلی.",
       "href": "./studio.html#projects",
       "terms": [
         "github",
         "نمونه کار",
         "مخزن",
-        "case study"
+        "case study",
+        "MR_SIAVASH_EL_AI",
+        "Telegram",
+        "تلگرام",
+        "دستیار عمومی",
+        "Hub opt-in"
       ]
     },
     {
@@ -823,27 +828,36 @@
       "id": "page-project-evidence",
       "type": "page",
       "title": "شواهد و وضعیت پروژه‌ها",
-      "description": "جزئیات فنی و آخرین commitهای بازبینی‌شده برای Hub، سایت و Gshop.",
+      "description": "شواهد به‌روز Hub، سایت، Gshop و EL_AI؛ Commitهای main، نتایج CI و مرز روشن میان قابلیت منتشرشده و PR ادغام‌نشده.",
       "href": "./studio.html#projects",
       "terms": [
         "شواهد",
         "آخرین commit",
+        "main",
+        "CI",
+        "PR باز",
         "وضعیت پروژه",
         "معماری",
-        "محدودیت"
+        "محدودیت",
+        "تلگرام",
+        "Telegram",
+        "Gateway",
+        "opt-in",
+        "MR_SIAVASH_EL_AI"
       ]
     },
     {
       "id": "page-feedback",
       "type": "page",
       "title": "بازخورد و گزارش مشکل",
-      "description": "راهنمای پشتیبانی محلی و مسیر عمومی GitHub Issues؛ ثبت تیکت آنلاین فعلاً غیرفعال است.",
+      "description": "راهنمای محلی پیش‌فرض است؛ دستیار آنلاین با رضایت جداگانه و گردش‌کار تیکت پس از تأیید آمادگی Gateway و نگهداری فعال می‌شود.",
       "href": "./studio.html#feedback",
       "terms": [
         "بازخورد",
         "گزارش مشکل",
-        "پشتیبانی",
-        "issue"
+        "راهنمای پشتیبانی",
+        "رضایت",
+        "GitHub Issues"
       ]
     },
     {

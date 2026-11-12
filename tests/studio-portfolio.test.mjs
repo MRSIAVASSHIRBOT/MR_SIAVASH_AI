@@ -18,6 +18,7 @@ test("studio exposes clear visitor journeys and all primary sections", () => {
   assert.match(html, /MR_SIAVASH_HUB_AI/);
   assert.match(html, /MR_SIAVASH_AI/);
   assert.match(html, /Gshop/);
+  assert.match(html, /MR_SIAVASH_EL_AI/);
 });
 
 test("studio HTML has valid local anchors and no accidental escaped newline text", () => {
@@ -38,21 +39,47 @@ test("studio metadata supports indexing, canonical identity, and installation", 
   assert.match(html, /name="description"/);
 });
 
-test("project case studies show current scope, limitations, and source evidence", () => {
-  for (const sha of ["9556c73", "ea39d3f", "ce2f099"]) assert.ok(html.includes(sha));
-  assert.doesNotMatch(html, /0c6d847|2fd420b|15de05b/);
-  assert.match(html, /read-only/);
-  assert.match(html, /Web Worker/);
-  assert.match(html, /رضایت جداگانه/);
-  assert.match(html, /سیاست نگهداری امن/);
-  assert.match(html, /درگاه پرداخت Sandbox/);
-  assert.match(html, /۲۵۹ تست خودکار/);
-  assert.match(html, /۱۱ نوامبر ۲۰۲۶/);
+test("project case studies show current main commits, CI evidence and unreleased PR boundaries", () => {
+  for (const sha of ["fcfde61", "f8e52ea", "29a23ac", "ce2f099", "281fd5e"]) assert.ok(html.includes(sha));
+  assert.doesNotMatch(html, /9556c73|ea39d3f|0c6d847|2fd420b|15de05b|۲۵۹ تست/);
+  assert.match(html, /تحلیل ایستای NEXUS/);
+  assert.match(html, /کد هدف را اجرا نمی‌کند/);
+  assert.match(html, /آخرین Commit شاخهٔ main/);
+  assert.match(html, /آخرین Commit کاربردی/);
+  assert.match(html, /Video Render Integration/);
+  assert.match(html, /Backend CI/);
+  assert.match(html, /۲۶۴ تست خودکار/);
+  assert.match(html, /نسخهٔ v51/);
+  assert.match(html, /PR باز \(#18/);
+  assert.match(html, /#20/);
+  assert.match(html, /PR #22/);
+  assert.match(html, /MR_SIAVASH_EL_AI\/pull\/11/);
+  assert.match(html, /MR_SIAVASH_EL_AI\/pull\/12/);
+  assert.match(html, /هیچ توکن ربات تلگرام پیکربندی نشده/);
+  assert.match(html, /اتصال زندهٔ ربات انجام نشده/);
+  assert.match(html, /۱۲ نوامبر ۲۰۲۶/);
+});
+
+test("print-ready portfolio carries the same current evidence as interactive case studies", () => {
+  const printStart = html.indexOf('<section id="resumePrint"');
+  const printEnd = html.indexOf("</section>", html.indexOf("<footer>", printStart));
+  const print = html.slice(printStart, printEnd);
+  for (const sha of ["fcfde61", "f8e52ea", "29a23ac", "ce2f099"]) assert.ok(print.includes(sha));
+  assert.match(print, /۲۶۴ تست/);
+  assert.match(print, /ممیزی axe\/WCAG 2\.1 A\/AA/);
+  assert.match(print, /PR #18/);
+  assert.match(print, /PR #20/);
+  assert.match(print, /PR #22/);
+  assert.match(print, /281fd5e/);
+  assert.match(print, /PR #11/);
+  assert.match(print, /PR #12/);
+  assert.match(print, /CI-only/);
 });
 
 test("support copy accurately explains consent-gated AI and readiness-gated ticket intake", () => {
+  assert.match(html, /راهنمای محلی پیش‌فرض است/);
   assert.match(html, /دستیار آنلاین فقط با رضایت جداگانه/);
-  assert.match(html, /ثبت و پیگیری تیکت نیز تنها پس از تأیید آمادگی سرویس، پایگاه داده و سیاست نگهداری امن فعال خواهد بود/);
+  assert.match(html, /ثبت و پیگیری تیکت تنها پس از تأیید آمادگی Gateway، پایگاه داده و سیاست نگهداری امن فعال خواهد شد/);
   assert.match(html, /GitHub Issues/);
   assert.doesNotMatch(html, /ثبت تیکت آنلاین در نسخهٔ فعلی غیرفعال است/);
 });
@@ -74,7 +101,7 @@ test("home metrics distinguish personal cloud workspace from bounded gateway ser
 
 test("studio bookmark storage is local and allowlisted", () => {
   assert.match(js, /mr-siavash-ai\.studio\.saved\.v1/);
-  assert.match(js, /\["hub","site","gshop"\]/);
+  assert.match(js, /\["hub","site","gshop","elai"\]/);
   assert.match(html, /فقط روی همین مرورگر/);
   assert.match(js, /fetch\("\.\/hub-status\.json"/);
   assert.doesNotMatch(js, /XMLHttpRequest|sendBeacon/);
@@ -92,6 +119,7 @@ test("studio registers and is included in the offline shell", () => {
   assert.match(html, /studio-portfolio\.css/);
   assert.match(html, /studio-portfolio\.js/);
   assert.match(js, /serviceWorker\.register\("\.\/sw\.js"\)/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v51"/);
   for (const asset of ["studio.html", "studio-portfolio.css", "studio-portfolio.js"]) {
     assert.ok(sw.includes('"./' + asset + '"'), "missing offline asset: " + asset);
   }
@@ -113,6 +141,8 @@ test("studio sections and visitor routes are discoverable through global search"
   for (const id of ["page-studio", "page-projects", "page-learning-paths", "page-engineering-lab", "page-research-notes", "page-reference-library", "page-service-status", "page-visitor-journey", "page-project-evidence", "page-feedback"]) {
     assert.ok(ids.has(id), "missing search item: " + id);
   }
+  assert.ok(search.items.find(item => item.id === "page-projects").description.includes("MR_SIAVASH_EL_AI"));
+  assert.ok(search.items.find(item => item.id === "page-project-evidence").description.includes("EL_AI"));
 });
 
 
@@ -127,4 +157,13 @@ test("Hub public status panel is bounded, read-only and explicit about the local
   assert.match(js, /16\*1024/);
   assert.match(js, /textContent/);
   assert.match(html, /MR_SIAVASH_HUB_AI\/actions/);
+});
+
+test("interactive and print review dates stay synchronized", () => {
+  assert.match(html, /class="studio-reviewed">[^<]*<time datetime="2026-11-12">۱۲ نوامبر ۲۰۲۶<\/time>/);
+  const printStart = html.indexOf('<section id="resumePrint"');
+  const printHeaderEnd = html.indexOf("</header>", printStart);
+  const printHeader = html.slice(printStart, printHeaderEnd);
+  assert.match(printHeader, /بازبینی شواهد عمومی: ۱۲ نوامبر ۲۰۲۶/);
+  assert.doesNotMatch(printHeader, /۱۱ نوامبر ۲۰۲۶/);
 });
