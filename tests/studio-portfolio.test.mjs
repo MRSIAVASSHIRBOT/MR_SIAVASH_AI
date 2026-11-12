@@ -39,10 +39,13 @@ test("studio metadata supports indexing, canonical identity, and installation", 
 });
 
 test("project case studies show current main commits, CI evidence and unreleased PR boundaries", () => {
-  for (const sha of ["f8e52ea", "29a23ac", "ce2f099"]) assert.ok(html.includes(sha));
+  for (const sha of ["fcfde61", "f8e52ea", "29a23ac", "ce2f099"]) assert.ok(html.includes(sha));
   assert.doesNotMatch(html, /9556c73|ea39d3f|0c6d847|2fd420b|15de05b|۲۵۹ تست/);
   assert.match(html, /تحلیل ایستای NEXUS/);
   assert.match(html, /کد هدف را اجرا نمی‌کند/);
+  assert.match(html, /آخرین Commit شاخهٔ main/);
+  assert.match(html, /آخرین Commit کاربردی/);
+  assert.match(html, /Video Render Integration/);
   assert.match(html, /Backend CI/);
   assert.match(html, /۲۶۴ تست خودکار/);
   assert.match(html, /نسخهٔ v50/);
@@ -55,11 +58,12 @@ test("print-ready portfolio carries the same current evidence as interactive cas
   const printStart = html.indexOf('<section id="resumePrint"');
   const printEnd = html.indexOf("</section>", html.indexOf("<footer>", printStart));
   const print = html.slice(printStart, printEnd);
-  for (const sha of ["f8e52ea", "29a23ac", "ce2f099"]) assert.ok(print.includes(sha));
+  for (const sha of ["fcfde61", "f8e52ea", "29a23ac", "ce2f099"]) assert.ok(print.includes(sha));
   assert.match(print, /۲۶۴ تست/);
   assert.match(print, /ممیزی axe\/WCAG 2\.1 A\/AA/);
   assert.match(print, /PR #18/);
   assert.match(print, /PR #20/);
+  assert.match(print, /CI-only/);
 });
 
 test("support copy accurately explains consent-gated AI and readiness-gated ticket intake", () => {
