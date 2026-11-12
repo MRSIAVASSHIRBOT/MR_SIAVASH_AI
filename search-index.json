@@ -715,13 +715,18 @@
       "id": "page-projects",
       "type": "page",
       "title": "پروژه‌های منتخب",
-      "description": "MR_SIAVASH_HUB_AI، MR_SIAVASH_AI و Gshop با پیوند به مخزن‌های اصلی.",
+      "description": "MR_SIAVASH_HUB_AI، MR_SIAVASH_AI، Gshop و MR_SIAVASH_EL_AI با پیوند به مخزن‌های اصلی.",
       "href": "./studio.html#projects",
       "terms": [
         "github",
         "نمونه کار",
         "مخزن",
-        "case study"
+        "case study",
+        "MR_SIAVASH_EL_AI",
+        "Telegram",
+        "تلگرام",
+        "دستیار عمومی",
+        "Hub opt-in"
       ]
     },
     {
@@ -823,7 +828,7 @@
       "id": "page-project-evidence",
       "type": "page",
       "title": "شواهد و وضعیت پروژه‌ها",
-      "description": "شواهد به‌روز Hub، سایت و Gshop؛ Commitهای main، نتایج CI و مرز روشن میان قابلیت منتشرشده و PR ادغام‌نشده.",
+      "description": "شواهد به‌روز Hub، سایت، Gshop و EL_AI؛ Commitهای main، نتایج CI و مرز روشن میان قابلیت منتشرشده و PR ادغام‌نشده.",
       "href": "./studio.html#projects",
       "terms": [
         "شواهد",
@@ -833,7 +838,12 @@
         "PR باز",
         "وضعیت پروژه",
         "معماری",
-        "محدودیت"
+        "محدودیت",
+        "تلگرام",
+        "Telegram",
+        "Gateway",
+        "opt-in",
+        "MR_SIAVASH_EL_AI"
       ]
     },
     {
