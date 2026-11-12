@@ -147,3 +147,12 @@ test("Hub public status panel is bounded, read-only and explicit about the local
   assert.match(js, /textContent/);
   assert.match(html, /MR_SIAVASH_HUB_AI\/actions/);
 });
+
+test("interactive and print review dates stay synchronized", () => {
+  assert.match(html, /class="studio-reviewed">[^<]*<time datetime="2026-11-12">۱۲ نوامبر ۲۰۲۶<\/time>/);
+  const printStart = html.indexOf('<section id="resumePrint"');
+  const printHeaderEnd = html.indexOf("</header>", printStart);
+  const printHeader = html.slice(printStart, printHeaderEnd);
+  assert.match(printHeader, /بازبینی شواهد عمومی: ۱۲ نوامبر ۲۰۲۶/);
+  assert.doesNotMatch(printHeader, /۱۱ نوامبر ۲۰۲۶/);
+});
