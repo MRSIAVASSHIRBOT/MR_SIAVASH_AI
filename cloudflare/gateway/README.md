@@ -13,9 +13,11 @@ The active production deployment is tracked separately from source uploads; a su
 
 Never bind this project to GShop's `gahop` Worker or `gshop-db`.
 
-## Verified production state — 2026-11-10
+## Historical production snapshot — 2026-11-10
 
-Cloudflare control-plane inspection on 2026-11-10 confirms active deployment `cb861582-86ea-4899-8cff-273062d9b36c`: Worker version 12 (`146709f7-8158-40c8-aa80-b8b0772787f1`) receives 100% of production traffic and records source commit `971a5e702876a0bc78b19c55b8b0daf358471c5b`. Production workflow run `42801780384` completed successfully. Its post-deployment smoke verified readiness, module propagation, privacy/consent behavior, trusted and untrusted CORS, and a real Workers AI response with `mode: ai_grounded` and non-empty sources. The previous rollback version remains available as a recovery target.
+This section records the version-12 state observed on 2026-11-10 and is superseded by the later version-14 production verification in [docs/RELEASE_STATUS.md](../../docs/RELEASE_STATUS.md), dated 2026-11-11. Recheck Cloudflare deployment metadata before any release; the historical details below are retained for audit context.
+
+Cloudflare control-plane inspection on 2026-11-10 confirmed the then-active deployment `cb861582-86ea-4899-8cff-273062d9b36c`: Worker version 12 (`146709f7-8158-40c8-aa80-b8b0772787f1`) receives 100% of production traffic and records source commit `971a5e702876a0bc78b19c55b8b0daf358471c5b`. Production workflow run `42801780384` completed successfully. Its post-deployment smoke verified readiness, module propagation, privacy/consent behavior, trusted and untrusted CORS, and a real Workers AI response with `mode: ai_grounded` and non-empty sources. The previous rollback version remains available as a recovery target.
 
 The deployed version contains:
 - `GET /v1/health/live` and `GET /v1/health/ready`.
