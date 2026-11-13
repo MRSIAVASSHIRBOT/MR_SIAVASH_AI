@@ -47,7 +47,14 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
   CF_ACCESS_TEAM_DOMAIN: "preview-team.cloudflareaccess.com",
   CF_ACCESS_AUD: "preview-aud",
   ADMIN_EMAILS: "ADMIN@example.test",
-  DB: { prepare() { return { all: async () => ({ results: [] }) }; } }
+  DB: { prepare(sql) { return { all: async () => ({ results: sql.includes("support_retention_runs") ? [{
+   scheduled_time: "2026-11-13T03:00:00.000Z",
+   completed_at: "2026-11-13T03:00:02.000Z",
+   retention_days: 90,
+   deleted_support_tickets: 2,
+   deleted_idempotency_records: 3,
+   deleted_rate_limit_buckets: 4
+  }] : [] }) }; } }
  };
  try {
   const valid = createAccessJwt(privateKey);
@@ -56,7 +63,10 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
   }), env);
   assert.equal(page.status, 200);
   assert.match(page.headers.get("content-type") || "", /text\/html/i);
-  assert.match(await page.text(), /SUPPORT CONSOLE/);
+  const pageHtml = await page.text();
+  assert.match(pageHtml, /SUPPORT CONSOLE/);
+  assert.match(pageHtml, /retentionPanel/);
+  assert.match(pageHtml, /loadRetention/);
 
   const api = await worker.fetch(req("/v1/admin/support/tickets", {
    headers: { "Cf-Access-Jwt-Assertion": valid }
@@ -68,7 +78,16 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
    headers: { "Cf-Access-Jwt-Assertion": valid }
   }), env);
   assert.equal(retentionHistory.status, 200);
-  assert.deepEqual((await retentionHistory.json()).runs, []);
+  const historyBody = await retentionHistory.json();
+  assert.equal(historyBody.count, 1);
+  assert.deepEqual(historyBody.runs, [{
+   scheduled_time: "2026-11-13T03:00:00.000Z",
+   completed_at: "2026-11-13T03:00:02.000Z",
+   retention_days: 90,
+   deleted_support_tickets: 2,
+   deleted_idempotency_records: 3,
+   deleted_rate_limit_buckets: 4
+  }]);
 
   const rejected = [
    createAccessJwt(privateKey, { iss: "https://attacker.cloudflareaccess.com" }),
