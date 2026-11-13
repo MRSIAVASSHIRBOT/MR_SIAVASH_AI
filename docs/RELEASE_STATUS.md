@@ -130,7 +130,9 @@ statement fails, the D1 batch rolls back and no successful-run row is committed.
 The Cloudflare Access-protected endpoint
 `GET /v1/admin/support/retention-runs` returns the latest 30 completion records;
 it exposes timestamps, the configured retention period, and aggregate deletion
-counts only—never ticket content, contact details, or access tokens. This
+counts only—never ticket content, contact details, or access tokens. The
+Cloudflare Access-protected support console displays the same history for
+operators without requiring direct D1 queries. This
 endpoint is available after migration `0004_support_retention_runs.sql` has been
 applied to the target D1 database. No production migration or Worker deployment
 is implied by this source change.
