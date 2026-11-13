@@ -9,7 +9,7 @@ test("readiness requires the D1 binding",async()=>{assert.equal((await worker.fe
 test("CORS allows only exact origin and approved methods and headers",async()=>{const r=await worker.fetch(req("/v1/health/live",{method:"OPTIONS",headers:{Origin:"https://app.example.test","Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type,authorization,x-request-id"}}),env);assert.equal(r.status,204);assert.equal(r.headers.get("access-control-allow-methods"),"GET, POST, PATCH");assert.equal(r.headers.get("access-control-allow-credentials"),"true");const bad=await worker.fetch(req("/v1/health/live",{method:"OPTIONS",headers:{Origin:"https://evil.test","Access-Control-Request-Method":"DELETE"}}),env);assert.equal(bad.status,403);assert.equal(bad.headers.get("access-control-allow-origin"),null);});
 test("unknown routes and unsupported methods fail closed",async()=>{assert.equal((await worker.fetch(req("/v1/nope"),{})).status,404);assert.equal((await worker.fetch(req("/v1/health/live",{method:"DELETE"}),{})).status,405);});
 test("assistant validates input and fails closed without database",async()=>{const r=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"سلام"})}),{});assert.equal(r.status,503);});
-test("admin dashboard and APIs reject requests without verified Access JWT",async()=>{const page=await worker.fetch(req("/admin"),{});assert.equal(page.status,401);const r=await worker.fetch(req("/v1/admin/support/tickets"),{DB:db()});assert.equal(r.status,401);assert.equal((await r.json()).error.code,"admin_auth_required");});
+test("admin dashboard and APIs reject requests without verified Access JWT",async()=>{const page=await worker.fetch(req("/admin"),{});assert.equal(page.status,401);const r=await worker.fetch(req("/v1/admin/support/tickets"),{DB:db()});assert.equal(r.status,401);assert.equal((await r.json()).error.code,"admin_auth_required");const history=await worker.fetch(req("/v1/admin/support/retention-runs"),{DB:db()});assert.equal(history.status,401);});
 
 function createAccessJwt(privateKey, overrides = {}) {
  const now = Math.floor(Date.now() / 1000);
@@ -47,7 +47,14 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
   CF_ACCESS_TEAM_DOMAIN: "preview-team.cloudflareaccess.com",
   CF_ACCESS_AUD: "preview-aud",
   ADMIN_EMAILS: "ADMIN@example.test",
-  DB: { prepare() { return { all: async () => ({ results: [] }) }; } }
+  DB: { prepare(sql) { return { all: async () => ({ results: sql.includes("support_retention_runs") ? [{
+   scheduled_time: "2026-11-13T03:00:00.000Z",
+   completed_at: "2026-11-13T03:00:02.000Z",
+   retention_days: 90,
+   deleted_support_tickets: 2,
+   deleted_idempotency_records: 3,
+   deleted_rate_limit_buckets: 4
+  }] : [] }) }; } }
  };
  try {
   const valid = createAccessJwt(privateKey);
@@ -56,13 +63,31 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
   }), env);
   assert.equal(page.status, 200);
   assert.match(page.headers.get("content-type") || "", /text\/html/i);
-  assert.match(await page.text(), /SUPPORT CONSOLE/);
+  const pageHtml = await page.text();
+  assert.match(pageHtml, /SUPPORT CONSOLE/);
+  assert.match(pageHtml, /retentionPanel/);
+  assert.match(pageHtml, /loadRetention/);
 
   const api = await worker.fetch(req("/v1/admin/support/tickets", {
    headers: { "Cf-Access-Jwt-Assertion": valid }
   }), env);
   assert.equal(api.status, 200);
   assert.deepEqual((await api.json()).tickets, []);
+
+  const retentionHistory = await worker.fetch(req("/v1/admin/support/retention-runs", {
+   headers: { "Cf-Access-Jwt-Assertion": valid }
+  }), env);
+  assert.equal(retentionHistory.status, 200);
+  const historyBody = await retentionHistory.json();
+  assert.equal(historyBody.count, 1);
+  assert.deepEqual(historyBody.runs, [{
+   scheduled_time: "2026-11-13T03:00:00.000Z",
+   completed_at: "2026-11-13T03:00:02.000Z",
+   retention_days: 90,
+   deleted_support_tickets: 2,
+   deleted_idempotency_records: 3,
+   deleted_rate_limit_buckets: 4
+  }]);
 
   const rejected = [
    createAccessJwt(privateKey, { iss: "https://attacker.cloudflareaccess.com" }),
@@ -114,18 +139,27 @@ test("scheduled cleanup fails closed when no retention period is configured",asy
  await assert.rejects(worker.scheduled({}, {DB}),/SUPPORT_RETENTION_DAYS must be explicitly configured/);
  assert.equal(batches,0);
 });
-test("scheduled cleanup applies the configured 30-day inactivity window",async()=>{
+test("scheduled cleanup records aggregate counts and deletes within one D1 batch",async()=>{
  const statements=[];
  const DB={
   prepare(sql){return{bind(...values){const statement={sql,values};statements.push(statement);return statement;}};},
-  async batch(items){assert.equal(items.length,3);return items;}
+  async batch(items){assert.equal(items.length,4);return items;}
  };
- await worker.scheduled({}, {DB,SUPPORT_RETENTION_DAYS:"30"});
- assert.equal(statements.length,3);
- assert.match(statements[0].sql,/DELETE FROM support_tickets WHERE updated_at < \?/);
- const cutoff=Date.parse(statements[0].values[0]);
+ const scheduledTime=Date.UTC(2026,10,13,3,0,0);
+ await worker.scheduled({scheduledTime},{DB,SUPPORT_RETENTION_DAYS:"30"});
+ assert.equal(statements.length,4);
+ assert.match(statements[0].sql,/INSERT INTO support_retention_runs/);
+ assert.match(statements[0].sql,/SELECT COUNT\(\*\) FROM support_tickets/);
+ assert.equal(statements[0].values[1],new Date(scheduledTime).toISOString());
+ assert.equal(statements[0].values[3],30);
+ assert.match(statements[1].sql,/DELETE FROM support_tickets WHERE updated_at < \?/);
+ assert.match(statements[2].sql,/DELETE FROM workspace_idempotency WHERE expires_at <= \?/);
+ assert.match(statements[3].sql,/DELETE FROM api_rate_limits WHERE expires_at <= \?/);
+ const cutoff=Date.parse(statements[0].values[4]);
  assert.ok(Number.isFinite(cutoff));
  assert.ok(Math.abs((Date.now()-cutoff)-30*86400000)<5000);
+ assert.ok(Number.isFinite(Date.parse(statements[0].values[5])));
+ assert.ok(Number.isInteger(statements[0].values[6]));
 });
 test("ticket creation validates email before touching D1",async()=>{const r=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subject:"سؤال",message:"سلام",contact_email:"invalid"})}),{DB:db(),SUPPORT_RETENTION_DAYS:"90"});assert.equal(r.status,400);});
 test("public ticket reads require a bearer token",async()=>{const r=await worker.fetch(req("/v1/support/tickets/MS-ABC1234567"),{DB:db()});assert.equal(r.status,404);});
@@ -376,21 +410,22 @@ function retentionDb(){
 test("scheduled cleanup expires inactive support tickets, idempotency rows and rate-limit buckets",async()=>{
  const store=retentionDb();
  await worker.scheduled({scheduledTime:Date.now()},{DB:store.db,SUPPORT_RETENTION_DAYS:"90"});
- assert.equal(store.statements.length,3);
- assert.match(store.statements[0].sql,/DELETE FROM support_tickets WHERE updated_at < \?/);
- assert.match(store.statements[1].sql,/DELETE FROM workspace_idempotency WHERE expires_at <= \?/);
- assert.match(store.statements[2].sql,/DELETE FROM api_rate_limits WHERE expires_at <= \?/);
- const cutoff=Date.parse(store.statements[0].values[0]);
+ assert.equal(store.statements.length,4);
+ assert.match(store.statements[0].sql,/INSERT INTO support_retention_runs/);
+ assert.match(store.statements[1].sql,/DELETE FROM support_tickets WHERE updated_at < \?/);
+ assert.match(store.statements[2].sql,/DELETE FROM workspace_idempotency WHERE expires_at <= \?/);
+ assert.match(store.statements[3].sql,/DELETE FROM api_rate_limits WHERE expires_at <= \?/);
+ const cutoff=Date.parse(store.statements[0].values[4]);
  assert.ok(Number.isFinite(cutoff));
  assert.ok(Math.abs((Date.now()-cutoff)-90*86400000)<5000);
- assert.ok(Number.isFinite(Date.parse(store.statements[1].values[0])));
- assert.ok(Number.isInteger(store.statements[2].values[0]));
+ assert.ok(Number.isFinite(Date.parse(store.statements[0].values[5])));
+ assert.ok(Number.isInteger(store.statements[0].values[6]));
 });
 test("scheduled cleanup emits aggregate telemetry without ticket or user data",async()=>{
  const events=[],originalInfo=console.info;
  const DB={
   prepare(sql){return{sql,bind(){return this;}};},
-  async batch(){return[{meta:{changes:2}},{meta:{changes:3}},{meta:{changes:4}}];}
+  async batch(){return[{meta:{changes:1}},{meta:{changes:2}},{meta:{changes:3}},{meta:{changes:4}}];}
  };
  const scheduledTime=Date.UTC(2026,10,11,3,0,0);
  console.info=(message)=>events.push(message);

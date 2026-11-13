@@ -120,3 +120,20 @@ Production D1 contains support records. Their contents were not inspected or exp
 - [Issue #70 — main branch protection and current-head CI](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/70)
 
 **Release verdict:** Production version 14 and the deployed web experience passed the checks listed above. The first post-version-14 scheduled cleanup event was verified, but a later invocation still needs telemetry reconciliation. Repository governance and the remaining explicitly scoped acceptance work also remain open; do not label the complete product vision “fully complete.”
+
+
+## Support retention completion evidence
+
+Scheduled support cleanup now writes one aggregate-only `support_retention_runs`
+row in the same D1 batch as the three cleanup statements. If any cleanup
+statement fails, the D1 batch rolls back and no successful-run row is committed.
+The Cloudflare Access-protected endpoint
+`GET /v1/admin/support/retention-runs` returns the latest 30 completion records;
+it exposes timestamps, the configured retention period, and aggregate deletion
+counts only—never ticket content, contact details, or access tokens. The
+Cloudflare Access-protected support console displays the same history for
+operators without requiring direct D1 queries. This
+endpoint is available after migration `0004_support_retention_runs.sql` has been
+applied to the target D1 database. No production migration or Worker deployment
+is implied by this source change.
+
