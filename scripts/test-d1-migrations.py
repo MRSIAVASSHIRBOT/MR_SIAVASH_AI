@@ -36,6 +36,27 @@ def main():
     require(len(versions) == len(set(versions)), "duplicate migration version")
     require(versions == sorted(versions), "migrations are not in version order")
 
+    expect_integrity_error(
+        db,
+        """INSERT INTO support_retention_runs (
+            id, scheduled_time, completed_at, retention_days,
+            deleted_support_tickets, deleted_idempotency_records,
+            deleted_rate_limit_buckets
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        ("aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", now, now, 7, 0, 0, 0),
+        "unsafe support retention period",
+    )
+    expect_integrity_error(
+        db,
+        """INSERT INTO support_retention_runs (
+            id, scheduled_time, completed_at, retention_days,
+            deleted_support_tickets, deleted_idempotency_records,
+            deleted_rate_limit_buckets
+        ) VALUES (?, ?, ?, ?, ?, ?, ?)""",
+        ("bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", now, now, 90, -1, 0, 0),
+        "negative support cleanup count",
+    )
+
     now = "2026-11-06T10:00:00.000Z"
     later = "2026-11-07T10:00:00.000Z"
     owner_a = "11111111-1111-4111-8111-111111111111"
@@ -74,7 +95,7 @@ def main():
         )
     }
     require({
-        "users", "auth_identities", "workspace_tasks", "workspace_idempotency", "support_tickets", "support_messages", "api_rate_limits"
+        "users", "auth_identities", "workspace_tasks", "workspace_idempotency", "support_tickets", "support_messages", "api_rate_limits", "support_retention_runs"
     } <= tables, "identity and workspace tables were not created")
 
     indexes = {
@@ -90,6 +111,7 @@ def main():
         "idx_support_tickets_status_updated",
         "idx_support_messages_ticket_created",
         "idx_api_rate_limits_expiry",
+        "idx_support_retention_runs_completed",
     ):
         require(index in indexes, f"required index is missing: {index}")
 
