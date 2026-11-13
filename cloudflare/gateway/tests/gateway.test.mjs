@@ -9,7 +9,7 @@ test("readiness requires the D1 binding",async()=>{assert.equal((await worker.fe
 test("CORS allows only exact origin and approved methods and headers",async()=>{const r=await worker.fetch(req("/v1/health/live",{method:"OPTIONS",headers:{Origin:"https://app.example.test","Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type,authorization,x-request-id"}}),env);assert.equal(r.status,204);assert.equal(r.headers.get("access-control-allow-methods"),"GET, POST, PATCH");assert.equal(r.headers.get("access-control-allow-credentials"),"true");const bad=await worker.fetch(req("/v1/health/live",{method:"OPTIONS",headers:{Origin:"https://evil.test","Access-Control-Request-Method":"DELETE"}}),env);assert.equal(bad.status,403);assert.equal(bad.headers.get("access-control-allow-origin"),null);});
 test("unknown routes and unsupported methods fail closed",async()=>{assert.equal((await worker.fetch(req("/v1/nope"),{})).status,404);assert.equal((await worker.fetch(req("/v1/health/live",{method:"DELETE"}),{})).status,405);});
 test("assistant validates input and fails closed without database",async()=>{const r=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"سلام"})}),{});assert.equal(r.status,503);});
-test("admin dashboard and APIs reject requests without verified Access JWT",async()=>{const page=await worker.fetch(req("/admin"),{});assert.equal(page.status,401);const r=await worker.fetch(req("/v1/admin/support/tickets"),{DB:db()});assert.equal(r.status,401);assert.equal((await r.json()).error.code,"admin_auth_required");});
+test("admin dashboard and APIs reject requests without verified Access JWT",async()=>{const page=await worker.fetch(req("/admin"),{});assert.equal(page.status,401);const r=await worker.fetch(req("/v1/admin/support/tickets"),{DB:db()});assert.equal(r.status,401);assert.equal((await r.json()).error.code,"admin_auth_required");const history=await worker.fetch(req("/v1/admin/support/retention-runs"),{DB:db()});assert.equal(history.status,401);});
 
 function createAccessJwt(privateKey, overrides = {}) {
  const now = Math.floor(Date.now() / 1000);
@@ -63,6 +63,12 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
   }), env);
   assert.equal(api.status, 200);
   assert.deepEqual((await api.json()).tickets, []);
+
+  const retentionHistory = await worker.fetch(req("/v1/admin/support/retention-runs", {
+   headers: { "Cf-Access-Jwt-Assertion": valid }
+  }), env);
+  assert.equal(retentionHistory.status, 200);
+  assert.deepEqual((await retentionHistory.json()).runs, []);
 
   const rejected = [
    createAccessJwt(privateKey, { iss: "https://attacker.cloudflareaccess.com" }),
@@ -390,7 +396,7 @@ test("scheduled cleanup emits aggregate telemetry without ticket or user data",a
  const events=[],originalInfo=console.info;
  const DB={
   prepare(sql){return{sql,bind(){return this;}};},
-  async batch(){return[{meta:{changes:2}},{meta:{changes:3}},{meta:{changes:4}}];}
+  async batch(){return[{meta:{changes:1}},{meta:{changes:2}},{meta:{changes:3}},{meta:{changes:4}}];}
  };
  const scheduledTime=Date.UTC(2026,10,11,3,0,0);
  console.info=(message)=>events.push(message);
