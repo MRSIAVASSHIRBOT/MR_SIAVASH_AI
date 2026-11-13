@@ -1,5 +1,21 @@
 # MR_SIAVASH_AI — verified release and acceptance status
 
+## Live status addendum — 2026-11-14 (supersedes the 2026-11-13 telemetry finding)
+
+A fresh read-only Workers Observability query over **2026-11-13 02:50–03:30 UTC** returned the completion record for the scheduled invocation at **2026-11-13 03:00:23.971 UTC**:
+
+- Worker: `mr-siavash-ai-gateway`, Production version 14 (`62e8a337-d804-4748-8bb2-d5e0180ee2f8`).
+- Cron: `0 3 * * *`; scheduled invocation outcome: `ok`.
+- Completion event: `support_retention_cleanup_completed`.
+- Retention period: 90 days.
+- Aggregate deleted counts: 0 support tickets, 0 idempotency records, and 0 rate-limit buckets.
+
+This confirms successful completion for that invocation and that no records met the deletion criteria. It supersedes the earlier statement that completion was unverified. The reason the earlier observability query did not return the completion event is still undetermined; Issue #169 remains open to reconcile that query discrepancy and confirm the next scheduled run.
+
+The current repository `main` head at this verification is `c35299be035a973d6921707c6f8f002af09e0e95`. Production remains on version 14 from source commit `1616545a2e204cb378e2c824299412ca20ef598b`; this documentation change is not a deployment.
+
+No cleanup was manually invoked. No Production D1 application rows, Worker configuration, deployment, or retention setting were changed. The telemetry query returned only the scheduled event and aggregate completion counts; no support-ticket content was queried.
+
 ## Live status addendum — 2026-11-13
 
 This addendum supplements the 2026-11-11 release snapshot below. Historical verification values are preserved.
