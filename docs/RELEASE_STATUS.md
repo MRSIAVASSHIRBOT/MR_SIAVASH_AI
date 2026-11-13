@@ -137,3 +137,12 @@ endpoint is available after migration `0004_support_retention_runs.sql` has been
 applied to the target D1 database. No production migration or Worker deployment
 is implied by this source change.
 
+
+
+## Public release gate
+
+GitHub Pages quality checks continue to run on pushes and pull requests, but
+the public deployment job now runs only after an explicit
+`workflow_dispatch` on `main`. Merging ordinary development PRs no longer
+publishes the public site automatically.
+
