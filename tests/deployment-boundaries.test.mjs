@@ -27,7 +27,7 @@ test("production documentation distinguishes deployed routes from current source
   assert.match(gatewayReadme, /GET \/v1\/modules/);
   assert.match(gatewayReadme, /POST.*v1\/support\/tickets/);
   assert.match(gatewayReadme, /explicit privacy acknowledgement/i);
-  assert.match(gatewayReadme, /Verified production state — 2026-11-10/);
+  assert.match(gatewayReadme, /Historical production snapshot — 2026-11-10/);
   assert.match(gatewayReadme, /SUPPORT_RETENTION_DAYS=90/);
   assert.match(gatewayReadme, /daily `0 3 \* \* \*` UTC schedule/);
   assert.match(gatewayReadme, /Preview Worker traffic is at 100%/);
