@@ -4,7 +4,7 @@
 
 This addendum supplements the 2026-11-11 release snapshot below. Historical verification values are preserved.
 
-- The latest recorded Production deployment remains Worker version 14 (`62e8a337-d804-4748-8bb2-d5e0180ee2f8)) at 100% traffic, deployed from source commit `1616545a2e204cb378e2c824299412ca20ef598b` on 2026-11-11 12:31:27 UTC. The repository's current `main` has advanced to `0dd9d7752dd6410592e9dba815b2b4d0dfaa6a56`; this documentation update is not a Production deployment.
+- The latest recorded Production deployment remains Worker version 14 (`62e8a337-d804-4748-8bb2-d5e0180ee2f8) at 100% traffic, deployed from source commit `1616545a2e204cb378e2c824299412ca20ef598b` on 2026-11-11 12:31:27 UTC. The repository's current `main` has advanced to `0dd9d7752dd6410592e9dba815b2b4d0dfaa6a56`; this documentation update is not a Production deployment.
 - The first post-version-14 scheduled cleanup emitted `support_retention_cleanup_completed` at 2026-11-12 03:00:24.092 UTC. The aggregate counts were 0 support tickets, 0 idempotency records, and 3 rate-limit buckets. The scheduled handler awaits the cleanup batch before emitting this event.
 - A later scheduled invocation was recorded on 2026-11-13 03:00:23.971 UTC, but a read-only query did not find a matching completion event in the 02:50–03:30 UTC window. This does not prove a cleanup failure; it leaves that invocation's completion and aggregate counts unverified. Follow-up is tracked in [Issue #169](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/169).
 - Production D1 records were not inspected or changed. No cleanup was invoked manually and no retention setting was changed.
