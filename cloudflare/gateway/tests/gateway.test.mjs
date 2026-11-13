@@ -120,18 +120,27 @@ test("scheduled cleanup fails closed when no retention period is configured",asy
  await assert.rejects(worker.scheduled({}, {DB}),/SUPPORT_RETENTION_DAYS must be explicitly configured/);
  assert.equal(batches,0);
 });
-test("scheduled cleanup applies the configured 30-day inactivity window",async()=>{
+test("scheduled cleanup records aggregate counts and deletes within one D1 batch",async()=>{
  const statements=[];
  const DB={
   prepare(sql){return{bind(...values){const statement={sql,values};statements.push(statement);return statement;}};},
-  async batch(items){assert.equal(items.length,3);return items;}
+  async batch(items){assert.equal(items.length,4);return items;}
  };
- await worker.scheduled({}, {DB,SUPPORT_RETENTION_DAYS:"30"});
- assert.equal(statements.length,3);
- assert.match(statements[0].sql,/DELETE FROM support_tickets WHERE updated_at < \?/);
- const cutoff=Date.parse(statements[0].values[0]);
+ const scheduledTime=Date.UTC(2026,10,13,3,0,0);
+ await worker.scheduled({scheduledTime},{DB,SUPPORT_RETENTION_DAYS:"30"});
+ assert.equal(statements.length,4);
+ assert.match(statements[0].sql,/INSERT INTO support_retention_runs/);
+ assert.match(statements[0].sql,/SELECT COUNT\\(\\*\\) FROM support_tickets/);
+ assert.equal(statements[0].values[1],new Date(scheduledTime).toISOString());
+ assert.equal(statements[0].values[3],30);
+ assert.match(statements[1].sql,/DELETE FROM support_tickets WHERE updated_at < \\?/);
+ assert.match(statements[2].sql,/DELETE FROM workspace_idempotency WHERE expires_at <= \\?/);
+ assert.match(statements[3].sql,/DELETE FROM api_rate_limits WHERE expires_at <= \\?/);
+ const cutoff=Date.parse(statements[0].values[4]);
  assert.ok(Number.isFinite(cutoff));
  assert.ok(Math.abs((Date.now()-cutoff)-30*86400000)<5000);
+ assert.ok(Number.isFinite(Date.parse(statements[0].values[5])));
+ assert.ok(Number.isInteger(statements[0].values[6]));
 });
 test("ticket creation validates email before touching D1",async()=>{const r=await worker.fetch(req("/v1/support/tickets",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subject:"سؤال",message:"سلام",contact_email:"invalid"})}),{DB:db(),SUPPORT_RETENTION_DAYS:"90"});assert.equal(r.status,400);});
 test("public ticket reads require a bearer token",async()=>{const r=await worker.fetch(req("/v1/support/tickets/MS-ABC1234567"),{DB:db()});assert.equal(r.status,404);});
@@ -382,15 +391,16 @@ function retentionDb(){
 test("scheduled cleanup expires inactive support tickets, idempotency rows and rate-limit buckets",async()=>{
  const store=retentionDb();
  await worker.scheduled({scheduledTime:Date.now()},{DB:store.db,SUPPORT_RETENTION_DAYS:"90"});
- assert.equal(store.statements.length,3);
- assert.match(store.statements[0].sql,/DELETE FROM support_tickets WHERE updated_at < \?/);
- assert.match(store.statements[1].sql,/DELETE FROM workspace_idempotency WHERE expires_at <= \?/);
- assert.match(store.statements[2].sql,/DELETE FROM api_rate_limits WHERE expires_at <= \?/);
- const cutoff=Date.parse(store.statements[0].values[0]);
+ assert.equal(store.statements.length,4);
+ assert.match(store.statements[0].sql,/INSERT INTO support_retention_runs/);
+ assert.match(store.statements[1].sql,/DELETE FROM support_tickets WHERE updated_at < \\?/);
+ assert.match(store.statements[2].sql,/DELETE FROM workspace_idempotency WHERE expires_at <= \\?/);
+ assert.match(store.statements[3].sql,/DELETE FROM api_rate_limits WHERE expires_at <= \\?/);
+ const cutoff=Date.parse(store.statements[0].values[4]);
  assert.ok(Number.isFinite(cutoff));
  assert.ok(Math.abs((Date.now()-cutoff)-90*86400000)<5000);
- assert.ok(Number.isFinite(Date.parse(store.statements[1].values[0])));
- assert.ok(Number.isInteger(store.statements[2].values[0]));
+ assert.ok(Number.isFinite(Date.parse(store.statements[0].values[5])));
+ assert.ok(Number.isInteger(store.statements[0].values[6]));
 });
 test("scheduled cleanup emits aggregate telemetry without ticket or user data",async()=>{
  const events=[],originalInfo=console.info;
