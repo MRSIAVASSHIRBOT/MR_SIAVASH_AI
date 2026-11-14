@@ -69,6 +69,7 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
   assert.match(pageHtml, /retentionPanel/);
   assert.match(pageHtml, /loadRetention/);
   assert.match(pageHtml, /loadMoreRetention/);
+  assert.match(pageHtml, /loadOlderMessages/);
   assert.match(pageHtml, /ticketSearch/);
   assert.match(pageHtml, /loadMore/);
 
@@ -265,8 +266,24 @@ function supportDb() {
      return null;
     },
     async all() {
-     if (sql.startsWith("SELECT sender_role,body,created_at FROM support_messages WHERE ticket_id=?")) {
-      return { results: messages.filter(message => message.ticket_id === values[0]).map(({ sender_role, body, created_at }) => ({ sender_role, body, created_at })) };
+     if (sql.startsWith("SELECT id,sender_role,body,created_at FROM support_messages WHERE ticket_id=?")) {
+      let matching = messages.filter(message => message.ticket_id === values[0]);
+      if (values.length >= 5) {
+       const [, beforeCreatedAt, sameCreatedAt, beforeId] = values;
+       matching = matching.filter(message =>
+        message.created_at < beforeCreatedAt ||
+        (message.created_at === sameCreatedAt && message.id < beforeId)
+       );
+      }
+      matching.sort((left, right) =>
+       right.created_at.localeCompare(left.created_at) || right.id.localeCompare(left.id)
+      );
+      const limit = values[values.length - 1];
+      return {
+       results: matching.slice(0, limit).map(({ id, sender_role, body, created_at }) => ({
+        id, sender_role, body, created_at
+       }))
+      };
      }
      return { results: [] };
     }
@@ -539,7 +556,7 @@ test("admin support ticket search and keyset pagination are bounded and stable",
     return {
      bind(...parameters) {
       queries.push({ sql, parameters });
-      return { all: async () => ({ results: parameters.length === 7 ? [firstRows[2]] : firstRows }) };
+      return { all: async () => ({ results: parameters.length === 8 ? [firstRows[2]] : firstRows }) };
      }
     };
    }
@@ -560,7 +577,7 @@ test("admin support ticket search and keyset pagination are bounded and stable",
   assert.equal(firstPage.has_more, true);
   assert.equal(firstPage.next_cursor, firstRows[1].updated_at + "|" + firstRows[1].id);
   assert.match(queries[queries.length - 1].sql, /ORDER BY updated_at DESC,id DESC LIMIT \?/);
-  assert.deepEqual(queries[queries.length - 1].parameters, ["open", "MS-A", "MS-A", 3]);
+  assert.deepEqual(queries[queries.length - 1].parameters, ["open", "MS-A", "MS-A", "MS-A", 3]);
 
   const secondResponse = await worker.fetch(req(
    "/v1/admin/support/tickets?status=open&q=MS-A&limit=2&cursor=" + encodeURIComponent(firstPage.next_cursor),
@@ -572,7 +589,7 @@ test("admin support ticket search and keyset pagination are bounded and stable",
   assert.equal(secondPage.has_more, false);
   assert.equal(secondPage.next_cursor, null);
   assert.deepEqual(queries[queries.length - 1].parameters, [
-   "open", "MS-A", "MS-A", firstRows[1].updated_at, firstRows[1].updated_at, firstRows[1].id, 3
+   "open", "MS-A", "MS-A", "MS-A", firstRows[1].updated_at, firstRows[1].updated_at, firstRows[1].id, 3
   ]);
 
   const invalid = await worker.fetch(req(
@@ -651,6 +668,89 @@ test("admin retention history uses a bounded stable cursor and hides its interna
    "/v1/admin/support/retention-runs?cursor=bad",
    { headers: { "Cf-Access-Jwt-Assertion": token } }
   ), env);
+  assert.equal(invalid.status, 400);
+ } finally {
+  globalThis.fetch = originalFetch;
+ }
+});
+
+
+test("public and admin ticket conversations page newest messages with a stable older-message cursor", async () => {
+ const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+ const jwk = { ...publicKey.export({ format: "jwk" }), kid: "preview-test-key", alg: "RS256", use: "sig" };
+ const originalFetch = globalThis.fetch;
+ const ticket = {
+  id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+  ticket_code: "MS-0123456789ABCDEF",
+  category: "question",
+  subject: "Conversation pagination",
+  contact_email: "owner@example.test",
+  status: "open",
+  created_at: "2026-11-14T00:00:00.000Z",
+  updated_at: "2026-11-14T00:00:04.000Z"
+ };
+ const rows = [
+  { id: "11111111-1111-4111-8111-111111111111", sender_role: "user", body: "oldest", created_at: "2026-11-14T00:00:01.000Z" },
+  { id: "22222222-2222-4222-8222-222222222222", sender_role: "admin", body: "older", created_at: "2026-11-14T00:00:02.000Z" },
+  { id: "33333333-3333-4333-8333-333333333333", sender_role: "user", body: "newer", created_at: "2026-11-14T00:00:03.000Z" },
+  { id: "44444444-4444-4444-8444-444444444444", sender_role: "admin", body: "newest", created_at: "2026-11-14T00:00:04.000Z" }
+ ];
+ const queries = [];
+ const DB = {
+  prepare(sql) {
+   return {
+    bind(...parameters) {
+     queries.push({ sql, parameters });
+     return {
+      first: async () => ticket,
+      all: async () => ({ results: parameters.length === 2 ? [rows[3], rows[2], rows[1]] : [rows[1], rows[0]] })
+     };
+    }
+   };
+  }
+ };
+ const env = {
+  CF_ACCESS_TEAM_DOMAIN: "preview-team.cloudflareaccess.com",
+  CF_ACCESS_AUD: "preview-aud",
+  ADMIN_EMAILS: "admin@example.test",
+  DB
+ };
+ globalThis.fetch = async url => {
+  assert.equal(String(url), "https://preview-team.cloudflareaccess.com/cdn-cgi/access/certs");
+  return new Response(JSON.stringify({ keys: [jwk] }), { status: 200, headers: { "Content-Type": "application/json" } });
+ };
+ try {
+  const token = createAccessJwt(privateKey);
+  const adminFirstResponse = await worker.fetch(req("/v1/admin/support/tickets/" + ticket.id + "?limit=2", {
+   headers: { "Cf-Access-Jwt-Assertion": token }
+  }), env);
+  assert.equal(adminFirstResponse.status, 200);
+  const adminFirst = await adminFirstResponse.json();
+  assert.deepEqual(adminFirst.messages.map(item => item.body), ["newer", "newest"]);
+  assert.equal(adminFirst.has_more, true);
+  assert.equal(adminFirst.next_cursor, rows[2].created_at + "|" + rows[2].id);
+
+  const adminSecondResponse = await worker.fetch(req(
+   "/v1/admin/support/tickets/" + ticket.id + "?limit=2&cursor=" + encodeURIComponent(adminFirst.next_cursor),
+   { headers: { "Cf-Access-Jwt-Assertion": token } }
+  ), env);
+  assert.equal(adminSecondResponse.status, 200);
+  const adminSecond = await adminSecondResponse.json();
+  assert.deepEqual(adminSecond.messages.map(item => item.body), ["oldest", "older"]);
+  assert.equal(adminSecond.has_more, false);
+  assert.equal(adminSecond.next_cursor, null);
+
+  const publicFirstResponse = await worker.fetch(req("/v1/support/tickets/" + ticket.ticket_code + "?limit=2", {
+   headers: { Authorization: "Bearer " + "a".repeat(64) }
+  }), { DB });
+  assert.equal(publicFirstResponse.status, 200);
+  const publicFirst = await publicFirstResponse.json();
+  assert.deepEqual(publicFirst.messages.map(item => item.body), ["newer", "newest"]);
+  assert.equal(publicFirst.has_more, true);
+
+  const invalid = await worker.fetch(req("/v1/support/tickets/" + ticket.ticket_code + "?cursor=bad", {
+   headers: { Authorization: "Bearer " + "a".repeat(64) }
+  }), { DB });
   assert.equal(invalid.status, 400);
  } finally {
   globalThis.fetch = originalFetch;
