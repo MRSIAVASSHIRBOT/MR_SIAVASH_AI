@@ -48,13 +48,14 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
   CF_ACCESS_AUD: "preview-aud",
   ADMIN_EMAILS: "ADMIN@example.test",
   DB: { prepare(sql) { const results = sql.includes("support_retention_runs") ? [{
+   id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
    scheduled_time: "2026-11-13T03:00:00.000Z",
    completed_at: "2026-11-13T03:00:02.000Z",
    retention_days: 90,
    deleted_support_tickets: 2,
    deleted_idempotency_records: 3,
    deleted_rate_limit_buckets: 4
-  }] : []; return { all: async () => ({ results }), bind: (..._parameters) => ({ all: async () => ({ results: [] }) }) }; } }
+  }] : []; return { all: async () => ({ results }), bind: (..._parameters) => ({ all: async () => ({ results }) }) }; } }
  };
  try {
   const valid = createAccessJwt(privateKey);
@@ -67,6 +68,9 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
   assert.match(pageHtml, /SUPPORT CONSOLE/);
   assert.match(pageHtml, /retentionPanel/);
   assert.match(pageHtml, /loadRetention/);
+  assert.match(pageHtml, /loadMoreRetention/);
+  assert.match(pageHtml, /ticketSearch/);
+  assert.match(pageHtml, /loadMore/);
 
   const api = await worker.fetch(req("/v1/admin/support/tickets", {
    headers: { "Cf-Access-Jwt-Assertion": valid }
@@ -581,6 +585,73 @@ test("admin support ticket search and keyset pagination are bounded and stable",
    { headers: { "Cf-Access-Jwt-Assertion": token } }
   ), env);
   assert.equal(invalidCursor.status, 400);
+ } finally {
+  globalThis.fetch = originalFetch;
+ }
+});
+
+
+
+test("admin retention history uses a bounded stable cursor and hides its internal row id", async () => {
+ const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+ const jwk = { ...publicKey.export({ format: "jwk" }), kid: "preview-test-key", alg: "RS256", use: "sig" };
+ const originalFetch = globalThis.fetch;
+ const queries = [];
+ const rows = [
+  { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", scheduled_time: "2026-11-14T01:00:00.000Z", completed_at: "2026-11-14T01:00:02.000Z", retention_days: 90, deleted_support_tickets: 1, deleted_idempotency_records: 2, deleted_rate_limit_buckets: 3 },
+  { id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", scheduled_time: "2026-11-13T01:00:00.000Z", completed_at: "2026-11-13T01:00:02.000Z", retention_days: 90, deleted_support_tickets: 4, deleted_idempotency_records: 5, deleted_rate_limit_buckets: 6 },
+  { id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", scheduled_time: "2026-11-12T01:00:00.000Z", completed_at: "2026-11-12T01:00:02.000Z", retention_days: 90, deleted_support_tickets: 7, deleted_idempotency_records: 8, deleted_rate_limit_buckets: 9 }
+ ];
+ const env = {
+  CF_ACCESS_TEAM_DOMAIN: "preview-team.cloudflareaccess.com",
+  CF_ACCESS_AUD: "preview-aud",
+  ADMIN_EMAILS: "admin@example.test",
+  DB: {
+   prepare(sql) {
+    return {
+     bind(...parameters) {
+      queries.push({ sql, parameters });
+      return { all: async () => ({ results: parameters.length === 4 ? [rows[2]] : rows }) };
+     }
+    };
+   }
+  }
+ };
+ globalThis.fetch = async url => {
+  assert.equal(String(url), "https://preview-team.cloudflareaccess.com/cdn-cgi/access/certs");
+  return new Response(JSON.stringify({ keys: [jwk] }), { status: 200, headers: { "Content-Type": "application/json" } });
+ };
+ try {
+  const token = createAccessJwt(privateKey);
+  const firstResponse = await worker.fetch(req("/v1/admin/support/retention-runs?limit=2", {
+   headers: { "Cf-Access-Jwt-Assertion": token }
+  }), env);
+  assert.equal(firstResponse.status, 200);
+  const first = await firstResponse.json();
+  assert.equal(first.count, 2);
+  assert.equal(first.has_more, true);
+  assert.equal(first.next_cursor, rows[1].completed_at + "|" + rows[1].id);
+  assert.equal("id" in first.runs[0], false);
+  assert.deepEqual(queries[0].parameters, [3]);
+
+  const secondResponse = await worker.fetch(req(
+   "/v1/admin/support/retention-runs?limit=2&cursor=" + encodeURIComponent(first.next_cursor),
+   { headers: { "Cf-Access-Jwt-Assertion": token } }
+  ), env);
+  assert.equal(secondResponse.status, 200);
+  const second = await secondResponse.json();
+  assert.equal(second.count, 1);
+  assert.equal(second.has_more, false);
+  assert.equal(second.next_cursor, null);
+  assert.deepEqual(queries[1].parameters, [
+   rows[1].completed_at, rows[1].completed_at, rows[1].id, 3
+  ]);
+
+  const invalid = await worker.fetch(req(
+   "/v1/admin/support/retention-runs?cursor=bad",
+   { headers: { "Cf-Access-Jwt-Assertion": token } }
+  ), env);
+  assert.equal(invalid.status, 400);
  } finally {
   globalThis.fetch = originalFetch;
  }
