@@ -513,3 +513,75 @@ test("assistant falls back safely when the configured provider fails", async () 
  assert.ok(data.answer.length > 0);
  assert.doesNotMatch(JSON.stringify(data), /do-not-leak|credential/i);
 });
+
+
+
+test("admin support ticket search and keyset pagination are bounded and stable", async () => {
+ const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
+ const jwk = { ...publicKey.export({ format: "jwk" }), kid: "preview-test-key", alg: "RS256", use: "sig" };
+ const originalFetch = globalThis.fetch;
+ const queries = [];
+ const firstRows = [
+  { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", ticket_code: "MS-AAA", category: "question", subject: "first", contact_email: null, status: "open", created_at: "2026-11-14T10:00:00.000Z", updated_at: "2026-11-14T12:00:00.000Z" },
+  { id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", ticket_code: "MS-BBB", category: "bug", subject: "second", contact_email: null, status: "open", created_at: "2026-11-14T09:00:00.000Z", updated_at: "2026-11-14T11:00:00.000Z" },
+  { id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc", ticket_code: "MS-CCC", category: "suggestion", subject: "third", contact_email: null, status: "open", created_at: "2026-11-14T08:00:00.000Z", updated_at: "2026-11-14T10:00:00.000Z" }
+ ];
+ const env = {
+  CF_ACCESS_TEAM_DOMAIN: "preview-team.cloudflareaccess.com",
+  CF_ACCESS_AUD: "preview-aud",
+  ADMIN_EMAILS: "admin@example.test",
+  DB: {
+   prepare(sql) {
+    return {
+     bind(...parameters) {
+      queries.push({ sql, parameters });
+      return { all: async () => ({ results: parameters.length === 7 ? [firstRows[2]] : firstRows }) };
+     }
+    };
+   }
+  }
+ };
+ globalThis.fetch = async url => {
+  assert.equal(String(url), "https://preview-team.cloudflareaccess.com/cdn-cgi/access/certs");
+  return new Response(JSON.stringify({ keys: [jwk] }), { status: 200, headers: { "Content-Type": "application/json" } });
+ };
+ try {
+  const token = createAccessJwt(privateKey);
+  const firstPageResponse = await worker.fetch(req("/v1/admin/support/tickets?status=open&q=MS-A&limit=2", {
+   headers: { "Cf-Access-Jwt-Assertion": token }
+  }), env);
+  assert.equal(firstPageResponse.status, 200);
+  const firstPage = await firstPageResponse.json();
+  assert.equal(firstPage.count, 2);
+  assert.equal(firstPage.has_more, true);
+  assert.equal(firstPage.next_cursor, firstRows[1].updated_at + "|" + firstRows[1].id);
+  assert.match(queries[queries.length - 1].sql, /ORDER BY updated_at DESC,id DESC LIMIT \?/);
+  assert.deepEqual(queries[queries.length - 1].parameters, ["open", "MS-A", "MS-A", 3]);
+
+  const secondResponse = await worker.fetch(req(
+   "/v1/admin/support/tickets?status=open&q=MS-A&limit=2&cursor=" + encodeURIComponent(firstPage.next_cursor),
+   { headers: { "Cf-Access-Jwt-Assertion": token } }
+  ), env);
+  assert.equal(secondResponse.status, 200);
+  const secondPage = await secondResponse.json();
+  assert.equal(secondPage.count, 1);
+  assert.equal(secondPage.has_more, false);
+  assert.equal(secondPage.next_cursor, null);
+  assert.deepEqual(queries[queries.length - 1].parameters, [
+   "open", "MS-A", "MS-A", firstRows[1].updated_at, firstRows[1].updated_at, firstRows[1].id, 3
+  ]);
+
+  const invalid = await worker.fetch(req(
+   "/v1/admin/support/tickets?limit=99",
+   { headers: { "Cf-Access-Jwt-Assertion": token } }
+  ), env);
+  assert.equal(invalid.status, 400);
+  const invalidCursor = await worker.fetch(req(
+   "/v1/admin/support/tickets?cursor=not-a-cursor",
+   { headers: { "Cf-Access-Jwt-Assertion": token } }
+  ), env);
+  assert.equal(invalidCursor.status, 400);
+ } finally {
+  globalThis.fetch = originalFetch;
+ }
+});
