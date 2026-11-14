@@ -10,7 +10,7 @@ A fresh read-only Workers Observability query over **2026-11-13 02:50–03:30 UT
 - Retention period: 90 days.
 - Aggregate deleted counts: 0 support tickets, 0 idempotency records, and 0 rate-limit buckets.
 
-This confirms successful completion for that invocation and that no records met the deletion criteria. It supersedes the earlier statement that completion was unverified. The reason the earlier observability query did not return the completion event is still undetermined; Issue #169 remains open to reconcile that query discrepancy and confirm the next scheduled run.
+This confirms successful completion for that invocation and that no records met the deletion criteria. A follow-up read-only query using an explicit service filter and a case-sensitive event needle returned the completion event with no query errors; the earlier no-match was a query/filter mismatch, not evidence of a failed cleanup. Issue #169 was closed on 2026-11-14 after this reconciliation. Continue monitoring the next scheduled run; no manual cleanup or production change was needed.
 
 The current repository `main` head at this verification is `c35299be035a973d6921707c6f8f002af09e0e95`. Production remains on version 14 from source commit `1616545a2e204cb378e2c824299412ca20ef598b`; this documentation change is not a deployment.
 
@@ -22,7 +22,7 @@ This addendum supplements the 2026-11-11 release snapshot below. Historical veri
 
 - The latest recorded Production deployment remains Worker version 14 (`62e8a337-d804-4748-8bb2-d5e0180ee2f8`) at 100% traffic, deployed from source commit `1616545a2e204cb378e2c824299412ca20ef598b` on 2026-11-11 12:31:27 UTC. The repository's current `main` has advanced to `0dd9d7752dd6410592e9dba815b2b4d0dfaa6a56`; this documentation update is not a Production deployment.
 - The first post-version-14 scheduled cleanup emitted `support_retention_cleanup_completed` at 2026-11-12 03:00:24.092 UTC. The aggregate counts were 0 support tickets, 0 idempotency records, and 3 rate-limit buckets. The scheduled handler awaits the cleanup batch before emitting this event.
-- A later scheduled invocation was recorded on 2026-11-13 03:00:23.971 UTC, but a read-only query did not find a matching completion event in the 02:50–03:30 UTC window. This does not prove a cleanup failure; it leaves that invocation's completion and aggregate counts unverified. Follow-up is tracked in [Issue #169](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/169).
+- A later scheduled invocation was recorded on 2026-11-13 03:00:23.971 UTC. At the time of this 2026-11-13 addendum, the initial read-only query did not find a matching completion event, so completion was left unverified; the 2026-11-14 follow-up query resolved this as a query/filter mismatch and confirmed the completion event. See the live status addendum above; Issue #169 was closed on 2026-11-14.
 - Production D1 records were not inspected or changed. No cleanup was invoked manually and no retention setting was changed.
 - GitHub currently reports `main.protected = false`; branch protection remains an owner/admin action tracked in [Issue #70](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/70).
 
@@ -99,8 +99,8 @@ The grounded assistant endpoint returned HTTP 200 with `mode: ai_grounded` and s
 
 - Production Cron remains configured for `0 3 * * *` UTC with the owner-selected 90-day retention period.
 - The first post-version-14 cleanup event was verified on **2026-11-12 03:00:24.092 UTC** with aggregate-only counts: 0 support tickets, 0 idempotency records, and 3 rate-limit buckets.
-- The **2026-11-13 03:00:23.971 UTC** scheduled invocation was recorded, but no matching completion event was found in the reviewed telemetry window. Successful completion and aggregate counts for that invocation remain unverified; this is not proof of failure.
-- Follow-up: [Issue #169](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/169). The first-run acceptance record is [Issue #140](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/140) (closed).
+- The **2026-11-13 03:00:23.971 UTC** invocation was initially unverified, but the 2026-11-14 read-only query with an explicit service filter and case-sensitive event needle confirmed `support_retention_cleanup_completed`. Aggregate deletion counts were 0 support tickets, 0 idempotency records, and 0 rate-limit buckets. The earlier no-match was a query/filter mismatch, not a cleanup failure.
+- Resolution: [Issue #169](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/169) was closed on 2026-11-14 after telemetry reconciliation. The first-run acceptance record is [Issue #140](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/140) (closed). Continue monitoring subsequent scheduled runs.
 - Do not manually invoke cleanup, inspect ticket contents, delete D1 rows, or alter the selected retention period to simulate a scheduled run.
 
 ### 2. Protect the main branch — owner/admin action pending
@@ -131,11 +131,9 @@ Production D1 contains support records. Their contents were not inspected or exp
 
 ## Open work
 
-- [Issue #169 — investigate missing completion telemetry on 2026-11-13](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/169)
-- [Issue #140 — first post-version-14 scheduled cleanup (closed)](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/140)
 - [Issue #70 — main branch protection and current-head CI](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/70)
 
-**Release verdict:** Production version 14 and the deployed web experience passed the checks listed above. The first post-version-14 scheduled cleanup event was verified, but a later invocation still needs telemetry reconciliation. Repository governance and the remaining explicitly scoped acceptance work also remain open; do not label the complete product vision “fully complete.”
+**Release verdict:** Production version 14 and the deployed web experience passed the checks listed above. Both the 2026-11-12 and 2026-11-13 scheduled cleanup completion events were verified with aggregate-only counts; the 2026-11-13 query discrepancy was reconciled and Issue #169 was closed. Repository governance and the remaining explicitly scoped acceptance work also remain open; do not label the complete product vision “fully complete.”
 
 
 ## Support retention completion evidence
