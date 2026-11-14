@@ -47,14 +47,14 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
   CF_ACCESS_TEAM_DOMAIN: "preview-team.cloudflareaccess.com",
   CF_ACCESS_AUD: "preview-aud",
   ADMIN_EMAILS: "ADMIN@example.test",
-  DB: { prepare(sql) { return { all: async () => ({ results: sql.includes("support_retention_runs") ? [{
+  DB: { prepare(sql) { const results = sql.includes("support_retention_runs") ? [{
    scheduled_time: "2026-11-13T03:00:00.000Z",
    completed_at: "2026-11-13T03:00:02.000Z",
    retention_days: 90,
    deleted_support_tickets: 2,
    deleted_idempotency_records: 3,
    deleted_rate_limit_buckets: 4
-  }] : [] }) }; } }
+  }] : []; return { all: async () => ({ results }), bind: (..._parameters) => ({ all: async () => ({ results: [] }) }) }; } }
  };
  try {
   const valid = createAccessJwt(privateKey);
