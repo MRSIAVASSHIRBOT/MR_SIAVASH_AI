@@ -137,7 +137,7 @@ function decodeMessageCursor(value) {
 }
 function encodeMessageCursor(message){return message.created_at+"|"+message.id;}
 async function readTicketMessages(env,ticketId,url){
- const rawLimit=url.searchParams.get("limit"),limit=rawLimit===null?50:/^\\d{1,3}$/.test(rawLimit)?Number(rawLimit):NaN;
+ const rawLimit=url.searchParams.get("limit"),limit=rawLimit===null?50:/^\d{1,3}$/.test(rawLimit)?Number(rawLimit):NaN;
  const rawCursor=url.searchParams.get("cursor"),cursor=rawCursor===null?null:decodeMessageCursor(rawCursor);
  if(!Number.isInteger(limit)||limit<1||limit>100||(rawCursor!==null&&!cursor))return null;
  const parameters=[ticketId],where=cursor?" AND (created_at<? OR (created_at=? AND id<?))":"";

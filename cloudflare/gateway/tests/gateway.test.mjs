@@ -540,7 +540,7 @@ test("admin support ticket search and keyset pagination are bounded and stable",
     return {
      bind(...parameters) {
       queries.push({ sql, parameters });
-      return { all: async () => ({ results: parameters.length === 7 ? [firstRows[2]] : firstRows }) };
+      return { all: async () => ({ results: parameters.length === 8 ? [firstRows[2]] : firstRows }) };
      }
     };
    }
