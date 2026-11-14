@@ -266,8 +266,24 @@ function supportDb() {
      return null;
     },
     async all() {
-     if (sql.startsWith("SELECT sender_role,body,created_at FROM support_messages WHERE ticket_id=?")) {
-      return { results: messages.filter(message => message.ticket_id === values[0]).map(({ sender_role, body, created_at }) => ({ sender_role, body, created_at })) };
+     if (sql.startsWith("SELECT id,sender_role,body,created_at FROM support_messages WHERE ticket_id=?")) {
+      let matching = messages.filter(message => message.ticket_id === values[0]);
+      if (values.length >= 5) {
+       const [, beforeCreatedAt, sameCreatedAt, beforeId] = values;
+       matching = matching.filter(message =>
+        message.created_at < beforeCreatedAt ||
+        (message.created_at === sameCreatedAt && message.id < beforeId)
+       );
+      }
+      matching.sort((left, right) =>
+       right.created_at.localeCompare(left.created_at) || right.id.localeCompare(left.id)
+      );
+      const limit = values[values.length - 1];
+      return {
+       results: matching.slice(0, limit).map(({ id, sender_role, body, created_at }) => ({
+        id, sender_role, body, created_at
+       }))
+      };
      }
      return { results: [] };
     }
