@@ -135,56 +135,85 @@ async function createTicket(event) {
   }
 }
 
-async function loadTicket(code, secret, root) {
-  status(root, "در حال دریافت گفتگو…");
-  const data = await request("/v1/support/tickets/" + encodeURIComponent(code), {
+async function loadTicket(code, secret, root, options = {}) {
+  const append = options.append === true;
+  const params = new URLSearchParams({ limit: "50" });
+  if (append && options.cursor) params.set("cursor", options.cursor);
+  const data = await request("/v1/support/tickets/" + encodeURIComponent(code) + "?" + params.toString(), {
     headers: { Authorization: "Bearer " + secret }
   });
-  root.replaceChildren();
-  root.append(
-    node("p", "support-ticket-heading", data.ticket.subject),
-    node("p", "support-ticket-meta", data.ticket.ticket_code + " · " + ticketStatus(data.ticket.status))
-  );
-  const messages = node("div", "support-ticket-messages");
+  let messages = root.querySelector(".support-ticket-messages");
+  let older = root.querySelector(".support-ticket-older");
+  if (!append) {
+    root.replaceChildren();
+    root.append(
+      node("p", "support-ticket-heading", data.ticket.subject),
+      node("p", "support-ticket-meta", data.ticket.ticket_code + " · " + ticketStatus(data.ticket.status))
+    );
+    messages = node("div", "support-ticket-messages");
+    root.append(messages);
+    older = node("button", "button support-ticket-older", "بارگذاری پیام‌های قدیمی‌تر");
+    older.type = "button";
+    root.append(older);
+    older.addEventListener("click", async () => {
+      const cursor = older.dataset.cursor;
+      if (!cursor || older.disabled) return;
+      older.disabled = true;
+      try {
+        await loadTicket(code, secret, root, { append: true, cursor });
+      } catch (error) {
+        status(root, error.message);
+      } finally {
+        older.disabled = false;
+      }
+    });
+  }
+  const fragment = document.createDocumentFragment();
   for (const item of Array.isArray(data.messages) ? data.messages : []) {
     const message = node("article", "support-ticket-message");
     message.append(
       node("strong", "", ({ user: "شما", admin: "پشتیبانی", assistant: "راهنمای خودکار" })[item.sender_role] || "پیام"),
       node("p", "", String(item.body || ""))
     );
-    messages.append(message);
+    fragment.append(message);
   }
-  root.append(messages);
-  const replyForm = node("form", "support-form support-ticket-reply");
-  const label = node("label", "", "پیام جدید");
-  const input = node("textarea");
-  input.rows = 3;
-  input.maxLength = 4000;
-  input.required = true;
-  const send = node("button", "button button-primary", "ارسال پاسخ");
-  send.type = "submit";
-  replyForm.append(label, input, send);
-  replyForm.addEventListener("submit", async event => {
-    event.preventDefault();
-    const message = input.value.trim();
-    if (!message || send.disabled) return;
-    send.disabled = true;
-    try {
-      await request("/v1/support/tickets/" + encodeURIComponent(code) + "/messages", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: "Bearer " + secret },
-        body: JSON.stringify({ message })
-      });
-      await loadTicket(code, secret, root);
-    } catch (error) {
-      status(root, error.message);
-    } finally {
-      send.disabled = false;
-    }
-  });
-  root.append(replyForm);
+  if (append) messages.prepend(fragment);
+  else messages.append(fragment);
+  if (older) {
+    older.dataset.cursor = data.next_cursor || "";
+    older.hidden = !data.has_more;
+  }
+  if (!append) {
+    const replyForm = node("form", "support-form support-ticket-reply");
+    const label = node("label", "", "پیام جدید");
+    const input = node("textarea");
+    input.rows = 3;
+    input.maxLength = 4000;
+    input.required = true;
+    const send = node("button", "button button-primary", "ارسال پاسخ");
+    send.type = "submit";
+    replyForm.append(label, input, send);
+    replyForm.addEventListener("submit", async event => {
+      event.preventDefault();
+      const message = input.value.trim();
+      if (!message || send.disabled) return;
+      send.disabled = true;
+      try {
+        await request("/v1/support/tickets/" + encodeURIComponent(code) + "/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: "Bearer " + secret },
+          body: JSON.stringify({ message })
+        });
+        await loadTicket(code, secret, root);
+      } catch (error) {
+        status(root, error.message);
+      } finally {
+        send.disabled = false;
+      }
+    });
+    root.append(replyForm);
+  }
 }
-
 async function trackTicket(event) {
   event.preventDefault();
   const form = event.currentTarget;
