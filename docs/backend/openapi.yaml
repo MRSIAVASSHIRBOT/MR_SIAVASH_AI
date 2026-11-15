@@ -379,9 +379,23 @@ components:
         created_at:
           type: string
           format: date-time
+    SupportTicketStatusEvent:
+      type: object
+      required: [to_status, created_at]
+      properties:
+        from_status:
+          type: string
+          nullable: true
+          enum: [open, in_progress, waiting_user, resolved]
+        to_status:
+          type: string
+          enum: [open, in_progress, waiting_user, resolved]
+        created_at:
+          type: string
+          format: date-time
     SupportTicketThread:
       type: object
-      required: [ticket, messages]
+      required: [ticket, messages, status_history]
       properties:
         ticket:
           $ref: "#/components/schemas/SupportTicket"
@@ -390,6 +404,11 @@ components:
           maxItems: 1000
           items:
             $ref: "#/components/schemas/SupportMessage"
+        status_history:
+          type: array
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/SupportTicketStatusEvent"
     Health:
       type: object
       additionalProperties: false

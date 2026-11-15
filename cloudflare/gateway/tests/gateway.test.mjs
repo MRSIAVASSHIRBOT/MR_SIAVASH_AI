@@ -257,6 +257,7 @@ import { createHash, generateKeyPairSync, sign } from "node:crypto";
 function supportDb() {
  const tickets = new Map();
  const messages = [];
+ const statusEvents = [];
  const rates = new Map();
  const db = {
   prepare(sql) {
@@ -279,6 +280,14 @@ function supportDb() {
      return null;
     },
     async all() {
+     if (sql.startsWith("SELECT id,from_status,to_status,created_at FROM support_ticket_status_events WHERE ticket_id=?")) {
+      const matching = statusEvents
+       .filter(event => event.ticket_id === values[0])
+       .sort((left, right) =>
+        right.created_at.localeCompare(left.created_at) || right.id - left.id
+       );
+      return { results: matching.slice(0, values[1]) };
+     }
      if (sql.startsWith("SELECT id,sender_role,body,created_at FROM support_messages WHERE ticket_id=?")) {
       let matching = messages.filter(message => message.ticket_id === values[0]);
       if (values.length >= 5) {
@@ -308,6 +317,10 @@ function supportDb() {
     if (statement.sql.startsWith("INSERT INTO support_tickets")) {
      const [id, ticket_code, access_token_hash, category, subject, contact_email, created_at, updated_at] = values;
      tickets.set(id, { id, ticket_code, access_token_hash, category, subject, contact_email, status: "open", created_at, updated_at });
+     statusEvents.push({
+      id: statusEvents.length + 1, ticket_id: id,
+      from_status: null, to_status: "open", created_at
+     });
     } else if (statement.sql.startsWith("INSERT INTO support_messages")) {
      const isPublicReply = statement.sql.includes("VALUES(?,?, 'user',?,?)");
      const [id, ticket_id, roleOrBody, bodyOrCreated, createdAt] = values;
@@ -317,13 +330,22 @@ function supportDb() {
     } else if (statement.sql.startsWith("UPDATE support_tickets SET status='open'")) {
      const [updated_at, id] = values;
      const ticket = tickets.get(id);
-     if (ticket) { ticket.status = "open"; ticket.updated_at = updated_at; }
+     if (ticket) {
+      if (ticket.status !== "open") {
+       statusEvents.push({
+        id: statusEvents.length + 1, ticket_id: id,
+        from_status: ticket.status, to_status: "open", created_at: updated_at
+       });
+      }
+      ticket.status = "open";
+      ticket.updated_at = updated_at;
+     }
     }
    }
    return [];
   }
  };
- return { db, tickets, messages };
+ return { db, tickets, messages, statusEvents };
 }
 
 test("support ticket credentials are stored as hashes and authorize private follow-up", async () => {
@@ -355,6 +377,7 @@ test("support ticket credentials are stored as hashes and authorize private foll
  assert.equal(privateData.ticket.id, id);
  assert.equal(privateData.messages.length, 1);
  assert.equal(privateData.messages[0].body, "سلام، این یک آزمون است.");
+ assert.deepEqual(privateData.status_history.map(event => event.to_status), ["open"]);
 
  stored.status = "resolved";
  const reply = await worker.fetch(req("/v1/support/tickets/" + code + "/messages", {
@@ -709,6 +732,10 @@ test("public and admin ticket conversations page newest messages with a stable o
   { id: "44444444-4444-4444-8444-444444444444", sender_role: "admin", body: "newest", created_at: "2026-11-14T00:00:04.000Z" }
  ];
  const queries = [];
+ const statusEvents = [
+  { id: 2, from_status: "open", to_status: "in_progress", created_at: ticket.updated_at },
+  { id: 1, from_status: null, to_status: "open", created_at: ticket.created_at }
+ ];
  const DB = {
   prepare(sql) {
    return {
@@ -716,7 +743,11 @@ test("public and admin ticket conversations page newest messages with a stable o
      queries.push({ sql, parameters });
      return {
       first: async () => ticket,
-      all: async () => ({ results: parameters.length === 2 ? [rows[3], rows[2], rows[1]] : [rows[1], rows[0]] })
+      all: async () => ({
+       results: sql.startsWith("SELECT id,from_status,to_status,created_at")
+        ? statusEvents
+        : (parameters.length === 2 ? [rows[3], rows[2], rows[1]] : [rows[1], rows[0]])
+      })
      };
     }
    };
@@ -740,6 +771,7 @@ test("public and admin ticket conversations page newest messages with a stable o
   assert.equal(adminFirstResponse.status, 200);
   const adminFirst = await adminFirstResponse.json();
   assert.deepEqual(adminFirst.messages.map(item => item.body), ["newer", "newest"]);
+  assert.deepEqual(adminFirst.status_history.map(item => item.to_status), ["open", "in_progress"]);
   assert.equal(adminFirst.has_more, true);
   assert.equal(adminFirst.next_cursor, rows[2].created_at + "|" + rows[2].id);
 
@@ -759,6 +791,7 @@ test("public and admin ticket conversations page newest messages with a stable o
   assert.equal(publicFirstResponse.status, 200);
   const publicFirst = await publicFirstResponse.json();
   assert.deepEqual(publicFirst.messages.map(item => item.body), ["newer", "newest"]);
+  assert.deepEqual(publicFirst.status_history.map(item => item.to_status), ["open", "in_progress"]);
   assert.equal(publicFirst.has_more, true);
 
   const invalid = await worker.fetch(req("/v1/support/tickets/" + ticket.ticket_code + "?cursor=bad", {

@@ -74,7 +74,7 @@ def main():
         )
     }
     require({
-        "users", "auth_identities", "workspace_tasks", "workspace_idempotency", "support_tickets", "support_messages", "api_rate_limits", "support_retention_runs"
+        "users", "auth_identities", "workspace_tasks", "workspace_idempotency", "support_tickets", "support_messages", "api_rate_limits", "support_retention_runs", "support_ticket_status_events"
     } <= tables, "identity and workspace tables were not created")
 
     indexes = {
@@ -91,6 +91,7 @@ def main():
         "idx_support_messages_ticket_created",
         "idx_api_rate_limits_expiry",
         "idx_support_retention_runs_completed",
+        "idx_support_ticket_status_events_ticket_created",
     ):
         require(index in indexes, f"required index is missing: {index}")
 
@@ -289,6 +290,35 @@ def main():
         "VALUES (?, ?, ?, ?, ?, ?, ?)",
         (support_ticket, "MS-ABC1234567", "b" * 64, "question", "Support test", now, now),
     )
+    initial_status_event = db.execute(
+        "SELECT from_status, to_status, created_at FROM support_ticket_status_events "
+        "WHERE ticket_id = ? ORDER BY id",
+        (support_ticket,),
+    ).fetchall()
+    require(initial_status_event == [(None, "open", now)],
+            "support ticket creation did not record its baseline status")
+
+    db.execute(
+        "UPDATE support_tickets SET status = ?, updated_at = ? WHERE id = ?",
+        ("in_progress", later, support_ticket),
+    )
+    db.execute(
+        "UPDATE support_tickets SET status = ?, updated_at = ? WHERE id = ?",
+        ("in_progress", "2026-11-08T10:00:00.000Z", support_ticket),
+    )
+    status_history = db.execute(
+        "SELECT from_status, to_status, created_at FROM support_ticket_status_events "
+        "WHERE ticket_id = ? ORDER BY id",
+        (support_ticket,),
+    ).fetchall()
+    require(
+        status_history == [
+            (None, "open", now),
+            ("open", "in_progress", later),
+        ],
+        "support status history did not record only real transitions",
+    )
+
     db.execute(
         "INSERT INTO support_messages (id, ticket_id, sender_role, body, created_at) "
         "VALUES (?, ?, ?, ?, ?)",
@@ -315,6 +345,13 @@ def main():
     require(
         db.execute("SELECT count(*) FROM support_messages WHERE ticket_id = ?", (support_ticket,)).fetchone()[0] == 0,
         "ticket deletion did not cascade to support messages",
+    )
+    require(
+        db.execute(
+            "SELECT count(*) FROM support_ticket_status_events WHERE ticket_id = ?",
+            (support_ticket,),
+        ).fetchone()[0] == 0,
+        "ticket deletion did not cascade to status history",
     )
 
     require(not db.execute("PRAGMA foreign_key_check").fetchall(),
