@@ -1,3 +1,20 @@
+# Live Production/source drift addendum — 2026-11-15
+
+This addendum supersedes older source-parity statements below where they differ.
+
+- Current GitHub `main`: `ef9a5d62ff579304963a92d306c2ce187dc30deb`.
+- Current Production Worker: `mr-siavash-ai-gateway`, version 14 (`62e8a337-d804-4748-8bb2-d5e0180ee2f8`) at 100% traffic.
+- The Production version annotation identifies source commit `1616545a2e204cb378e2c824299412ca20ef598b`.
+- GitHub compare from the deployed source commit to current `main` reports 35 commits ahead and 0 behind. The diff includes `cloudflare/gateway/src/index.js` (+223/-13), `cloudflare/gateway/tests/gateway.test.mjs` (+311/-20), and migration `0004_support_retention_runs.sql`, plus workflow, API, and site changes. Production source parity is therefore **not established** for current main.
+- The separate `mr-siavash-ai-gateway-preview` Worker is version 7 at 100% of that preview script; it is not the Production Worker and does not authorize a Production release.
+- Production query-string redaction is enabled and the daily `0 3 * * *` UTC schedule remains configured. The 2026-11-13 scheduled cleanup completion event was confirmed by a read-only telemetry query on 2026-11-14 with aggregate counts of 0 support tickets, 0 idempotency records, and 0 rate-limit buckets; Issue #169 was closed.
+- Main-head Quality/Pages run [#43684347126](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/43684347126) succeeded on the current main SHA. This is not a Cloudflare Production deployment.
+- The Production release workflow remains manual-only, defaults to `deploy=false`, and requires the configured production environment review gate. No deployment, D1 application-row read, route change, or Cloudflare setting mutation occurred in this review.
+- GitHub branch metadata reports `main.protected=false`; see [Issue #70](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/70).
+- Keep [Issue #120](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/120) open until current source review, preview acceptance, migration/backup/rollback review, and explicit owner approval are complete.
+
+**Release decision:** do not deploy current main to Production solely because CI is green. Review the 35-commit source delta and migration/operational impact first.
+
 # MR_SIAVASH_AI — verified release and acceptance status
 
 ## Live status addendum — 2026-11-14 (supersedes the 2026-11-13 telemetry finding)
