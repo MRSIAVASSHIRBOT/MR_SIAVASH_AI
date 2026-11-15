@@ -1,19 +1,19 @@
-# Live Production/source drift addendum — 2026-11-15
+# Production/source drift evidence snapshot — 2026-11-15 12:40 UTC
 
-This addendum supersedes older source-parity statements below where they differ.
+This is a timestamped evidence snapshot. Later documentation commits may advance `main`; re-run the source comparison before any release decision.
 
-- Current GitHub `main`: `ef9a5d62ff579304963a92d306c2ce187dc30deb`.
-- Current Production Worker: `mr-siavash-ai-gateway`, version 14 (`62e8a337-d804-4748-8bb2-d5e0180ee2f8`) at 100% traffic.
+- GitHub `main` at snapshot time: `c5a0dcd0f50e83a1f5651ae845ac179975ce10eb`.
+- Production Worker at snapshot time: `mr-siavash-ai-gateway`, version 14 (`62e8a337-d804-4748-8bb2-d5e0180ee2f8`) at 100% traffic.
 - The Production version annotation identifies source commit `1616545a2e204cb378e2c824299412ca20ef598b`.
-- GitHub compare from the deployed source commit to current `main` reports 35 commits ahead and 0 behind. The diff includes `cloudflare/gateway/src/index.js` (+223/-13), `cloudflare/gateway/tests/gateway.test.mjs` (+311/-20), and migration `0004_support_retention_runs.sql`, plus workflow, API, and site changes. Production source parity is therefore **not established** for current main.
+- GitHub compare from the deployed source commit to snapshot `main` reports **36 commits ahead and 0 behind**. The diff includes `cloudflare/gateway/src/index.js` (+223/-13), `cloudflare/gateway/tests/gateway.test.mjs` (+311/-20), and migration `0004_support_retention_runs.sql`, plus workflow, API, and site changes. Production source parity is therefore **not established** for the snapshot.
 - The separate `mr-siavash-ai-gateway-preview` Worker is version 7 at 100% of that preview script; it is not the Production Worker and does not authorize a Production release.
 - Production query-string redaction is enabled and the daily `0 3 * * *` UTC schedule remains configured. The 2026-11-13 scheduled cleanup completion event was confirmed by a read-only telemetry query on 2026-11-14 with aggregate counts of 0 support tickets, 0 idempotency records, and 0 rate-limit buckets; Issue #169 was closed.
-- Main-head Quality/Pages run [#43684347126](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/43684347126) succeeded on the current main SHA. This is not a Cloudflare Production deployment.
+- Exact-snapshot main-head checks succeeded: Gateway CI [#43709258387](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/43709258387), Quality/Pages [#43709258423](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/43709258423), Production runtime smoke [#43709258353](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/43709258353), Preview runtime smoke [#43709258499](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/43709258499), Workflow Security Audit [#43709258378](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/43709258378), and OpenSSF Scorecard [#43709258385](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/43709258385). The Pages deployment job is manual-only and was not run by these push checks. These results do not establish a Cloudflare Production deployment.
 - The Production release workflow remains manual-only, defaults to `deploy=false`, and requires the configured production environment review gate. No deployment, D1 application-row read, route change, or Cloudflare setting mutation occurred in this review.
 - GitHub branch metadata reports `main.protected=false`; see [Issue #70](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/70).
 - Keep [Issue #120](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/120) open until current source review, preview acceptance, migration/backup/rollback review, and explicit owner approval are complete.
 
-**Release decision:** do not deploy current main to Production solely because CI is green. Review the 35-commit source delta and migration/operational impact first.
+**Release decision:** do not deploy Production solely because current-main CI is green. Review the full 36-commit snapshot delta and migration/operational impact first.
 
 # MR_SIAVASH_AI — verified release and acceptance status
 
