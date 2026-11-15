@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 const html = await readFile(new URL("../academy.html", import.meta.url), "utf8");
 const js = await readFile(new URL("../academy.js", import.meta.url), "utf8");
 const progressModule = await readFile(new URL("../academy-progress.mjs", import.meta.url), "utf8");
+const backupModule = await readFile(new URL("../academy-backup.mjs", import.meta.url), "utf8");
 const guideModule = await readFile(new URL("../academy-guides.mjs", import.meta.url), "utf8");
 const assessmentModule = await readFile(new URL("../academy-assessments.mjs", import.meta.url), "utf8");
 const css = await readFile(new URL("../academy.css", import.meta.url), "utf8");
@@ -37,6 +38,11 @@ test("academy exposes six structured courses and thirty chapters", () => {
   assert.match(html, /type="module" src="\.\/academy\.js"/);
   assert.match(js, /resolveAcademyResume/);
   assert.match(js, /summarizeAcademyProgress/);
+  assert.match(html, /id="academyBackupExport"/);
+  assert.match(html, /id="academyBackupImport"/);
+  assert.match(js, /parseAcademyBackup/);
+  assert.match(backupModule, /MAX_ACADEMY_BACKUP_BYTES/);
+  assert.match(js, /renderHistory\(\)/);
   assert.match(js, /progressMeta\.lastCourse=id/);
   assert.match(js, /progressMeta\.lastLesson=lessonIndex/);
   assert.match(js, /renderDashboard\(\)/);
@@ -62,8 +68,9 @@ test("academy navigation, global search, and offline shell are integrated", () =
   assert.match(sw, /"\.\/academy\.css"/);
   assert.match(sw, /"\.\/academy\.js"/);
   assert.match(sw, /"\.\/academy-progress\.mjs"/);
+  assert.match(sw, /"\.\/academy-backup\.mjs"/);
   assert.match(sw, /"\.\/academy-guides\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v51"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v52"/);
 });
 
 test("academy layout supports mobile, keyboard, and reduced-motion preferences", () => {

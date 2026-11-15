@@ -63,7 +63,7 @@ test("assessment and capstone progress normalization is bounded and course-scope
     },
     projects:{html:[0,1,1,-1,999,"2"],unknown:[0]}
   });
-  assert.deepEqual(normalized.results.html,{score:100,passed:true,attempts:2,completedAt:"2026-11-11T12:00:00.000Z"});
+  assert.deepEqual(normalized.results.html,{score:100,passed:true,attempts:2,completedAt:"2026-11-11T12:00:00.000Z",history:[]});
   assert.equal(normalized.results.css,undefined);
   assert.equal(normalized.results.unknown,undefined);
   assert.deepEqual(normalized.projects.html,[0,1]);
@@ -80,4 +80,38 @@ test("assessment data is immutable and project checks do not imply a passed exam
   const state=normalizeAcademyAssessmentState({projects:{linux:[0,1,2,3,4]}});
   assert.deepEqual(state.projects.linux,[0,1,2,3,4]);
   assert.equal(state.results.linux,undefined);
+});
+
+
+test("assessment attempt history is validated, newest-first and capped at twenty entries",()=>{
+  const history=Array.from({length:25},(_,index)=>({
+    score:index===0?120:100-index,
+    correct:5,
+    total:5,
+    passed:index%2===0,
+    completedAt:"2026-11-11T12:00:00.000Z"
+  }));
+  history.splice(1,0,{score:"bad",correct:1,total:5,completedAt:"invalid"});
+  const state=normalizeAcademyAssessmentState({
+    results:{html:{score:90,attempts:26,history}}
+  });
+  const attempts=state.results.html.history;
+  assert.equal(attempts.length,20);
+  assert.equal(attempts[0].score,99);
+  assert.equal(attempts[0].passed,true);
+  assert.equal(attempts[1].score,98);
+  assert.equal(attempts[0].completedAt,"2026-11-11T12:00:00.000Z");
+  assert.deepEqual(
+    normalizeAcademyAssessmentState(serializeAcademyAssessmentState(state)),
+    state
+  );
+});
+
+test("legacy assessment results remain compatible and never invent history",()=>{
+  const state=normalizeAcademyAssessmentState({
+    results:{css:{score:60,attempts:1,completedAt:null}}
+  });
+  assert.deepEqual(state.results.css,{
+    score:60,passed:false,attempts:1,completedAt:null,history:[]
+  });
 });
