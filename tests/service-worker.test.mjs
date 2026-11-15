@@ -146,11 +146,12 @@ test("install precaches the complete shell before activating the worker", async 
   assert.ok(precache.precache.includes("https://example.test/app/academy.css"));
   assert.ok(precache.precache.includes("https://example.test/app/academy.js"));
   assert.ok(precache.precache.includes("https://example.test/app/academy-guides.mjs"));
+  assert.ok(precache.precache.includes("https://example.test/app/academy-backup.mjs"));
   assert.ok(precache.precache.includes("https://example.test/app/studio.html"));
   assert.ok(precache.precache.includes("https://example.test/app/studio-portfolio.css"));
   assert.ok(precache.precache.includes("https://example.test/app/studio-portfolio.css"));
   assert.ok(precache.precache.includes("https://example.test/app/studio-portfolio.js"));
-  assert.equal(precache.precache.length, 39);
+  assert.equal(precache.precache.length, 40);
   assert.ok(precache.precache.includes("https://example.test/app/academy-assessments.mjs"));
   assert.ok(precache.precache.includes("https://example.test/app/academy-portfolio.mjs"));
   assert.ok(precache.precache.includes("https://example.test/app/academy-tutor.js"));
