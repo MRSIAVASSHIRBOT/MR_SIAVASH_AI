@@ -141,3 +141,16 @@
 .academy-content-caption{color:#aebdb2;font-size:.78rem;line-height:1.9}
 @media(max-width:760px){.academy-content-layout{grid-template-columns:1fr}.academy-content-form,.academy-content-list{padding:15px}.academy-content-actions{flex-direction:column}.academy-content-actions .button{width:100%;justify-content:center}}
 @media(forced-colors:active){.academy-content-notice,.academy-content-form,.academy-content-list,.academy-draft-open{border:1px solid CanvasText}}
+
+
+/* Portable learning backups and assessment history */
+.academy-dashboard-tools{display:grid;justify-items:end;gap:10px}
+.academy-backup-actions{display:flex;flex-wrap:wrap;gap:8px}
+.academy-backup-actions .button{min-height:38px;font-size:.8rem}
+.academy-backup-file{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;clip-path:inset(50%)}
+.academy-assessment-history-heading{margin:18px 0 8px;color:#cfe5d3;font-size:.92rem}
+.academy-assessment-history{display:grid;gap:7px;margin:0 0 18px;padding:0;list-style:none}
+.academy-assessment-history li{display:flex;justify-content:space-between;gap:12px;padding:9px 12px;border:1px solid #2a4031;border-radius:10px;background:#0c1510;color:#aebdb2;font-size:.78rem}
+.academy-assessment-history li strong{color:#cdebd5;font-weight:650}
+@media(max-width:720px){.academy-dashboard-tools{justify-items:stretch}.academy-backup-actions{display:grid;grid-template-columns:1fr 1fr}.academy-backup-actions .button{width:100%;justify-content:center}.academy-assessment-history li{align-items:flex-start;flex-direction:column;gap:4px}}
+@media(forced-colors:active){.academy-assessment-history li{border:1px solid CanvasText}}
