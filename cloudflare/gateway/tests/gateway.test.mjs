@@ -73,6 +73,7 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
    headers: { "Cf-Access-Jwt-Assertion": valid }
   }), env);
   assert.equal(page.status, 200);
+  assert.ok(page.headers.get("x-request-id"));
   assert.match(page.headers.get("content-type") || "", /text\/html/i);
   const pageHtml = await page.text();
   assert.match(pageHtml, /SUPPORT CONSOLE/);
