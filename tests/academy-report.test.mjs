@@ -25,10 +25,10 @@ test("learning report summarizes lesson, assessment and capstone progress", () =
   });
 
   assert.match(html, /پیشرفت کل/);
-  assert.match(html, /۲ از ۳/);
+  assert.match(html, /2 از 3/);
   assert.match(html, /HTML/);
   assert.match(html, /حدنصاب کسب شده/);
-  assert.match(html, /۲ \/ ۵/);
+  assert.match(html, /2 \/ 5/);
   assert.match(html, /این گزارش فقط از اطلاعات ذخیره‌شده در همین مرورگر/);
   assert.match(html, /@media print/);
   assert.doesNotMatch(html, /<script\b/i);
