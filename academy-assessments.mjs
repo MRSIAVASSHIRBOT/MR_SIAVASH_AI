@@ -114,7 +114,7 @@ function normalizeAssessmentTimestamp(value) {
 
 function normalizeAssessmentHistory(raw) {
   if (!Array.isArray(raw)) return [];
-  return raw.slice(0, MAX_ASSESSMENT_HISTORY).flatMap(item => {
+  return raw.flatMap(item => {
     if (!item || typeof item !== "object" || Array.isArray(item) ||
         !Number.isInteger(item.score) || item.score < 0 || item.score > 100 ||
         !Number.isInteger(item.total) || item.total < 1 || item.total > 100 ||
@@ -128,7 +128,7 @@ function normalizeAssessmentHistory(raw) {
       passed: item.score >= PASS_PERCENTAGE,
       completedAt: normalizeAssessmentTimestamp(item.completedAt)
     }];
-  });
+  }).slice(0, MAX_ASSESSMENT_HISTORY);
 }
 
 export function normalizeAcademyAssessmentState(raw) {
