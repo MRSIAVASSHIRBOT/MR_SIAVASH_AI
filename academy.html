@@ -18,7 +18,14 @@
 <section class="academy-dashboard" id="academyDashboard" aria-labelledby="academyDashboardTitle" aria-live="polite">
   <div class="academy-dashboard-heading">
     <div><div class="eyebrow">YOUR LEARNING OVERVIEW</div><h2 id="academyDashboardTitle">داشبورد یادگیری</h2></div>
-    <span class="academy-dashboard-local">ذخیره‌شده در همین مرورگر</span>
+    <div class="academy-dashboard-tools">
+      <span class="academy-dashboard-local">ذخیره‌شده در همین مرورگر</span>
+      <div class="academy-backup-actions" role="group" aria-label="پشتیبان‌گیری از اطلاعات یادگیری">
+        <button id="academyBackupExport" class="button button-quiet" type="button">دریافت پشتیبان</button>
+        <button id="academyBackupImport" class="button button-quiet" type="button">بازیابی پشتیبان</button>
+        <input id="academyBackupFile" class="academy-backup-file" type="file" accept=".json,application/json" aria-label="انتخاب فایل پشتیبان آکادمی">
+      </div>
+    </div>
   </div>
   <div id="academyDashboardContent" class="academy-dashboard-content">
     <p class="academy-dashboard-empty">در حال آماده‌سازی نمای پیشرفت...</p>
