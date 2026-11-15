@@ -21,9 +21,14 @@ The public Gateway must not:
 
 An owner console or private cross-service workflow requires a separately designed server-side trust path with explicit identity binding, scoped authorization, audit events, bounded requests, and tests. It must not be implemented by adding private Hub credentials to the public Gateway or browser bundle.
 
-## Observability gap
+## Request correlation
 
-The ecosystem's v1 contract does not yet standardize end-to-end `X-Request-ID` propagation. Gateway-local request IDs must not be described as proof of cross-service correlation.
+The public Gateway and the private EL_AI ↔ Hub integration use separate correlation contexts:
+
+- **Public Gateway:** accepts a syntactically valid UUID (versions 1–8, RFC 4122 variant) in `X-Request-ID`, normalizes accepted values to lowercase, and generates a UUIDv4 when the header is absent or invalid. It returns the canonical value in the `X-Request-ID` response header; JSON API responses also include `request_id`. Admin HTML and CORS preflight responses carry the response header as well.
+- **Private Hub integration:** EL_AI generates a separate UUID per logical Hub operation, reuses it for the permitted 401 retry, and gives refresh/pairing calls independent IDs. The Hub validates canonical lowercase UUIDs, replaces missing or invalid values, echoes the canonical value, and emits privacy-safe route-template logs.
+
+A public Gateway request ID is **not** forwarded to the private Hub and is not proof of cross-service correlation. The public Gateway remains a public-only service with no private Hub credentials, routes, or data access. Request IDs are diagnostic metadata only; they do not grant permissions or act as idempotency keys.
 
 ## Compatibility
 
