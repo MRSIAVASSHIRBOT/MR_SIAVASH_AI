@@ -51,6 +51,32 @@ function ticketStatus(value) {
   return ({ open: "باز", in_progress: "در حال بررسی", waiting_user: "در انتظار پاسخ کاربر", resolved: "پاسخ داده‌شده" })[value] || "نامشخص";
 }
 
+function renderTicketStatusHistory(events) {
+  const section = node("section", "support-ticket-history");
+  section.setAttribute("aria-label", "تاریخچه تغییر وضعیت");
+  section.append(node("strong", "", "تاریخچه وضعیت"));
+  const list = node("ol", "");
+  const history = Array.isArray(events) ? events.slice(-50) : [];
+  if (!history.length) {
+    list.append(node("li", "", "هنوز سابقه‌ای برای وضعیت درخواست ثبت نشده است."));
+  }
+  for (const event of history) {
+    if (!event || typeof event !== "object") continue;
+    const item = node("li", "");
+    const transition = event.from_status
+      ? "از " + ticketStatus(event.from_status) + " به " + ticketStatus(event.to_status)
+      : "درخواست ثبت شد · " + ticketStatus(event.to_status);
+    const date = typeof event.created_at === "string" && Number.isFinite(Date.parse(event.created_at))
+      ? new Date(event.created_at) : null;
+    const time = node("time", "", date ? date.toLocaleString("fa-IR") : "زمان نامشخص");
+    if (date) time.dateTime = event.created_at;
+    item.append(node("span", "", transition), time);
+    list.append(item);
+  }
+  section.append(list);
+  return section;
+}
+
 async function checkAvailability() {
   const requestForm = $("#supportRequestForm");
   const trackForm = $("#ticketTrackForm");
@@ -148,7 +174,8 @@ async function loadTicket(code, secret, root, options = {}) {
     root.replaceChildren();
     root.append(
       node("p", "support-ticket-heading", data.ticket.subject),
-      node("p", "support-ticket-meta", data.ticket.ticket_code + " · " + ticketStatus(data.ticket.status))
+      node("p", "support-ticket-meta", data.ticket.ticket_code + " · " + ticketStatus(data.ticket.status)),
+      renderTicketStatusHistory(data.status_history)
     );
     messages = node("div", "support-ticket-messages");
     root.append(messages);

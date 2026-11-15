@@ -98,3 +98,12 @@
 .assistant-online-consent{margin:10px 0}
 #assistantOnlineStatus{min-height:1.5em;color:var(--muted);font-size:11px;line-height:1.8}
 .assistant-mode-switch button:focus-visible{outline:2px solid var(--green-bright);outline-offset:3px}
+
+
+.support-ticket-history{display:grid;gap:8px;margin:14px 0;padding:12px;border:1px solid var(--line);border-radius:10px;background:rgba(255,255,255,.025)}
+.support-ticket-history>strong{color:var(--green-bright);font-size:12px}
+.support-ticket-history ol{display:grid;gap:7px;margin:0;padding:0;list-style:none}
+.support-ticket-history li{display:flex;justify-content:space-between;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);color:var(--text);font-size:11px}
+.support-ticket-history li:last-child{border-bottom:0}
+.support-ticket-history time{color:var(--muted);font-size:10px;white-space:nowrap}
+@media(max-width:560px){.support-ticket-history li{align-items:flex-start;flex-direction:column;gap:3px}}
