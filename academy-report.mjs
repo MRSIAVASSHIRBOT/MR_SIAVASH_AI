@@ -130,7 +130,7 @@ export function createAcademyLearningReport({
     ".course-head{display:flex;justify-content:space-between;gap:12px;align-items:center}.score{font-size:20px;color:#176c36}.track{height:8px;background:#e6eee7;border-radius:9px;overflow:hidden;margin:10px 0}.track span{display:block;height:100%;background:#328c50}" +
     ".facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}.facts p{margin:4px 0;padding:8px;background:#f7faf7;border-radius:8px;font-size:13px}.lessons{margin:10px 0 0;padding:0 22px;display:grid;gap:3px}.lessons li{font-size:13px}.lessons li.done{color:#176c36}.lessons li.pending{color:#6c776e}.mark{display:inline-block;min-width:22px;color:#328c50}" +
     ".notice{font-size:12px;color:#647267;margin-top:16px}@media print{body{background:#fff}.hero,.course{break-inside:avoid;border-color:#bbb;box-shadow:none}main{margin:0 auto;padding:0}.course{page-break-inside:avoid}}" +
-    "</style></head><body><main><header class="hero"><h1>گزارش پیشرفت آکادمی</h1>" +
+    '</style></head><body><main><header class="hero"><h1>گزارش پیشرفت آکادمی</h1>' +
     '<p class="muted">MR_SIAVASH_AI · زمان تهیه: <time datetime="' + escapeHtml(generatedAt) + '">' +
     escapeHtml(generatedDate) + "</time></p><div class=\"metrics\">" + summaryCards + "</div></header>" +
     sections +
