@@ -105,6 +105,32 @@ export function gradeAcademyAssessment(courseId, answers) {
   return { score, correct, total:assessment.questions.length, passed:score >= PASS_PERCENTAGE, passPercentage:PASS_PERCENTAGE, details };
 }
 
+const MAX_ASSESSMENT_HISTORY = 20;
+
+function normalizeAssessmentTimestamp(value) {
+  return typeof value === "string" && value.length <= 40 && Number.isFinite(Date.parse(value))
+    ? value : null;
+}
+
+function normalizeAssessmentHistory(raw) {
+  if (!Array.isArray(raw)) return [];
+  return raw.slice(0, MAX_ASSESSMENT_HISTORY).flatMap(item => {
+    if (!item || typeof item !== "object" || Array.isArray(item) ||
+        !Number.isInteger(item.score) || item.score < 0 || item.score > 100 ||
+        !Number.isInteger(item.total) || item.total < 1 || item.total > 100 ||
+        !Number.isInteger(item.correct) || item.correct < 0 || item.correct > item.total) {
+      return [];
+    }
+    return [{
+      score: item.score,
+      correct: item.correct,
+      total: item.total,
+      passed: item.score >= PASS_PERCENTAGE,
+      completedAt: normalizeAssessmentTimestamp(item.completedAt)
+    }];
+  });
+}
+
 export function normalizeAcademyAssessmentState(raw) {
   let value=raw;
   if(typeof value==="string"){
@@ -116,7 +142,13 @@ export function normalizeAcademyAssessmentState(raw) {
   for(const id of COURSE_IDS){
     const result=value.results?.[id];
     if(result&&typeof result==="object"&&Number.isInteger(result.score)&&result.score>=0&&result.score<=100&&Number.isInteger(result.attempts)&&result.attempts>=1&&result.attempts<=10000){
-      results[id]={score:result.score,passed:result.score>=PASS_PERCENTAGE,attempts:result.attempts,completedAt:typeof result.completedAt==="string"&&result.completedAt.length<=40&&Number.isFinite(Date.parse(result.completedAt))?result.completedAt:null};
+      results[id]={
+        score:result.score,
+        passed:result.score>=PASS_PERCENTAGE,
+        attempts:result.attempts,
+        completedAt:normalizeAssessmentTimestamp(result.completedAt),
+        history:normalizeAssessmentHistory(result.history)
+      };
     }
     const checks=value.projects?.[id];
     if(Array.isArray(checks))projects[id]=[...new Set(checks.filter(index=>Number.isInteger(index)&&index>=0&&index<assessments[id].project.deliverables.length))].sort((a,b)=>a-b);
