@@ -63,7 +63,7 @@ async function restoreAcademyBackup(file){
  if(!file)return;
  if(file.size>MAX_ACADEMY_BACKUP_BYTES)throw new Error("حجم فایل پشتیبان از ۶۴ کیلوبایت بیشتر است.");
  const restored=parseAcademyBackup(await file.text(),courses);
- if(!window.confirm("بازیابی، پیشرفت و نتایج فعلی آکادمی را با اطلاعات فایل جایگزین می‌کند. ادامه می‌دهی؟"))return false;
+ if(!window.confirm("بازیابی، پیشرفت و نتایج فعلی آکادمی را با اطلاعات فایل جایگزین می‌کند. ادامه می‌دهی؟")){const status=$("#academyStatus");if(status)status.textContent="بازیابی پشتیبان لغو شد؛ اطلاعات فعلی بدون تغییر ماندند.";return false;}
  const oldProgress=localStorage.getItem(key),oldAssessments=localStorage.getItem(assessmentKey);
  try{
   localStorage.setItem(key,serializeAcademyProgress(restored.progress,restored.meta));
@@ -73,7 +73,7 @@ async function restoreAcademyBackup(file){
    if(oldProgress===null)localStorage.removeItem(key);else localStorage.setItem(key,oldProgress);
    if(oldAssessments===null)localStorage.removeItem(assessmentKey);else localStorage.setItem(assessmentKey,oldAssessments);
   }catch{}
-  throw new Error("ذخیره پشتیبان کامل نشد؛ داده‌های قبلی برای بازیابی حفظ شدند.");
+  throw new Error("ذخیره پشتیبان کامل نشد؛ تلاش برای بازگردانی داده‌های قبلی انجام شد.");
  }
  progress=restored.progress;progressMeta=restored.meta;assessmentState=restored.assessmentState;
  renderCards();renderDashboard();
