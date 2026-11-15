@@ -5,8 +5,20 @@ const req=(path,options={})=>new Request("https://gateway.example.test"+path,opt
 const env={ALLOWED_ORIGINS:"https://app.example.test"};
 function db(){return{prepare(sql){if(sql==="SELECT 1 AS ok")return{first:async()=>({ok:1})};throw new Error("unexpected SQL in route test");}};}
 test("liveness is independent of D1",async()=>{const r=await worker.fetch(req("/v1/health/live"),{});assert.equal(r.status,200);assert.equal((await r.json()).status,"ok");assert.ok(r.headers.get("x-request-id"));});
+test("request correlation echoes canonical UUIDs and replaces malformed values",async()=>{
+ const supplied="123e4567-e89b-42d3-a456-426614174000";
+ const accepted=await worker.fetch(req("/v1/health/live",{headers:{"X-Request-ID":supplied}}),{});
+ assert.equal(accepted.headers.get("x-request-id"),supplied);
+ assert.equal((await accepted.json()).request_id,supplied);
+ const rejected=await worker.fetch(req("/v1/health/live",{headers:{"X-Request-ID":"not-a-uuid"}}),{});
+ const generated=rejected.headers.get("x-request-id");
+ assert.notEqual(generated,"not-a-uuid");
+ assert.match(generated,/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+ const nil=await worker.fetch(req("/v1/health/live",{headers:{"X-Request-ID":"00000000-0000-0000-0000-000000000000"}}),{});
+ assert.notEqual(nil.headers.get("x-request-id"),"00000000-0000-0000-0000-000000000000");
+});
 test("readiness requires the D1 binding",async()=>{assert.equal((await worker.fetch(req("/v1/health/ready"),{})).status,503);assert.equal((await worker.fetch(req("/v1/health/ready"),{DB:db()})).status,200);});
-test("CORS allows only exact origin and approved methods and headers",async()=>{const r=await worker.fetch(req("/v1/health/live",{method:"OPTIONS",headers:{Origin:"https://app.example.test","Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type,authorization,x-request-id"}}),env);assert.equal(r.status,204);assert.equal(r.headers.get("access-control-allow-methods"),"GET, POST, PATCH");assert.equal(r.headers.get("access-control-allow-credentials"),"true");const bad=await worker.fetch(req("/v1/health/live",{method:"OPTIONS",headers:{Origin:"https://evil.test","Access-Control-Request-Method":"DELETE"}}),env);assert.equal(bad.status,403);assert.equal(bad.headers.get("access-control-allow-origin"),null);});
+test("CORS allows only exact origin and approved methods and headers",async()=>{const r=await worker.fetch(req("/v1/health/live",{method:"OPTIONS",headers:{Origin:"https://app.example.test","Access-Control-Request-Method":"POST","Access-Control-Request-Headers":"content-type,authorization,x-request-id"}}),env);assert.equal(r.status,204);assert.equal(r.headers.get("access-control-allow-methods"),"GET, POST, PATCH");assert.equal(r.headers.get("access-control-allow-credentials"),"true");assert.ok(r.headers.get("x-request-id"));const bad=await worker.fetch(req("/v1/health/live",{method:"OPTIONS",headers:{Origin:"https://evil.test","Access-Control-Request-Method":"DELETE"}}),env);assert.equal(bad.status,403);assert.equal(bad.headers.get("access-control-allow-origin"),null);});
 test("unknown routes and unsupported methods fail closed",async()=>{assert.equal((await worker.fetch(req("/v1/nope"),{})).status,404);assert.equal((await worker.fetch(req("/v1/health/live",{method:"DELETE"}),{})).status,405);});
 test("assistant validates input and fails closed without database",async()=>{const r=await worker.fetch(req("/v1/assistant/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:"سلام"})}),{});assert.equal(r.status,503);});
 test("admin dashboard and APIs reject requests without verified Access JWT",async()=>{const page=await worker.fetch(req("/admin"),{});assert.equal(page.status,401);const r=await worker.fetch(req("/v1/admin/support/tickets"),{DB:db()});assert.equal(r.status,401);assert.equal((await r.json()).error.code,"admin_auth_required");const history=await worker.fetch(req("/v1/admin/support/retention-runs"),{DB:db()});assert.equal(history.status,401);});
@@ -63,6 +75,7 @@ test("admin routes accept only a valid signed Access JWT for the configured audi
    headers: { "Cf-Access-Jwt-Assertion": valid }
   }), env);
   assert.equal(page.status, 200);
+  assert.ok(page.headers.get("x-request-id"));
   assert.match(page.headers.get("content-type") || "", /text\/html/i);
   const pageHtml = await page.text();
   assert.match(pageHtml, /SUPPORT CONSOLE/);
