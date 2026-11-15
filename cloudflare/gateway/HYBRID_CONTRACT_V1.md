@@ -27,4 +27,4 @@ The ecosystem's v1 contract does not yet standardize end-to-end `X-Request-ID` p
 
 ## Compatibility
 
-The canonical Hub manifest defines the cross-project trust boundaries. This document records the public Gateway's consumer-side obligations. The Hub contract PR must merge before relying on its main-branch manifest URL.
+The canonical Hub manifest is merged and available on the Hub `main` branch. This document records the public Gateway's consumer-side obligations; the manifest remains the source of truth for cross-project trust boundaries.
