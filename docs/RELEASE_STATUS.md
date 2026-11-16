@@ -1,3 +1,25 @@
+## Live Production/source-drift addendum — 2026-11-16 UTC
+
+This is a new read-only evidence snapshot. It supersedes the older commit-count statements below only for current source-drift status; historical deployment and telemetry records remain unchanged.
+
+- Current GitHub `main`: `00f653837e1796ee85d0587f2c4095b3c7f0a258`.
+- Active Production Worker: `mr-siavash-ai-gateway`, version 14 (`62e8a337-d804-4748-8bb2-d5e0180ee2f8`) at 100% traffic.
+- Latest observed Production deployment: `5d335319-826a-40b0-8d65-cd9fdbe1c4ad`, created 2026-11-11 12:31:27 UTC.
+- The active version-14 source annotation identifies `1616545a2e204cb378e2c824299412ca20ef598b`.
+- GitHub compare from that deployed source annotation to current `main` reports **40 commits ahead, 0 behind**. The delta includes Gateway runtime/tests, Academy/support changes, and D1 migrations `0004_support_retention_runs.sql` and `0005_support_ticket_status_history.sql`.
+- Current-main checks on `00f653837e1796ee85d0587f2c4095b3c7f0a258` succeeded: Gateway CI, Quality/Pages, Production Runtime Smoke, Preview Runtime Smoke, Workflow Security Audit and OpenSSF Scorecard. The static Pages deployment job was skipped on the push event; no Pages deployment is claimed.
+- The isolated SQLite migration suite validates the ordered migration chain, the retention-run constraints, support-ticket status-history baseline/transition triggers, indexes and cascade behavior. This is not evidence that migrations 0004/0005 have been applied to Production D1. The live Production D1 migration state was not queried.
+- The separate Preview Worker is not Production. The latest observed Preview state is version 6; a version-7 deployment was followed by rollback to version 6. Preview acceptance must be repeated against the exact release candidate before any Production decision.
+- The Production release workflow remains manual-only, defaults to `deploy=false`, requires `main` when deployment is requested, and uses the owner-controlled `cloudflare-production` environment gate.
+- [Issue #120](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/120) remains open for complete source review, Preview acceptance, Production D1 migration-state verification, backup/rollback review and explicit owner approval.
+- [Issue #70](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/issues/70) remains open for owner-managed branch protection. No access-control settings were changed.
+
+**Release decision:** do not deploy Production from green CI or the commit comparison alone. First verify the live migration state without exposing application rows, rehearse the candidate against isolated Preview, validate backups and rollback, and obtain explicit owner approval.
+
+No Production Worker deployment, D1 migration, application-row read, route/DNS change, secret, schedule or Cloudflare setting was changed for this snapshot.
+
+---
+
 # Production/source drift evidence snapshot — 2026-11-15 12:40 UTC
 
 This is a timestamped evidence snapshot. Later documentation commits may advance `main`; re-run the source comparison before any release decision.
