@@ -135,3 +135,21 @@ test("academy renders interactive assessments and capstone checklists safely", (
   assert.match(css, /\.academy-capstone-checklist/);
   assert.match(assessmentModule, /PASS_PERCENTAGE = 80/);
 });
+
+
+test("academy portfolio exposes evidence-based achievement progression", async () => {
+  const module = await import("../academy-achievements.mjs");
+  const ids = module.deriveAcademyAchievementProgress({
+    progress: {},
+    assessments: { results: {}, projects: {} },
+    practice: {}
+  }).map(item => item.id);
+  assert.equal(ids.length, 10);
+  assert.ok(ids.includes("assessment-master"));
+  assert.ok(ids.includes("capstone-master"));
+  assert.ok(ids.includes("practice-master"));
+  const portfolio = await readFile(new URL("../academy-portfolio.mjs", import.meta.url), "utf8");
+  assert.match(portfolio, /achievementProgress: deriveProgression/);
+  assert.match(portfolio, /academy-portfolio-progression/);
+  assert.doesNotMatch(portfolio, /\\.innerHTML\\s*=/);
+});
