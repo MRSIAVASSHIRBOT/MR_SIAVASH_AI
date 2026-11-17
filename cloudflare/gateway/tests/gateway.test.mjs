@@ -829,6 +829,12 @@ test("public and admin ticket conversations page newest messages with a stable o
     { headers: { Authorization: "Bearer " + "a".repeat(64) } }
    ), { DB });
    assert.equal(invalidStatus.status, 400);
+   const unsafeStatusCursor = await worker.fetch(req(
+    "/v1/support/tickets/" + ticket.ticket_code + "?status_cursor=" +
+     encodeURIComponent(ticket.updated_at + "|9007199254740992"),
+    { headers: { Authorization: "Bearer " + "a".repeat(64) } }
+   ), { DB });
+   assert.equal(unsafeStatusCursor.status, 400);
    const invalid = await worker.fetch(req("/v1/support/tickets/" + ticket.ticket_code + "?cursor=bad", {
    headers: { Authorization: "Bearer " + "a".repeat(64) }
   }), { DB });
