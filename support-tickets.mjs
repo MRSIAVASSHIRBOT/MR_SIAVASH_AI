@@ -51,16 +51,9 @@ function ticketStatus(value) {
   return ({ open: "باز", in_progress: "در حال بررسی", waiting_user: "در انتظار پاسخ کاربر", resolved: "پاسخ داده‌شده" })[value] || "نامشخص";
 }
 
-function renderTicketStatusHistory(events) {
-  const section = node("section", "support-ticket-history");
-  section.setAttribute("aria-label", "تاریخچه تغییر وضعیت");
-  section.append(node("strong", "", "تاریخچه وضعیت"));
-  const list = node("ol", "");
-  const history = Array.isArray(events) ? events.slice(-50) : [];
-  if (!history.length) {
-    list.append(node("li", "", "هنوز سابقه‌ای برای وضعیت درخواست ثبت نشده است."));
-  }
-  for (const event of history) {
+function appendTicketStatusEvents(list, events, prepend = false) {
+  const fragment = document.createDocumentFragment();
+  for (const event of Array.isArray(events) ? events : []) {
     if (!event || typeof event !== "object") continue;
     const item = node("li", "");
     const transition = event.from_status
@@ -71,9 +64,24 @@ function renderTicketStatusHistory(events) {
     const time = node("time", "", date ? date.toLocaleString("fa-IR") : "زمان نامشخص");
     if (date) time.dateTime = event.created_at;
     item.append(node("span", "", transition), time);
-    list.append(item);
+    fragment.append(item);
   }
+  if (prepend) list.prepend(fragment);
+  else list.append(fragment);
+}
+function renderTicketStatusHistory(events, options = {}) {
+  const section = node("section", "support-ticket-history");
+  section.setAttribute("aria-label", "تاریخچه تغییر وضعیت");
+  section.append(node("strong", "", "تاریخچه وضعیت"));
+  const list = node("ol", "");
+  appendTicketStatusEvents(list, events);
+  if (!list.children.length) list.append(node("li", "", "هنوز سابقه‌ای برای وضعیت درخواست ثبت نشده است."));
   section.append(list);
+  const older = node("button", "button support-ticket-history-older", "بارگذاری تغییر وضعیت‌های قدیمی‌تر");
+  older.type = "button";
+  older.dataset.cursor = options.nextCursor || "";
+  older.hidden = options.hasMore !== true;
+  section.append(older);
   return section;
 }
 
@@ -172,11 +180,34 @@ async function loadTicket(code, secret, root, options = {}) {
   let older = root.querySelector(".support-ticket-older");
   if (!append) {
     root.replaceChildren();
+    const history = renderTicketStatusHistory(data.status_history, {
+      hasMore: data.status_history_has_more,
+      nextCursor: data.status_history_next_cursor
+    });
     root.append(
       node("p", "support-ticket-heading", data.ticket.subject),
       node("p", "support-ticket-meta", data.ticket.ticket_code + " · " + ticketStatus(data.ticket.status)),
-      renderTicketStatusHistory(data.status_history)
+      history
     );
+    const historyOlder = history.querySelector(".support-ticket-history-older");
+    historyOlder.addEventListener("click", async () => {
+      const cursor = historyOlder.dataset.cursor;
+      if (!cursor || historyOlder.disabled) return;
+      historyOlder.disabled = true;
+      try {
+        const params = new URLSearchParams({ status_limit: "50", status_cursor: cursor });
+        const olderPage = await request("/v1/support/tickets/" + encodeURIComponent(code) + "?" + params.toString(), {
+          headers: { Authorization: "Bearer " + secret }
+        });
+        appendTicketStatusEvents(history.querySelector("ol"), olderPage.status_history, true);
+        historyOlder.dataset.cursor = olderPage.status_history_next_cursor || "";
+        historyOlder.hidden = !olderPage.status_history_has_more;
+      } catch (error) {
+        status(root, error.message);
+      } finally {
+        historyOlder.disabled = false;
+      }
+    });
     messages = node("div", "support-ticket-messages");
     root.append(messages);
     older = node("button", "button support-ticket-older", "بارگذاری پیام‌های قدیمی‌تر");
