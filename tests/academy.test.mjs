@@ -152,5 +152,5 @@ test("academy portfolio exposes evidence-based achievement progression", async (
   const portfolio = await readFile(new URL("../academy-portfolio.mjs", import.meta.url), "utf8");
   assert.match(portfolio, /achievementProgress: deriveProgression/);
   assert.match(portfolio, /academy-portfolio-progression/);
-  assert.doesNotMatch(portfolio, /\\.innerHTML\\s*=/);
+  assert.doesNotMatch(portfolio, /\.innerHTML\s*=/);
 });
