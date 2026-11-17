@@ -39,7 +39,7 @@ import { buildAcademyDraftPreview } from "./academy-content-studio-core.mjs";
       objective: $("#academyDraftObjective").value,
       content: $("#academyDraftContent").value,
       exercise: $("#academyDraftExercise").value,
-      criteria: $("#academyDraftCriteria").value.split("\\n")
+      criteria: $("#academyDraftCriteria").value.split("\n")
     });
     preview.replaceChildren();
     preview.append(el("p", "academy-draft-preview-course", model.courseLabel));
