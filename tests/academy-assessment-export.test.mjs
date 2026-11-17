@@ -44,8 +44,23 @@ test("CSV quoting prevents formula injection and preserves embedded delimiters",
     exportedAt: "2026-11-16T12:00:00.000Z"
   });
 
-  assert.ok(csv.includes('"\'=HYPERLINK(""https://evil.test"",""open,now"")"'));
+  assert.ok(csv.includes('"' + "'" + '=HYPERLINK(""https://evil.test"",""open,now"")' + '"'));
   assert.doesNotMatch(csv, /\n=HYPERLINK/);
+});
+
+test("CSV formula protection covers Unicode whitespace before formula markers", () => {
+  const dangerousValues = ["\u00A0=1", "\u2003+1", "\uFEFF@SUM(1,1)", "\u00A0\t-1"];
+
+  for (const value of dangerousValues) {
+    const csv = createAcademyAssessmentCsv({
+      courses: [{ id: "html", title: value, lessons: [["Intro"]] }],
+      assessments: {},
+      exportedAt: "2026-11-17T10:00:00.000Z"
+    });
+    const escaped = value.replace(/"/g, '""');
+    const expectedCell = '"' + "'" + escaped + '"';
+    assert.ok(csv.includes(expectedCell), "formula marker was not neutralized for " + JSON.stringify(value));
+  }
 });
 
 test("CSV export normalizes malformed state and rejects invalid catalogs or dates", () => {
