@@ -17,7 +17,7 @@ const styles = await readFile(
 
 test("customer and admin support views render bounded status history as text nodes", () => {
   assert.match(worker, /readTicketStatusHistory/);
-  assert.match(worker, /status_history:status_history/);
+  assert.match(worker, /status_history:page\.slice/);
   assert.match(worker, /status_history_has_more/);
   assert.match(worker, /status_history_next_cursor/);
   assert.match(worker, /decodeStatusHistoryCursor/);
@@ -28,7 +28,7 @@ test("customer and admin support views render bounded status history as text nod
   assert.match(tracking, /support-ticket-history-older/);
   assert.match(tracking, /status_cursor/);
   assert.match(tracking, /appendTicketStatusEvents/);
-  assert.match(tracking, /Array\.isArray\(events\) \? events\.slice\(-50\)/);
+  assert.match(tracking, /Array\.isArray\(events\) \? events : \[\]/);
   assert.match(tracking, /time\.dateTime = event\.created_at/);
   assert.doesNotMatch(tracking, /innerHTML\s*=/);
   assert.match(styles, /\.support-ticket-history/);
