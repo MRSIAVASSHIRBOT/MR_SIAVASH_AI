@@ -29,21 +29,22 @@ test("achievement progression starts locked and gives a concrete next step", () 
 });
 
 test("progression combines lesson, assessment, capstone and practical evidence", () => {
+  const [firstCourse, secondCourse, thirdCourse] = courseIds;
   const progress = {
-    html: [0, 1, 2, 3, 4],
-    css: [0],
-    javascript: [0, 1, 2, 3, 4]
+    [firstCourse]: [0, 1, 2, 3, 4],
+    [secondCourse]: [0],
+    [thirdCourse]: [0, 1, 2, 3, 4]
   };
-  const htmlProject = getAcademyAssessment("html").project;
+  const firstProject = getAcademyAssessment(firstCourse).project;
   const practice = getAcademyChallenges().slice(0, 3);
   const state = {
     progress,
     assessments: {
       results: {
-        html: { score: 80, attempts: 1, passed: true, completedAt: "2026-11-17T10:00:00Z" }
+        [firstCourse]: { score: 80, attempts: 1, passed: true, completedAt: "2026-11-17T10:00:00Z" }
       },
       projects: {
-        html: htmlProject.deliverables.map((_item, index) => index)
+        [firstCourse]: firstProject.deliverables.map((_item, index) => index)
       }
     },
     practice: {
@@ -68,14 +69,14 @@ test("progression combines lesson, assessment, capstone and practical evidence",
 
 test("progression normalizes unknown courses, duplicate challenges and invalid indexes", () => {
   const items = deriveAcademyAchievementProgress({
-    progress: { html: [0, 0, 99, -1], unknown: [0, 1, 2, 3, 4] },
+    progress: { [courseIds[0]]: [0, 0, 99, -1], unknown: [0, 1, 2, 3, 4] },
     assessments: {
       results: { unknown: { score: 100, attempts: 1 } },
-      projects: { html: [0, 0, -1, 999] }
+      projects: { [courseIds[0]]: [0, 0, -1, 999] }
     },
     practice: {
-      completed: ["js-variables", "js-variables", "unknown"],
-      attempts: { "js-variables": 1, unknown: 99 }
+      completed: [getAcademyChallenges()[0].id, getAcademyChallenges()[0].id, "unknown"],
+      attempts: { [getAcademyChallenges()[0].id]: 1, unknown: 99 }
     }
   });
   assert.equal(byId(items, "first-step").current, 1);
@@ -83,7 +84,7 @@ test("progression normalizes unknown courses, duplicate challenges and invalid i
   assert.equal(byId(items, "assessment-passer").current, 0);
   assert.equal(byId(items, "capstone-builder").current, 0);
   assert.equal(byId(items, "practice-starter").current, 1);
-  assert.ok(courseIds.includes("html"));
+  assert.equal(courseIds.length, 6);
 });
 
 test("progress percentages are bounded and completion labels do not overcount", () => {
