@@ -154,3 +154,65 @@
 .academy-assessment-history li strong{color:#cdebd5;font-weight:650}
 @media(max-width:720px){.academy-dashboard-tools{justify-items:stretch}.academy-backup-actions{display:grid;grid-template-columns:1fr 1fr}.academy-backup-actions .button{width:100%;justify-content:center}.academy-assessment-history li{align-items:flex-start;flex-direction:column;gap:4px}}
 @media(forced-colors:active){.academy-assessment-history li{border:1px solid CanvasText}}
+
+
+.academy-portfolio-progression {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.academy-portfolio-progression-card {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(21, 32, 25, .14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, .72);
+}
+.academy-portfolio-progression-card.is-earned {
+  border-color: rgba(117, 197, 141, .72);
+  background: rgba(117, 197, 141, .09);
+}
+.academy-portfolio-progression-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.academy-portfolio-progression-heading strong {
+  color: #152019;
+}
+.academy-portfolio-progression-heading span {
+  flex: 0 0 auto;
+  color: #48604e;
+  font-size: 12px;
+}
+.academy-portfolio-progression-card > p {
+  color: #526257;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.academy-portfolio-progress-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e1e9e2;
+}
+.academy-portfolio-progress-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #75c58d;
+}
+.academy-portfolio-progression-card.is-locked .academy-portfolio-progress-fill {
+  background: #a8b5aa;
+}
+.academy-portfolio-next-step {
+  margin-bottom: 0;
+  font-weight: 600;
+}
+@media (max-width: 900px) {
+  .academy-portfolio-progression { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 650px) {
+  .academy-portfolio-progression { grid-template-columns: 1fr; }
+}
