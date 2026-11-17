@@ -1,4 +1,5 @@
 import { normalizeAcademyProgress, summarizeAcademyProgress } from "./academy-progress.mjs";
+import { deriveAcademyAchievementProgress } from "./academy-achievements.mjs";
 import { normalizeAcademyAssessmentState, getAcademyAssessment, getAcademyCourseIds } from "./academy-assessments.mjs";
 import { normalizeAcademyPracticeState, getAcademyPracticeStorageKey, getAcademyChallenges } from "./academy-practice.mjs";
 
@@ -44,6 +45,14 @@ function deriveAchievements(state) {
   return achievements;
 }
 
+function deriveProgression(state) {
+  return deriveAcademyAchievementProgress({
+    progress: state.progress,
+    assessments: state.assessments,
+    practice: state.practice
+  });
+}
+
 function element(tag, className, text) {
   const node = document.createElement(tag);
   if (className) node.className = className;
@@ -69,7 +78,8 @@ function buildExport(state, achievements) {
     summary: state.summary,
     courses,
     practice: { completedChallenges: state.practice.completed, totalChallenges: getAcademyChallenges().length, attempts: state.practice.attempts },
-    achievements
+    achievements,
+    achievementProgress: deriveProgression(state)
   };
 }
 
@@ -79,6 +89,7 @@ function render() {
   root.replaceChildren();
   const state = readState();
   const achievements = deriveAchievements(state);
+  const progression = deriveProgression(state);
   const summary = element("div", "academy-portfolio-summary");
   const stats = [
     ["پیشرفت", state.summary.percentage + "٪"],
@@ -109,6 +120,32 @@ function render() {
     list.append(card);
   }
 
+  const progressionList = element("div", "academy-portfolio-progression");
+  for (const milestone of progression) {
+    const card = element("article", "academy-portfolio-progression-card is-" + milestone.status);
+    const heading = element("div", "academy-portfolio-progression-heading");
+    heading.append(
+      element("strong", "", milestone.title),
+      element("span", "", milestone.earned ? "کسب‌شده" : milestone.progressLabel)
+    );
+    const track = element("div", "academy-portfolio-progress-track");
+    track.setAttribute("role", "progressbar");
+    track.setAttribute("aria-label", milestone.title);
+    track.setAttribute("aria-valuemin", "0");
+    track.setAttribute("aria-valuemax", String(milestone.target));
+    track.setAttribute("aria-valuenow", String(milestone.current));
+    const fill = element("span", "academy-portfolio-progress-fill");
+    fill.style.width = milestone.progressPercent + "%";
+    track.append(fill);
+    card.append(
+      heading,
+      element("p", "", milestone.description),
+      track,
+      element("p", "academy-portfolio-next-step", milestone.nextStep)
+    );
+    progressionList.append(card);
+  }
+
   const badges = element("div", "academy-portfolio-achievements");
   if (!achievements.length) badges.append(element("p", "academy-portfolio-empty", "با تکمیل درس‌ها و ثبت نتایج آزمون‌ها، دستاوردهای واقعی یادگیری در این بخش ظاهر می‌شوند."));
   for (const achievement of achievements) {
@@ -121,7 +158,8 @@ function render() {
   const exportButton = element("button", "button button-primary", "خروجی گزارش JSON");
   exportButton.type = "button";
   exportButton.addEventListener("click", () => {
-    const report = buildExport(readState(), deriveAchievements(readState()));
+    const exportState = readState();
+    const report = buildExport(exportState, deriveAchievements(exportState));
     const blob = new Blob([JSON.stringify(report, null, 2)], { type: "application/json;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const link = element("a");
@@ -136,7 +174,7 @@ function render() {
   actions.append(exportButton, printButton);
 
   const notice = element("p", "academy-portfolio-notice", "این نمایه فقط از پیشرفت، آزمون‌ها و چک‌لیست‌های ثبت‌شده در همین مرورگر ساخته می‌شود. علامت‌گذاری پروژه به معنی تأیید مستقل کیفیت آن نیست و این گزارش گواهی رسمی محسوب نمی‌شود.");
-  root.append(summary, element("h3", "academy-portfolio-subtitle", "وضعیت مسیرها"), list, element("h3", "academy-portfolio-subtitle", "دستاوردهای ثبت‌شده"), badges, actions, notice);
+  root.append(summary, element("h3", "academy-portfolio-subtitle", "وضعیت مسیرها"), list, element("h3", "academy-portfolio-subtitle", "پیشرفت دستاوردها"), progressionList, element("h3", "academy-portfolio-subtitle", "دستاوردهای ثبت‌شده"), badges, actions, notice);
 }
 
 function init() {
