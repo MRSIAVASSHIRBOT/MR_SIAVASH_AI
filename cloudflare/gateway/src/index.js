@@ -156,8 +156,8 @@ function decodeStatusHistoryCursor(value){
  if(typeof value!=="string"||value.length>96)return null;
  const separator=value.lastIndexOf("|");
  if(separator<1)return null;
- const createdAt=value.slice(0,separator),rawId=value.slice(separator+1);
- if(createdAt.length>64||!Number.isFinite(Date.parse(createdAt))||!/^\d{1,16}$/.test(rawId)||Number(rawId)<1)return null;
+ const createdAt=value.slice(0,separator),rawId=value.slice(separator+1),id=Number(rawId);
+ if(createdAt.length>64||!Number.isFinite(Date.parse(createdAt))||!/^\d{1,16}$/.test(rawId)||!Number.isSafeInteger(id)||id<1)return null;
  return {createdAt,id:Number(rawId)};
 }
 function encodeStatusHistoryCursor(event){return event.created_at+"|"+event.id;}
