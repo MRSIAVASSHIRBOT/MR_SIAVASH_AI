@@ -1,9 +1,12 @@
+import { buildAcademyDraftPreview } from "./academy-content-studio-core.mjs";
+
 (() => {
   "use strict";
   const KEY = "mr-siavash-ai.academy.content-drafts.v1";
   const COURSES = new Set(["html","css","javascript","git","linux","web-security"]);
   const $ = selector => document.querySelector(selector);
   const form = $("#academyDraftForm"), list = $("#academyDraftList"), status = $("#academyDraftStatus");
+  const preview = $("#academyDraftPreview"), previewStatus = $("#academyDraftPreviewStatus");
   let drafts = readDrafts(), selectedId = null;
   function cleanText(value, max) { return typeof value === "string" ? value.trim().slice(0, max) : ""; }
   function validate(item) {
@@ -28,8 +31,48 @@
     catch { status.textContent = "ذخیره محلی ناموفق بود؛ فضای ذخیره‌سازی مرورگر را بررسی کن."; return false; }
   }
   function el(tag, cls, value) { const node = document.createElement(tag); if (cls) node.className = cls; if (value !== undefined) node.textContent = value; return node; }
+  function renderPreview() {
+    if (!preview || !previewStatus) return;
+    const model = buildAcademyDraftPreview({
+      course: $("#academyDraftCourse").value,
+      title: $("#academyDraftTitle").value,
+      objective: $("#academyDraftObjective").value,
+      content: $("#academyDraftContent").value,
+      exercise: $("#academyDraftExercise").value,
+      criteria: $("#academyDraftCriteria").value.split("\\n")
+    });
+    preview.replaceChildren();
+    preview.append(el("p", "academy-draft-preview-course", model.courseLabel));
+    if (model.title) preview.append(el("h4", "academy-draft-preview-title", model.title));
+    const sections = [
+      ["هدف یادگیری", model.objective],
+      ["محتوای آموزشی", model.content],
+      ["تمرین یا پروژه", model.exercise]
+    ];
+    for (const [heading, value] of sections) {
+      if (!value) continue;
+      const section = el("section", "academy-draft-preview-section");
+      section.append(el("h5", "", heading), el("p", "", value));
+      preview.append(section);
+    }
+    if (model.criteria.length) {
+      const section = el("section", "academy-draft-preview-section");
+      section.append(el("h5", "", "معیارهای ارزیابی"));
+      const list = el("ul", "academy-draft-preview-criteria");
+      for (const criterion of model.criteria) list.append(el("li", "", criterion));
+      section.append(list);
+      preview.append(section);
+    }
+    if (!model.title && !model.objective && !model.content && !model.exercise && !model.criteria.length) {
+      preview.append(el("p", "academy-content-caption", "هنوز محتوایی برای پیش‌نمایش وارد نشده است."));
+    }
+    previewStatus.textContent = model.valid
+      ? "پیش‌نمایش کامل است؛ پیش‌نویس آمادهٔ ذخیره و بازبینی است."
+      : "برای تکمیل پیش‌نویس این موارد را بررسی کن: " + model.errors.join("، ");
+  }
   function render() {
     list.replaceChildren();
+    renderPreview();
     if (!drafts.length) { list.append(el("p","academy-content-caption","هنوز پیش‌نویسی ثبت نشده است.")); return; }
     for (const draft of drafts) {
       const row = el("div","academy-draft-row");
@@ -70,6 +113,8 @@
     drafts = nextDrafts;
     selectedId=item.id; render(); status.textContent="پیش‌نویس در همین مرورگر ذخیره شد؛ هنوز منتشر نشده است.";
   });
+  form.addEventListener("input", renderPreview);
+  form.addEventListener("change", renderPreview);
   $("#academyDraftNew").addEventListener("click",clearForm);
   $("#academyDraftExport").addEventListener("click",()=>{
     const blob=new Blob([JSON.stringify({schema:"mr-siavash-ai-academy-drafts",version:1,exportedAt:new Date().toISOString(),drafts},null,2)],{type:"application/json;charset=utf-8"});
