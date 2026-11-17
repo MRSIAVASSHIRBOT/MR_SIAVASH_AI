@@ -95,8 +95,9 @@ async function publicTicket(req,env,id,ticketCode,reply){
  if(!reply&&req.method==="GET"){
   const page=await readTicketMessages(env,ticket.id,new URL(req.url));
   if(!page)return json(req,env,id,400,fail("invalid_message_query","پارامترهای تاریخچه پیام نامعتبر هستند.",id));
-  const statusHistory=await readTicketStatusHistory(env,ticket.id);
-  return json(req,env,id,200,{ticket,...page,status_history:statusHistory,request_id:id});
+  const statusHistory=await readTicketStatusHistory(env,ticket.id,new URL(req.url));
+   if(!statusHistory)return json(req,env,id,400,fail("invalid_status_history_query","پارامترهای تاریخچه وضعیت نامعتبر هستند.",id));
+   return json(req,env,id,200,{ticket,...page,...statusHistory,request_id:id});
  }
  if(reply&&req.method==="POST"){
   const p=await body(req);
@@ -151,10 +152,29 @@ async function readTicketMessages(env,ticketId,url){
  return {messages:page.slice().reverse().map(({id:_id,...message})=>message),has_more:hasMore,next_cursor:hasMore&&oldest?encodeMessageCursor(oldest):null};
 }
 
-async function readTicketStatusHistory(env,ticketId){
- const query=await env.DB.prepare("SELECT id,from_status,to_status,created_at FROM support_ticket_status_events WHERE ticket_id=? ORDER BY created_at DESC,id DESC LIMIT ?").bind(ticketId,50).all();
- const rows=Array.isArray(query.results)?query.results:[];
- return rows.reverse().map(({id:_id,from_status,to_status,created_at})=>({from_status,to_status,created_at}));
+function decodeStatusHistoryCursor(value){
+ if(typeof value!=="string"||value.length>96)return null;
+ const separator=value.lastIndexOf("|");
+ if(separator<1)return null;
+ const createdAt=value.slice(0,separator),rawId=value.slice(separator+1);
+ if(createdAt.length>64||!Number.isFinite(Date.parse(createdAt))||!/^\d{1,16}$/.test(rawId)||Number(rawId)<1)return null;
+ return {createdAt,id:Number(rawId)};
+}
+function encodeStatusHistoryCursor(event){return event.created_at+"|"+event.id;}
+async function readTicketStatusHistory(env,ticketId,url){
+ const rawLimit=url.searchParams.get("status_limit"),limit=rawLimit===null?50:/^\d{1,3}$/.test(rawLimit)?Number(rawLimit):NaN;
+ const rawCursor=url.searchParams.get("status_cursor"),cursor=rawCursor===null?null:decodeStatusHistoryCursor(rawCursor);
+ if(!Number.isInteger(limit)||limit<1||limit>100||(rawCursor!==null&&!cursor))return null;
+ const parameters=[ticketId],where=cursor?" AND (created_at<? OR (created_at=? AND id<?))":"";
+ if(cursor)parameters.push(cursor.createdAt,cursor.createdAt,cursor.id);
+ parameters.push(limit+1);
+ const query=await env.DB.prepare("SELECT id,from_status,to_status,created_at FROM support_ticket_status_events WHERE ticket_id=?"+where+" ORDER BY created_at DESC,id DESC LIMIT ?").bind(...parameters).all();
+ const rows=Array.isArray(query.results)?query.results:[],hasMore=rows.length>limit,page=rows.slice(0,limit),oldest=page[page.length-1];
+ return {
+  status_history:page.slice().reverse().map(({id:_id,from_status,to_status,created_at})=>({from_status,to_status,created_at})),
+  status_history_has_more:hasMore,
+  status_history_next_cursor:hasMore&&oldest?encodeStatusHistoryCursor(oldest):null
+ };
 }
 async function admin(req,env,id,path){const identity=await adminIdentity(req,env);if(!identity)return json(req,env,id,401,fail("admin_auth_required","دسترسی مدیریتی تأیید نشد.",id));if(!env.DB)return json(req,env,id,503,fail("database_unavailable","پایگاه داده در دسترس نیست.",id));if(path==="/v1/admin/support/retention-runs"&&req.method==="GET"){
  const url=new URL(req.url),rawLimit=url.searchParams.get("limit"),rawCursor=url.searchParams.get("cursor");
@@ -177,7 +197,7 @@ async function admin(req,env,id,path){const identity=await adminIdentity(req,env
   return json(req,env,id,400,fail("invalid_ticket_query","پارامترهای فهرست درخواست‌ها نامعتبر هستند.",id));
  const clauses=[],parameters=[];
  if(status!==null){clauses.push("status=?");parameters.push(status);}
- if(search){clauses.push("(instr(lower(ticket_code),lower(?))>0 OR instr(lower(subject),lower(?))>0 OR instr(lower(COALESCE(contact_email,'')),lower(?))>0)");parameters.push(search,search,search);}
+ if(search){clauses.push("(instr(lower(ticket_code),lower(?))>0 OR instr(lower(subject),lower(?))>0 OR instr(lower(COALESCE(contact_email,'')),lower(?))>0 OR EXISTS (SELECT 1 FROM support_messages AS m WHERE m.ticket_id=support_tickets.id AND instr(lower(m.body),lower(?))>0))");parameters.push(search,search,search,search);}
  if(cursor){clauses.push("(updated_at<? OR (updated_at=? AND id<?))");parameters.push(cursor.updatedAt,cursor.updatedAt,cursor.id);}
  const statement="SELECT id,ticket_code,category,subject,contact_email,status,created_at,updated_at FROM support_tickets"+
   (clauses.length?" WHERE "+clauses.join(" AND "):"")+" ORDER BY updated_at DESC,id DESC LIMIT ?";
@@ -189,19 +209,37 @@ async function admin(req,env,id,path){const identity=await adminIdentity(req,env
   if(!ticket)return json(req,env,id,404,fail("ticket_not_found","درخواست پیدا نشد.",id));
   const page=await readTicketMessages(env,detail[1],new URL(req.url));
   if(!page)return json(req,env,id,400,fail("invalid_message_query","پارامترهای تاریخچه پیام نامعتبر هستند.",id));
-  const statusHistory=await readTicketStatusHistory(env,detail[1]);
-  return json(req,env,id,200,{ticket,...page,status_history:statusHistory,request_id:id});
+  const statusHistory=await readTicketStatusHistory(env,detail[1],new URL(req.url));
+   if(!statusHistory)return json(req,env,id,400,fail("invalid_status_history_query","پارامترهای تاریخچه وضعیت نامعتبر هستند.",id));
+   return json(req,env,id,200,{ticket,...page,...statusHistory,request_id:id});
 }if(reply&&req.method==="POST"){const exists=await env.DB.prepare("SELECT id FROM support_tickets WHERE id=?").bind(reply[1]).first();if(!exists)return json(req,env,id,404,fail("ticket_not_found","درخواست پیدا نشد.",id));const p=await body(req);if(!p.ok)return json(req,env,id,p.status,fail("invalid_json","بدنه درخواست نامعتبر است.",id));const message=typeof p.value.message==="string"?p.value.message.trim():"";if(!message||message.length>4000)return json(req,env,id,400,fail("invalid_message","متن پاسخ نامعتبر است.",id));const now=new Date().toISOString();await env.DB.batch([env.DB.prepare("INSERT INTO support_messages(id,ticket_id,sender_role,body,created_at) VALUES(?,?, 'admin',?,?)").bind(crypto.randomUUID(),reply[1],message,now),env.DB.prepare("UPDATE support_tickets SET status='waiting_user',updated_at=? WHERE id=?").bind(now,reply[1])]);return json(req,env,id,201,{accepted:true,request_id:id});}if(change&&req.method==="PATCH"){const p=await body(req);if(!p.ok)return json(req,env,id,p.status,fail("invalid_json","بدنه درخواست نامعتبر است.",id));if(!STATUSES.has(p.value.status))return json(req,env,id,400,fail("invalid_status","وضعیت نامعتبر است.",id));const r=await env.DB.prepare("UPDATE support_tickets SET status=?,updated_at=? WHERE id=?").bind(p.value.status,new Date().toISOString(),change[1]).run();if(!r.meta?.changes)return json(req,env,id,404,fail("ticket_not_found","درخواست پیدا نشد.",id));return json(req,env,id,200,{accepted:true,request_id:id});}return json(req,env,id,404,fail("not_found","مسیر مدیریتی پیدا نشد.",id));}
 function adminPage(identity,id){
   const nonce=token();
   const page=`<!doctype html><html lang="fa" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="dark"><title>مرکز پشتیبانی | MR_SIAVASH_AI</title><style nonce="${nonce}">
-  *{box-sizing:border-box}body{margin:0;background:#0b100e;color:#e8f2eb;font:14px Tahoma,Arial,sans-serif}main{max-width:1180px;margin:auto;padding:28px 18px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;border-bottom:1px solid #26352b;padding-bottom:18px}.brand{color:#a4e8b4;font-weight:bold;letter-spacing:1px}.muted{color:#9aa99e;font-size:12px}.intro{padding:28px 0}.intro h1{font-size:clamp(28px,5vw,44px);margin:8px 0}.intro h1 span{color:#8fdda3}.layout{display:grid;grid-template-columns:minmax(250px,.8fr) minmax(0,1.8fr);gap:14px}.panel{border:1px solid #26352b;border-radius:14px;background:#111a14;padding:15px;min-width:0}.head{display:flex;justify-content:space-between;align-items:center;gap:10px}.items{display:grid;gap:7px;margin-top:12px}.ticket{display:grid;gap:5px;text-align:right;padding:11px;border:1px solid #26352b;border-radius:9px;background:#0b120d;color:#e8f2eb;cursor:pointer}.ticket small{color:#9aa99e}.button,input,select,textarea{border:1px solid #315d40;border-radius:8px;background:#14231a;color:#e8f2eb;padding:9px;font:inherit}.button{cursor:pointer}#ticketSearch{width:100%;margin-top:8px}#loadMore{width:100%;margin-top:8px}#loadOlderMessages{width:100%;margin-top:8px}.messages{display:grid;gap:9px;max-height:480px;overflow:auto;padding:15px 0}.status-history{display:grid;gap:7px;margin:14px 0;padding:12px;border:1px solid #26352b;border-radius:10px;background:#0b120d}.status-history-item{display:grid;gap:3px;padding:7px 0;border-bottom:1px solid #26352b}.status-history-item:last-child{border-bottom:0}.status-history-item small{color:#9aa99e}.message{padding:11px;border:1px solid #26352b;border-radius:9px;background:#0b120d;white-space:pre-wrap;line-height:1.8;overflow-wrap:anywhere}.message.admin{border-color:#477d55;background:#14251a}.message small{display:block;color:#9fdfae;margin-bottom:5px}.form{display:grid;gap:9px}.form textarea{width:100%;min-height:95px;resize:vertical}.empty{padding:30px;text-align:center;color:#9aa99e}.error{color:#f0b2a7;font-size:12px;white-space:pre-wrap}@media(max-width:760px){.layout{grid-template-columns:1fr}.items{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:480px){.items{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}}
-  </style></head><body><main><header class="top"><span class="brand">MR_SIAVASH_AI / SUPPORT CONSOLE</span><span class="muted">مدیر احراز هویت‌شده</span></header><section class="intro"><div class="muted">CUSTOMER CARE / PRIVATE INBOX</div><h1>مدیریت <span>درخواست‌های پشتیبانی</span></h1><p class="muted">مشاهده پیام‌ها، پاسخ‌گویی و مدیریت وضعیت درخواست‌ها</p></section><section class="layout"><aside class="panel"><div class="head"><strong>درخواست‌ها</strong><button class="button" id="refresh">بروزرسانی</button></div><p class="muted" id="status">در حال دریافت...</p><select id="filter" aria-label="فیلتر وضعیت"><option value="">همه وضعیت‌ها</option><option value="open">باز</option><option value="in_progress">در حال بررسی</option><option value="waiting_user">منتظر کاربر</option><option value="resolved">بسته‌شده</option></select><input id="ticketSearch" type="search" maxlength="100" placeholder="جست‌وجو در کد، موضوع یا ایمیل تماس" aria-label="جست‌وجوی درخواست"><div class="items" id="tickets"></div><button class="button" id="loadMore" type="button" hidden>بارگذاری درخواست‌های قدیمی‌تر</button></aside><section class="panel"><div id="empty" class="empty">برای مشاهده گفتگو، یک درخواست را انتخاب کن.</div><div id="detail" hidden><div class="head"><div><small class="muted" id="code"></small><h2 id="subject"></h2><p class="muted" id="meta"></p></div><select id="ticketStatus" aria-label="وضعیت درخواست"><option value="open">باز</option><option value="in_progress">در حال بررسی</option><option value="waiting_user">منتظر کاربر</option><option value="resolved">بسته‌شده</option></select></div><div class="status-history" id="statusHistory" aria-label="تاریخچه تغییر وضعیت"></div><button class="button" id="loadOlderMessages" type="button" hidden>بارگذاری پیام‌های قدیمی‌تر</button><div class="messages" id="messages"></div><form class="form" id="reply"><label for="replyText">پاسخ شما</label><textarea id="replyText" maxlength="4000" required></textarea><button class="button" type="submit">ارسال پاسخ</button></form></div><p class="error" id="error" role="status" aria-live="polite"></p></section></section><section class="panel" id="retentionPanel"><div class="head"><strong>سابقه پاک‌سازی نگهداری</strong><span class="muted" id="retentionStatus">در حال دریافت...</span></div><div class="items" id="retentionRuns"></div><button class="button" id="loadMoreRetention" type="button" hidden>بارگذاری اجراهای قدیمی‌تر</button></section></main><script nonce="${nonce}">
+  *{box-sizing:border-box}body{margin:0;background:#0b100e;color:#e8f2eb;font:14px Tahoma,Arial,sans-serif}main{max-width:1180px;margin:auto;padding:28px 18px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;border-bottom:1px solid #26352b;padding-bottom:18px}.brand{color:#a4e8b4;font-weight:bold;letter-spacing:1px}.muted{color:#9aa99e;font-size:12px}.intro{padding:28px 0}.intro h1{font-size:clamp(28px,5vw,44px);margin:8px 0}.intro h1 span{color:#8fdda3}.layout{display:grid;grid-template-columns:minmax(250px,.8fr) minmax(0,1.8fr);gap:14px}.panel{border:1px solid #26352b;border-radius:14px;background:#111a14;padding:15px;min-width:0}.head{display:flex;justify-content:space-between;align-items:center;gap:10px}.items{display:grid;gap:7px;margin-top:12px}.ticket{display:grid;gap:5px;text-align:right;padding:11px;border:1px solid #26352b;border-radius:9px;background:#0b120d;color:#e8f2eb;cursor:pointer}.ticket small{color:#9aa99e}.button,input,select,textarea{border:1px solid #315d40;border-radius:8px;background:#14231a;color:#e8f2eb;padding:9px;font:inherit}.button{cursor:pointer}#ticketSearch{width:100%;margin-top:8px}#loadMore{width:100%;margin-top:8px}#loadOlderMessages,#loadOlderStatusHistory{width:100%;margin-top:8px}.messages{display:grid;gap:9px;max-height:480px;overflow:auto;padding:15px 0}.status-history{display:grid;gap:7px;margin:14px 0;padding:12px;border:1px solid #26352b;border-radius:10px;background:#0b120d}.status-history-item{display:grid;gap:3px;padding:7px 0;border-bottom:1px solid #26352b}.status-history-item:last-child{border-bottom:0}.status-history-item small{color:#9aa99e}.message{padding:11px;border:1px solid #26352b;border-radius:9px;background:#0b120d;white-space:pre-wrap;line-height:1.8;overflow-wrap:anywhere}.message.admin{border-color:#477d55;background:#14251a}.message small{display:block;color:#9fdfae;margin-bottom:5px}.form{display:grid;gap:9px}.form textarea{width:100%;min-height:95px;resize:vertical}.empty{padding:30px;text-align:center;color:#9aa99e}.error{color:#f0b2a7;font-size:12px;white-space:pre-wrap}@media(max-width:760px){.layout{grid-template-columns:1fr}.items{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:480px){.items{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}}
+  </style></head><body><main><header class="top"><span class="brand">MR_SIAVASH_AI / SUPPORT CONSOLE</span><span class="muted">مدیر احراز هویت‌شده</span></header><section class="intro"><div class="muted">CUSTOMER CARE / PRIVATE INBOX</div><h1>مدیریت <span>درخواست‌های پشتیبانی</span></h1><p class="muted">مشاهده پیام‌ها، پاسخ‌گویی و مدیریت وضعیت درخواست‌ها</p></section><section class="layout"><aside class="panel"><div class="head"><strong>درخواست‌ها</strong><button class="button" id="refresh">بروزرسانی</button></div><p class="muted" id="status">در حال دریافت...</p><select id="filter" aria-label="فیلتر وضعیت"><option value="">همه وضعیت‌ها</option><option value="open">باز</option><option value="in_progress">در حال بررسی</option><option value="waiting_user">منتظر کاربر</option><option value="resolved">بسته‌شده</option></select><input id="ticketSearch" type="search" maxlength="100" placeholder="جست‌وجو در کد، موضوع، ایمیل یا متن پیام" aria-label="جست‌وجوی درخواست"><div class="items" id="tickets"></div><button class="button" id="loadMore" type="button" hidden>بارگذاری درخواست‌های قدیمی‌تر</button></aside><section class="panel"><div id="empty" class="empty">برای مشاهده گفتگو، یک درخواست را انتخاب کن.</div><div id="detail" hidden><div class="head"><div><small class="muted" id="code"></small><h2 id="subject"></h2><p class="muted" id="meta"></p></div><select id="ticketStatus" aria-label="وضعیت درخواست"><option value="open">باز</option><option value="in_progress">در حال بررسی</option><option value="waiting_user">منتظر کاربر</option><option value="resolved">بسته‌شده</option></select></div><div class="status-history" id="statusHistory" aria-label="تاریخچه تغییر وضعیت"></div><button class="button" id="loadOlderStatusHistory" type="button" hidden>بارگذاری تغییر وضعیت‌های قدیمی‌تر</button><button class="button" id="loadOlderMessages" type="button" hidden>بارگذاری پیام‌های قدیمی‌تر</button><div class="messages" id="messages"></div><form class="form" id="reply"><label for="replyText">پاسخ شما</label><textarea id="replyText" maxlength="4000" required></textarea><button class="button" type="submit">ارسال پاسخ</button></form></div><p class="error" id="error" role="status" aria-live="polite"></p></section></section><section class="panel" id="retentionPanel"><div class="head"><strong>سابقه پاک‌سازی نگهداری</strong><span class="muted" id="retentionStatus">در حال دریافت...</span></div><div class="items" id="retentionRuns"></div><button class="button" id="loadMoreRetention" type="button" hidden>بارگذاری اجراهای قدیمی‌تر</button></section></main><script nonce="${nonce}">
   const $=s=>document.querySelector(s);
-let selected=null,nextCursor=null,loading=false,reloadRequested=false,searchTimer=null,messageCursor=null,messageLoading=false;
+let selected=null,nextCursor=null,loading=false,reloadRequested=false,searchTimer=null,messageCursor=null,messageLoading=false,statusCursor=null,statusLoading=false;
 const labels={open:"باز",in_progress:"در حال بررسی",waiting_user:"منتظر کاربر",resolved:"بسته‌شده"};
 async function api(path,options={}){const r=await fetch(path,{...options,credentials:"same-origin",headers:{"Content-Type":"application/json",...(options.headers||{})}});let d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error?.message||"درخواست ناموفق بود");return d}
 function el(tag,cls,text){const n=document.createElement(tag);if(cls)n.className=cls;if(text!==undefined)n.textContent=text;return n}
+function appendStatusHistory(events,prepend=false){
+ const root=$("#statusHistory"),items=Array.isArray(events)?events:[];
+ if(items.length){const empty=root.querySelector(".status-history-empty");if(empty)empty.remove();}
+ const fragment=document.createDocumentFragment();
+ for(const event of items){
+  const item=el("article","status-history-item");
+  const transition=event.from_status
+   ? (labels[event.from_status]||"نامشخص")+" ← "+(labels[event.to_status]||"نامشخص")
+   : "درخواست ثبت شد · "+(labels[event.to_status]||"نامشخص");
+  const timestamp=typeof event.created_at==="string"&&Number.isFinite(Date.parse(event.created_at))
+   ? new Date(event.created_at).toLocaleString("fa-IR") : "زمان نامشخص";
+  item.append(el("strong","",transition),el("small","",timestamp));
+  fragment.append(item);
+ }
+ if(prepend)root.prepend(fragment);else root.append(fragment);
+ if(!items.length&&!root.children.length)root.append(el("p","muted status-history-empty","سابقه تغییر وضعیت موجود نیست"));
+}
 let retentionCursor=null,retentionLoading=false,retentionReloadRequested=false;
 async function loadRetention({append=false}={}){
  if(retentionLoading){if(!append)retentionReloadRequested=true;return}
@@ -257,19 +295,10 @@ async function open(id,{append=false,cursor=null}={}){
   $("#meta").textContent=d.ticket.category+" · "+(d.ticket.contact_email||"بدون ایمیل تماس");
   $("#ticketStatus").value=d.ticket.status;
   const historyRoot=$("#statusHistory");
-  historyRoot.replaceChildren();
-  const history=Array.isArray(d.status_history)?d.status_history.slice(-50):[];
-  if(!history.length)historyRoot.append(el("p","muted","سابقه تغییر وضعیت موجود نیست"));
-  for(const event of history){
-   const item=el("article","status-history-item");
-   const transition=event.from_status
-    ? (labels[event.from_status]||"نامشخص")+" ← "+(labels[event.to_status]||"نامشخص")
-    : "درخواست ثبت شد · "+(labels[event.to_status]||"نامشخص");
-   const timestamp=typeof event.created_at==="string"&&Number.isFinite(Date.parse(event.created_at))
-    ? new Date(event.created_at).toLocaleString("fa-IR") : "زمان نامشخص";
-   item.append(el("strong","",transition),el("small","",timestamp));
-   historyRoot.append(item);
-  }
+   historyRoot.replaceChildren();
+   appendStatusHistory(d.status_history);
+   statusCursor=d.status_history_next_cursor||null;
+   $("#loadOlderStatusHistory").hidden=!d.status_history_has_more;
  }
  const root=$("#messages"),previousHeight=root.scrollHeight,previousTop=root.scrollTop;
  if(!append)root.replaceChildren();
@@ -290,6 +319,8 @@ $("#ticketSearch").addEventListener("input",()=>{clearTimeout(searchTimer);searc
 $("#loadMore").addEventListener("click",()=>load({append:true}).catch(e=>$("#error").textContent=e.message));
 $("#loadMoreRetention").addEventListener("click",()=>loadRetention({append:true}).catch(e=>$("#error").textContent=e.message));
 $("#loadOlderMessages").addEventListener("click",async()=>{if(!selected||!messageCursor||messageLoading)return;messageLoading=true;const button=$("#loadOlderMessages"),id=selected,cursor=messageCursor;button.disabled=true;try{await open(id,{append:true,cursor})}catch(e){$("#error").textContent=e.message}finally{messageLoading=false;button.disabled=false}});
+
+$("#loadOlderStatusHistory").addEventListener("click",async()=>{if(!selected||!statusCursor||statusLoading)return;statusLoading=true;const button=$("#loadOlderStatusHistory"),id=selected,cursor=statusCursor;button.disabled=true;try{const params=new URLSearchParams({status_limit:"50",status_cursor:cursor});const page=await api("/v1/admin/support/tickets/"+id+"?"+params.toString());if(selected!==id)return;appendStatusHistory(page.status_history,true);statusCursor=page.status_history_next_cursor||null;button.hidden=!page.status_history_has_more;}catch(e){$("#error").textContent=e.message}finally{statusLoading=false;button.disabled=false}});
 $("#ticketStatus").addEventListener("change",async e=>{if(!selected)return;try{await api("/v1/admin/support/tickets/"+selected+"/status",{method:"PATCH",body:JSON.stringify({status:e.target.value})});await load();await open(selected)}catch(x){$("#error").textContent=x.message}});
 $("#reply").addEventListener("submit",async e=>{e.preventDefault();if(!selected)return;const input=$("#replyText"),message=input.value.trim();if(!message)return;try{await api("/v1/admin/support/tickets/"+selected+"/messages",{method:"POST",body:JSON.stringify({message})});input.value="";await open(selected);await load()}catch(x){$("#error").textContent=x.message}});
 Promise.all([load(),loadRetention()]).catch(e=>{$("#status").textContent="خطا در بارگذاری";$("#error").textContent=e.message});
