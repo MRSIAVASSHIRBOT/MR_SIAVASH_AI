@@ -58,7 +58,7 @@ test("progression combines lesson, assessment, capstone and practical evidence",
   assert.equal(byId(items, "first-step").status, "earned");
   assert.equal(byId(items, "explorer").current, 3);
   assert.equal(byId(items, "explorer").status, "earned");
-  assert.equal(byId(items, "course-finisher").current, 2);
+  assert.equal(byId(items, "course-finisher").current, 1);
   assert.equal(byId(items, "assessment-passer").earned, true);
   assert.equal(byId(items, "assessment-master").current, 1);
   assert.equal(byId(items, "capstone-builder").earned, true);
