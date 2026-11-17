@@ -40,7 +40,7 @@ test("preview model keeps untrusted markup as plain text and rejects incomplete 
 
 test("content studio renders previews with text nodes and exposes accessible validation status", () => {
   assert.match(html, /id="academyDraftPreview"/);
-  assert.match(html, /id="academyDraftPreviewStatus" role="status"/);
+  assert.match(html, /id="academyDraftPreviewStatus".*role="status"/);
   assert.match(js, /buildAcademyDraftPreview/);
   assert.match(js, /preview\.replaceChildren\(\)/);
   assert.match(js, /textContent/);
@@ -50,5 +50,5 @@ test("content studio renders previews with text nodes and exposes accessible val
 test("content studio page and preview module are available in the offline shell", () => {
   assert.match(sw, /academy-content-studio-core\.mjs/);
   assert.match(sw, /new URL\("\.\/academy-content-studio\.html", scopeUrl\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \\+ "v57"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v57"/);
 });
