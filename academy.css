@@ -216,3 +216,17 @@
 @media (max-width: 650px) {
   .academy-portfolio-progression { grid-template-columns: 1fr; }
 }
+
+
+/* Live, text-only Academy lesson draft review */
+.academy-content-preview{margin-top:18px;padding:18px;border:1px solid #355640;border-radius:15px;background:#0d1510}
+.academy-content-preview h3{margin:0 0 8px;color:#dff1e3;font-size:1rem}
+.academy-draft-preview-status{min-height:1.5em;margin:0 0 12px;color:#a8e2b7;font-size:.8rem;line-height:1.8}
+.academy-draft-preview{display:grid;gap:12px;padding:16px;border:1px solid #293d30;border-radius:12px;background:#111a14;color:#dce9df}
+.academy-draft-preview-course{margin:0;color:#a8e2b7;font-size:.76rem}
+.academy-draft-preview-title{margin:0;color:#f0f7f1;font-size:1.2rem;line-height:1.8;overflow-wrap:anywhere}
+.academy-draft-preview-section{display:grid;gap:5px}
+.academy-draft-preview-section h5{margin:0;color:#a8e2b7;font-size:.86rem}
+.academy-draft-preview-section p{margin:0;color:#c3d1c6;line-height:2;white-space:pre-wrap;overflow-wrap:anywhere}
+.academy-draft-preview-criteria{margin:0;padding-inline-start:22px;color:#c3d1c6;line-height:1.9}
+@media(forced-colors:active){.academy-content-preview,.academy-draft-preview{border:1px solid CanvasText}}

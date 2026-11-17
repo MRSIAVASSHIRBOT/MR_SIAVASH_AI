@@ -140,3 +140,8 @@ Acceptance gates:
 - Added a separate sandboxed iframe runner with a no-network child CSP and bounded message/output handling. This is not a server-grade hostile-code execution service and has no guaranteed hard CPU/memory quotas.
 - Added a local-only curriculum draft workspace with bounded fields, a 100-draft cap, JSON import/export, and no publish capability. Publication remains a reviewed repository change.
 - Remaining: a server-backed isolated code execution service with enforced resource quotas; authenticated, persistent curriculum CMS with reviewed publication workflow; browser-level end-to-end testing on real devices.
+
+
+## Academy draft review workflow — 2026-11-17
+
+The browser-local content studio now provides a live, text-only lesson preview with field-level completeness feedback. User-authored content is rendered with DOM text nodes rather than HTML interpretation, and the authoring page plus preview module are included in the offline shell. The workspace remains local-only: drafts are not published, synced, or sent to a remote service. Browser acceptance covers malicious markup as text, incomplete-field feedback, and offline authoring.

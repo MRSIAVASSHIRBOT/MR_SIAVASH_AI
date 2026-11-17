@@ -79,6 +79,16 @@ async function main() {
   await studio.locator("#academyDraftTitle").fill("درس آزمایشی E2E");
   await studio.locator("#academyDraftObjective").fill("شناخت رفتار ذخیره‌سازی پیش‌نویس");
   await studio.locator("#academyDraftContent").fill("این متن فقط برای آزمون خودکار مرورگر است.");
+  await studio.locator("#academyDraftPreview").getByText("درس آزمایشی E2E").waitFor();
+  assert.match(await studio.locator("#academyDraftPreviewStatus").textContent(), /پیش‌نمایش کامل/);
+  await studio.locator("#academyDraftContent").fill("<img src=x onerror=alert(1)> متن امن");
+  await studio.locator("#academyDraftPreview").getByText("<img src=x onerror=alert(1)> متن امن").waitFor();
+  assert.equal(await studio.locator("#academyDraftPreview img").count(), 0,
+    "untrusted draft markup must remain text in the live preview");
+  await studio.locator("#academyDraftContent").fill("این متن فقط برای آزمون خودکار مرورگر است.");
+  await studio.locator("#academyDraftObjective").fill("");
+  assert.match(await studio.locator("#academyDraftPreviewStatus").textContent(), /هدف یادگیری/);
+  await studio.locator("#academyDraftObjective").fill("شناخت رفتار ذخیره‌سازی پیش‌نویس");
   await studio.locator("#academyDraftForm button[type=submit]").click();
   await studio.getByRole("button", { name: "درس آزمایشی E2E" }).waitFor();
   assert.match(await studio.locator("#academyDraftStatus").textContent(), /ذخیره شد/);
@@ -112,6 +122,23 @@ async function main() {
   await failedStorage.getByText(/ذخیره محلی ناموفق بود/).waitFor();
   assert.equal(await failedStorage.locator(".academy-draft-open").count(), 0,
     "failed persistence must not mutate the visible draft list");
+
+  // The authoring workspace and its pure preview module remain usable offline.
+  const offlineContext = await browser.newContext({
+    viewport: { width: 1280, height: 800 },
+    serviceWorkers: "allow"
+  });
+  const offlinePage = await offlineContext.newPage();
+  offlinePage.on("pageerror", error => pageErrors.push(error.message));
+  await offlinePage.goto(`${BASE}/academy.html`, { waitUntil: "networkidle" });
+  await offlinePage.waitForFunction(() => navigator.serviceWorker.controller !== null, null, { timeout: 15000 });
+  await offlineContext.setOffline(true);
+  await offlinePage.goto(`${BASE}/academy-content-studio.html`, { waitUntil: "domcontentloaded" });
+  await offlinePage.locator("#academyDraftTitle").fill("پیش‌نویس آفلاین");
+  await offlinePage.locator("#academyDraftObjective").fill("بازبینی محلی بدون شبکه");
+  await offlinePage.locator("#academyDraftContent").fill("این پیش‌نویس در حالت آفلاین پیش‌نمایش می‌شود.");
+  await offlinePage.locator("#academyDraftPreview").getByText("پیش‌نویس آفلاین").waitFor();
+  await offlineContext.close();
 
   // Basic narrow-screen smoke: core controls remain visible and operable.
   await page.setViewportSize({ width: 390, height: 844 });
