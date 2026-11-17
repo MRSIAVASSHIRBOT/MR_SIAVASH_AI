@@ -743,11 +743,19 @@ test("public and admin ticket conversations page newest messages with a stable o
      queries.push({ sql, parameters });
      return {
       first: async () => ticket,
-      all: async () => ({
-       results: sql.startsWith("SELECT id,from_status,to_status,created_at")
-        ? statusEvents
-        : (parameters.length === 2 ? [rows[3], rows[2], rows[1]] : [rows[1], rows[0]])
-      })
+      all: async () => {
+        if (sql.startsWith("SELECT id,from_status,to_status,created_at")) {
+         const rawLimit = parameters[parameters.length - 1];
+         const cursor = parameters.length === 5
+          ? { createdAt: parameters[1], id: parameters[3] }
+          : null;
+         const filtered = cursor
+          ? statusEvents.filter(event => event.created_at < cursor.createdAt || (event.created_at === cursor.createdAt && event.id < cursor.id))
+          : statusEvents;
+         return { results: filtered.slice(0, rawLimit) };
+        }
+        return { results: parameters.length === 2 ? [rows[3], rows[2], rows[1]] : [rows[1], rows[0]] };
+       }
      };
     }
    };
@@ -765,13 +773,24 @@ test("public and admin ticket conversations page newest messages with a stable o
  };
  try {
   const token = createAccessJwt(privateKey);
-  const adminFirstResponse = await worker.fetch(req("/v1/admin/support/tickets/" + ticket.id + "?limit=2", {
+  const adminFirstResponse = await worker.fetch(req("/v1/admin/support/tickets/" + ticket.id + "?limit=2&status_limit=1", {
    headers: { "Cf-Access-Jwt-Assertion": token }
   }), env);
   assert.equal(adminFirstResponse.status, 200);
   const adminFirst = await adminFirstResponse.json();
   assert.deepEqual(adminFirst.messages.map(item => item.body), ["newer", "newest"]);
-  assert.deepEqual(adminFirst.status_history.map(item => item.to_status), ["open", "in_progress"]);
+  assert.deepEqual(adminFirst.status_history.map(item => item.to_status), ["in_progress"]);
+   assert.equal(adminFirst.status_history_has_more, true);
+   assert.equal(adminFirst.status_history_next_cursor, ticket.updated_at + "|2");
+   const adminStatusSecondResponse = await worker.fetch(req(
+    "/v1/admin/support/tickets/" + ticket.id + "?limit=2&status_limit=1&status_cursor=" + encodeURIComponent(adminFirst.status_history_next_cursor),
+    { headers: { "Cf-Access-Jwt-Assertion": token } }
+   ), env);
+   assert.equal(adminStatusSecondResponse.status, 200);
+   const adminStatusSecond = await adminStatusSecondResponse.json();
+   assert.deepEqual(adminStatusSecond.status_history.map(item => item.to_status), ["open"]);
+   assert.equal(adminStatusSecond.status_history_has_more, false);
+   assert.equal(adminStatusSecond.status_history_next_cursor, null);
   assert.equal(adminFirst.has_more, true);
   assert.equal(adminFirst.next_cursor, rows[2].created_at + "|" + rows[2].id);
 
@@ -785,16 +804,31 @@ test("public and admin ticket conversations page newest messages with a stable o
   assert.equal(adminSecond.has_more, false);
   assert.equal(adminSecond.next_cursor, null);
 
-  const publicFirstResponse = await worker.fetch(req("/v1/support/tickets/" + ticket.ticket_code + "?limit=2", {
+  const publicFirstResponse = await worker.fetch(req("/v1/support/tickets/" + ticket.ticket_code + "?limit=2&status_limit=1", {
    headers: { Authorization: "Bearer " + "a".repeat(64) }
   }), { DB });
   assert.equal(publicFirstResponse.status, 200);
   const publicFirst = await publicFirstResponse.json();
   assert.deepEqual(publicFirst.messages.map(item => item.body), ["newer", "newest"]);
-  assert.deepEqual(publicFirst.status_history.map(item => item.to_status), ["open", "in_progress"]);
+  assert.deepEqual(publicFirst.status_history.map(item => item.to_status), ["in_progress"]);
+   assert.equal(publicFirst.status_history_has_more, true);
+   assert.equal(publicFirst.status_history_next_cursor, ticket.updated_at + "|2");
+   const publicStatusSecondResponse = await worker.fetch(req(
+    "/v1/support/tickets/" + ticket.ticket_code + "?status_limit=1&status_cursor=" + encodeURIComponent(publicFirst.status_history_next_cursor),
+    { headers: { Authorization: "Bearer " + "a".repeat(64) } }
+   ), { DB });
+   assert.equal(publicStatusSecondResponse.status, 200);
+   const publicStatusSecond = await publicStatusSecondResponse.json();
+   assert.deepEqual(publicStatusSecond.status_history.map(item => item.to_status), ["open"]);
+   assert.equal(publicStatusSecond.status_history_has_more, false);
   assert.equal(publicFirst.has_more, true);
 
-  const invalid = await worker.fetch(req("/v1/support/tickets/" + ticket.ticket_code + "?cursor=bad", {
+  const invalidStatus = await worker.fetch(req(
+    "/v1/support/tickets/" + ticket.ticket_code + "?status_cursor=bad",
+    { headers: { Authorization: "Bearer " + "a".repeat(64) } }
+   ), { DB });
+   assert.equal(invalidStatus.status, 400);
+   const invalid = await worker.fetch(req("/v1/support/tickets/" + ticket.ticket_code + "?cursor=bad", {
    headers: { Authorization: "Bearer " + "a".repeat(64) }
   }), { DB });
   assert.equal(invalid.status, 400);
