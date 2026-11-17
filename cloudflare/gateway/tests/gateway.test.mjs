@@ -592,7 +592,7 @@ test("admin support ticket search and keyset pagination are bounded and stable",
     return {
      bind(...parameters) {
       queries.push({ sql, parameters });
-      return { all: async () => ({ results: parameters.length === 8 ? [firstRows[2]] : firstRows }) };
+      return { all: async () => ({ results: parameters.length === 9 ? [firstRows[2]] : firstRows }) };
      }
     };
    }
@@ -612,8 +612,9 @@ test("admin support ticket search and keyset pagination are bounded and stable",
   assert.equal(firstPage.count, 2);
   assert.equal(firstPage.has_more, true);
   assert.equal(firstPage.next_cursor, firstRows[1].updated_at + "|" + firstRows[1].id);
-  assert.match(queries[queries.length - 1].sql, /ORDER BY updated_at DESC,id DESC LIMIT \?/);
-  assert.deepEqual(queries[queries.length - 1].parameters, ["open", "MS-A", "MS-A", "MS-A", 3]);
+  assert.match(queries[queries.length - 1].sql, /EXISTS \(SELECT 1 FROM support_messages AS m/);
+   assert.match(queries[queries.length - 1].sql, /ORDER BY updated_at DESC,id DESC LIMIT \?/);
+  assert.deepEqual(queries[queries.length - 1].parameters, ["open", "MS-A", "MS-A", "MS-A", "MS-A", 3]);
 
   const secondResponse = await worker.fetch(req(
    "/v1/admin/support/tickets?status=open&q=MS-A&limit=2&cursor=" + encodeURIComponent(firstPage.next_cursor),
@@ -625,7 +626,7 @@ test("admin support ticket search and keyset pagination are bounded and stable",
   assert.equal(secondPage.has_more, false);
   assert.equal(secondPage.next_cursor, null);
   assert.deepEqual(queries[queries.length - 1].parameters, [
-   "open", "MS-A", "MS-A", "MS-A", firstRows[1].updated_at, firstRows[1].updated_at, firstRows[1].id, 3
+   "open", "MS-A", "MS-A", "MS-A", "MS-A", firstRows[1].updated_at, firstRows[1].updated_at, firstRows[1].id, 3
   ]);
 
   const invalid = await worker.fetch(req(
