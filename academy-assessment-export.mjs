@@ -18,7 +18,9 @@ function validCourse(course) {
 
 function csvCell(value) {
   const text = String(value ?? "");
-  const safe = /^[\u0000-\u0020]*[=+\-@]/.test(text) ? "'" + text : text;
+  // Spreadsheet applications may ignore leading Unicode whitespace before formula markers.
+  // Prefix the cell before CSV quoting so imported text is not evaluated as a formula.
+  const safe = /^[\s\uFEFF]*[=+\-@]/u.test(text) ? "'" + text : text;
   return '"' + safe.replace(/"/g, '""') + '"';
 }
 
