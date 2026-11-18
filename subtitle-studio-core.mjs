@@ -3,7 +3,7 @@ export const MAX_SUBTITLE_CUES = 1000;
 export const MAX_CUE_TEXT_CHARS = 1000;
 
 function parseTimestamp(value) {
-  const match = /^(\d{1,6}:)?(\d{2}):([0-5]\d)[,.](\d{3})$/.exec(String(value).trim());
+  const match = /^(\d{1,6}:)?(\d{2}):(\d{2})[,.](\d{3})$/.exec(String(value).trim());
   if (!match) throw new Error("قالب زمان نامعتبر است؛ از HH:MM:SS,mmm یا MM:SS.mmm استفاده کن.");
   const prefix = match[1];
   const middle = Number(match[2]);
