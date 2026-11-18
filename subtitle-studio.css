@@ -19,6 +19,11 @@ h1{font-size:clamp(2rem,5vw,3.7rem);line-height:1.25;margin:8px 0 12px}
 .file-action{position:relative;overflow:hidden}
 .file-action input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
 .status{min-height:28px;color:var(--sub-accent);margin:8px 2px}
+.batch-retiming{display:flex;flex-wrap:wrap;align-items:end;gap:10px;padding:14px 16px;background:#0d1912;border:1px solid var(--sub-line);border-radius:16px;margin:14px 0}
+.batch-retiming label{display:grid;gap:5px;min-width:min(260px,100%);color:var(--sub-muted);font-size:.88rem}
+.batch-retiming input{width:100%;border:1px solid var(--sub-line);border-radius:10px;background:#07110c;color:var(--sub-text);padding:9px;min-width:0}
+.batch-retiming .batch-hint{flex-basis:100%;margin:0;color:var(--sub-muted);font-size:.82rem}
+
 .layout{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:18px;align-items:start}
 .panel{min-width:0;background:var(--sub-panel);border:1px solid var(--sub-line);border-radius:18px;padding:18px}
 .panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}

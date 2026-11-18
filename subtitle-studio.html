@@ -39,6 +39,14 @@
       <button class="action primary" id="exportSrt" type="button" disabled>خروجی SRT ↓</button>
       <button class="action primary" id="exportVtt" type="button" disabled>خروجی WebVTT ↓</button>
     </div>
+    <section class="batch-retiming" aria-label="همگام‌سازی گروهی زمان زیرنویس‌ها">
+      <label for="offsetSeconds">جابه‌جایی همه زیرنویس‌ها (ثانیه)
+        <input id="offsetSeconds" type="number" min="-86400" max="86400" step="0.001" value="0" inputmode="decimal">
+      </label>
+      <button class="action" id="shiftCues" type="button" disabled>اعمال جابه‌جایی گروهی</button>
+      <button class="action" id="undoShift" type="button" disabled>بازگردانی آخرین جابه‌جایی</button>
+      <p class="batch-hint">عدد مثبت زیرنویس‌ها را دیرتر و عدد منفی آن‌ها را زودتر نمایش می‌دهد. عملیات یکپارچه است؛ اگر حتی یک زیرنویس به قبل از صفر منتقل شود، هیچ تغییری اعمال نمی‌شود.</p>
+    </section>
     <p class="status" id="studioStatus" role="status" aria-live="polite">برای شروع، یک فایل زیرنویس وارد کن یا زیرنویس تازه بساز.</p>
 
     <div class="layout">
