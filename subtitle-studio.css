@@ -1,4 +1,4 @@
-:root{color-scheme:dark;--sub-bg:#08120e;--sub-panel:#101d17;--sub-line:#263b30;--sub-text:#f1f6f2;--sub-muted:#a7b9ad;--sub-accent:#b5e7c2;--sub-danger:#ffb5a9}
+:root{color-scheme:dark;--sub-bg:#07110c;--sub-panel:#101d17;--sub-line:#263b30;--sub-text:#f1f6f2;--sub-muted:#a7b9ad;--sub-accent:#b5e7c2;--sub-danger:#ffb5a9}
 *{box-sizing:border-box}
 body{margin:0;background:radial-gradient(circle at 10% 0,#173323 0,transparent 34%),var(--sub-bg);color:var(--sub-text);font-family:Tahoma,Arial,sans-serif;line-height:1.7}
 a{color:inherit}
