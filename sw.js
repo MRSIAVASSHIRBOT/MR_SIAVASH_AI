@@ -1,9 +1,9 @@
 "use strict";
 
 const CACHE_PREFIX = "mr-siavash-ai-shell-";
-const CACHE_NAME = CACHE_PREFIX + "v57";
+const CACHE_NAME = CACHE_PREFIX + "v58";
 const MAX_MODULE_REGISTRY_BYTES = 64 * 1024;
-const SHELL_FILES = ["./", "./index.html", "./styles.css", "./experience.css", "./studio.css", "./experience-next.css", "./atelier.css", "./field-notes.css", "./ui-sounds.js", "./app.js", "./site-search.js", "./search-index.json", "./python.html", "./python-course.css", "./python-course.js", "./academy.html", "./academy.css", "./academy.js", "./academy-progress.mjs", "./academy-backup.mjs", "./academy-guides.mjs", "./academy-assessments.mjs", "./academy-report.mjs", "./academy-assessment-export.mjs", "./academy-portfolio.mjs", "./academy-achievements.mjs", "./academy-tutor.js", "./academy-practice.mjs", "./academy-practice.js", "./academy-runner.html", "./academy-content-studio.html", "./academy-content-studio.js", "./academy-content-studio-core.mjs", "./bounded-json.js", "./support.js", "./support-tickets.mjs", "./support.css", "./privacy.html", "./favicon.svg", "./manifest.webmanifest", "./modules.json", "./studio.html", "./studio-portfolio.css", "./studio-portfolio.js"];
+const SHELL_FILES = ["./", "./index.html", "./styles.css", "./experience.css", "./studio.css", "./experience-next.css", "./atelier.css", "./field-notes.css", "./ui-sounds.js", "./app.js", "./site-search.js", "./search-index.json", "./python.html", "./python-course.css", "./python-course.js", "./academy.html", "./academy.css", "./academy.js", "./academy-progress.mjs", "./academy-backup.mjs", "./academy-guides.mjs", "./academy-assessments.mjs", "./academy-report.mjs", "./academy-assessment-export.mjs", "./academy-portfolio.mjs", "./academy-achievements.mjs", "./academy-tutor.js", "./academy-practice.mjs", "./academy-practice.js", "./academy-runner.html", "./academy-content-studio.html", "./academy-content-studio.js", "./academy-content-studio-core.mjs", "./bounded-json.js", "./support.js", "./support-tickets.mjs", "./support.css", "./privacy.html", "./favicon.svg", "./manifest.webmanifest", "./modules.json", "./studio.html", "./studio-portfolio.css", "./studio-portfolio.js", "./subtitle-studio.html", "./subtitle-studio.css", "./subtitle-studio.js", "./subtitle-studio-core.mjs"];
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
@@ -99,7 +99,8 @@ self.addEventListener("fetch", event => {
       { requestUrl: new URL("./python.html", scopeUrl).href, cacheUrl: new URL("./python.html", scopeUrl).href },
       { requestUrl: new URL("./academy.html", scopeUrl).href, cacheUrl: new URL("./academy.html", scopeUrl).href },
       { requestUrl: new URL("./academy-content-studio.html", scopeUrl).href, cacheUrl: new URL("./academy-content-studio.html", scopeUrl).href },
-      { requestUrl: new URL("./studio.html", scopeUrl).href, cacheUrl: new URL("./studio.html", scopeUrl).href }
+      { requestUrl: new URL("./studio.html", scopeUrl).href, cacheUrl: new URL("./studio.html", scopeUrl).href },
+      { requestUrl: new URL("./subtitle-studio.html", scopeUrl).href, cacheUrl: new URL("./subtitle-studio.html", scopeUrl).href }
     ];
     const target = navigationTargets.find(item => item.requestUrl === requestUrl.href);
     if (!target) return;
