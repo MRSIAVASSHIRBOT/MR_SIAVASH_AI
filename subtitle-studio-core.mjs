@@ -148,3 +148,57 @@ export function serializeVtt(cues) {
     String(cue.text).trim()
   ).join("\n\n") + "\n";
 }
+
+/**
+ * Apply one atomic timing offset to every cue without mutating the input.
+ * The operation is bounded to one day in either direction and refuses to
+ * move any cue before zero.
+ */
+export function shiftCueTimings(cues, offsetSeconds) {
+  if (!Array.isArray(cues) || cues.length > MAX_SUBTITLE_CUES) {
+    throw new TypeError("فهرست زیرنویس‌ها معتبر نیست.");
+  }
+  if (
+    typeof offsetSeconds !== "number" ||
+    !Number.isFinite(offsetSeconds) ||
+    Math.abs(offsetSeconds) > 86400
+  ) {
+    throw new Error("مقدار جابه‌جایی باید عددی بین منفی و مثبت ۸۶۴۰۰ ثانیه باشد.");
+  }
+
+  const offsetMilliseconds = Math.round(offsetSeconds * 1000);
+  if (!Number.isSafeInteger(offsetMilliseconds)) {
+    throw new Error("مقدار جابه‌جایی خارج از محدوده امن است.");
+  }
+
+  return cues.map((cue, index) => {
+    const start = Number(cue?.start);
+    const end = Number(cue?.end);
+    const startMilliseconds = Math.round(start * 1000);
+    const endMilliseconds = Math.round(end * 1000);
+    if (
+      !Number.isSafeInteger(startMilliseconds) ||
+      !Number.isSafeInteger(endMilliseconds) ||
+      startMilliseconds < 0 ||
+      endMilliseconds <= startMilliseconds
+    ) {
+      throw new Error("زمان زیرنویس " + String(index + 1) + " معتبر نیست.");
+    }
+
+    const shiftedStart = startMilliseconds + offsetMilliseconds;
+    const shiftedEnd = endMilliseconds + offsetMilliseconds;
+    if (
+      !Number.isSafeInteger(shiftedStart) ||
+      !Number.isSafeInteger(shiftedEnd) ||
+      shiftedStart < 0 ||
+      shiftedEnd <= shiftedStart
+    ) {
+      throw new Error("این جابه‌جایی حداقل یک زیرنویس را پیش از زمان صفر می‌برد.");
+    }
+    return {
+      ...cue,
+      start: shiftedStart / 1000,
+      end: shiftedEnd / 1000
+    };
+  });
+}

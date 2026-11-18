@@ -4,6 +4,7 @@ import {
   parseSubtitles,
   serializeSrt,
   serializeVtt,
+  shiftCueTimings,
   validateCues
 } from "./subtitle-studio-core.mjs";
 
@@ -14,7 +15,7 @@ const emptyState = $("#emptyState");
 const previewVideo = $("#previewVideo");
 const subtitleOverlay = $("#subtitleOverlay");
 const qualitySummary = $("#qualitySummary");
-const state = { cues: [], videoUrl: null, videoDuration: null };
+const state = { cues: [], videoUrl: null, videoDuration: null, undoCues: null };
 
 function announce(message) {
   status.textContent = message;
@@ -132,6 +133,8 @@ function updateQuality() {
   $("#cueCount").textContent = String(state.cues.length) + " زیرنویس";
   $("#exportSrt").disabled = !state.cues.length || !report.valid;
   $("#exportVtt").disabled = !state.cues.length || !report.valid;
+  $("#shiftCues").disabled = state.cues.length === 0;
+  $("#undoShift").disabled = !state.undoCues;
   emptyState.hidden = state.cues.length > 0;
 }
 
@@ -153,6 +156,7 @@ function updateOverlay() {
 }
 
 function addCue() {
+  state.undoCues = null;
   const previousEnd = state.cues.length
     ? Math.max(...state.cues.map(cue => Number(cue.end) || 0))
     : 0;
@@ -176,6 +180,7 @@ $("#cueList").addEventListener("input", event => {
   const cue = state.cues.find(item => item.id === card?.dataset.cueId);
   if (!cue) return;
   cue[field] = field === "text" ? event.target.value : Number(event.target.value);
+  state.undoCues = null;
   updateQuality();
   updateOverlay();
 });
@@ -188,6 +193,7 @@ $("#cueList").addEventListener("click", event => {
   if (!cue) return;
   if (button.dataset.action === "remove") {
     state.cues = state.cues.filter(item => item.id !== cue.id);
+    state.undoCues = null;
     renderCues();
     announce("زیرنویس حذف شد.");
   } else if (button.dataset.action === "jump" && !previewVideo.hidden) {
@@ -204,6 +210,7 @@ $("#importFile").addEventListener("change", async event => {
     if (file.size > MAX_SUBTITLE_FILE_BYTES) throw new Error("حجم فایل زیرنویس از سقف ۲ مگابایت بیشتر است.");
     const format = file.name.toLowerCase().endsWith(".vtt") ? "vtt" : "srt";
     state.cues = parseSubtitles(await file.text(), format);
+    state.undoCues = null;
     renderCues();
     announce(String(state.cues.length) + " زیرنویس با موفقیت وارد شد.");
   } catch (error) {
@@ -242,9 +249,47 @@ previewVideo.addEventListener("loadedmetadata", () => {
 previewVideo.addEventListener("timeupdate", updateOverlay);
 previewVideo.addEventListener("seeked", updateOverlay);
 
+$("#shiftCues").addEventListener("click", () => {
+  const rawOffset = $("#offsetSeconds").value.trim();
+  if (!rawOffset) {
+    announce("مقدار جابه‌جایی را وارد کن.");
+    return;
+  }
+  const offset = Number(rawOffset);
+  if (!Number.isFinite(offset) || offset === 0) {
+    announce(offset === 0 ? "مقدار صفر تغییری ایجاد نمی‌کند." : "مقدار جابه‌جایی معتبر نیست.");
+    return;
+  }
+  try {
+    const previous = state.cues.map(cue => ({ ...cue }));
+    const shifted = shiftCueTimings(state.cues, offset);
+    state.undoCues = previous;
+    state.cues = shifted;
+    renderCues();
+    announce("همه " + String(state.cues.length) + " زیرنویس به اندازه " + String(offset) + " ثانیه جابه‌جا شدند.");
+  } catch (error) {
+    announce(error instanceof Error ? error.message : "جابه‌جایی گروهی انجام نشد.");
+  }
+});
+
+$("#undoShift").addEventListener("click", () => {
+  if (!state.undoCues) return;
+  state.cues = state.undoCues;
+  state.undoCues = null;
+  renderCues();
+  announce("آخرین جابه‌جایی گروهی بازگردانی شد.");
+});
+
+$("#offsetSeconds").addEventListener("keydown", event => {
+  if (event.key === "Enter" && !$("#shiftCues").disabled) {
+    $("#shiftCues").click();
+  }
+});
+
 $("#addCue").addEventListener("click", addCue);
 $("#clearCues").addEventListener("click", () => {
   state.cues = [];
+  state.undoCues = null;
   renderCues();
   announce("فهرست زیرنویس‌ها پاک شد.");
 });

@@ -5,6 +5,7 @@ import {
   parseSubtitles,
   serializeSrt,
   serializeVtt,
+  shiftCueTimings,
   validateCues
 } from "../subtitle-studio-core.mjs";
 
@@ -70,4 +71,36 @@ test("empty text and invalid intervals block export", () => {
   assert.equal(report.valid, false);
   assert.throws(() => serializeSrt(cues), /خطاهای ساختاری/);
   assert.throws(() => serializeVtt(cues), /خطاهای ساختاری/);
+});
+
+test("batch retiming shifts every cue atomically without mutating source cues", () => {
+  const cues = [
+    { id: "first", start: 0.125, end: 1.875, text: "one" },
+    { id: "second", start: 2, end: 4.25, text: "two" }
+  ];
+  const shifted = shiftCueTimings(cues, 0.375);
+  assert.deepEqual(shifted.map(cue => [cue.id, cue.start, cue.end]), [
+    ["first", 0.5, 2.25],
+    ["second", 2.375, 4.625]
+  ]);
+  assert.equal(cues[0].start, 0.125);
+  assert.equal(cues[1].end, 4.25);
+});
+
+test("batch retiming rejects a negative start without partially changing cues", () => {
+  const cues = [
+    { id: "first", start: 1, end: 2, text: "one" },
+    { id: "second", start: 0.1, end: 1, text: "two" }
+  ];
+  assert.throws(() => shiftCueTimings(cues, -0.2), /قبل از زمان صفر/);
+  assert.deepEqual(cues.map(cue => [cue.start, cue.end]), [[1, 2], [0.1, 1]]);
+});
+
+test("batch retiming enforces finite one-day bounds and valid intervals", () => {
+  const cues = [{ id: "a", start: 1, end: 2, text: "one" }];
+  for (const offset of [NaN, Infinity, -86400.001, 86400.001, "1"]) {
+    assert.throws(() => shiftCueTimings(cues, offset));
+  }
+  assert.throws(() => shiftCueTimings([{ id: "bad", start: 2, end: 2, text: "x" }], 1));
+  assert.throws(() => shiftCueTimings("not-an-array", 1));
 });
