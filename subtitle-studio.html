@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08120e">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <meta name="description" content="استودیوی محلی ساخت، تبدیل و بررسی کیفیت زیرنویس SRT و WebVTT با پیش‌نمایش ویدئوی خصوصی در مرورگر.">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/subtitle-studio.html">
+  <meta property="og:title" content="استودیوی زیرنویس | MR_SIAVASH_AI">
+  <meta property="og:description" content="ساخت، ویرایش، تبدیل و کنترل کیفیت زیرنویس بدون بارگذاری فایل‌ها به سرور.">
+  <meta property="og:url" content="https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/subtitle-studio.html">
+  <meta name="twitter:card" content="summary">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./subtitle-studio.css">
+  <title>استودیوی زیرنویس | MR_SIAVASH_AI</title>
+</head>
+<body>
+  <main class="shell">
+    <div class="topline">
+      <span>MR_SIAVASH_AI / CREATOR TOOLS</span>
+      <a class="back-link" href="./index.html">بازگشت به سایت ↗</a>
+    </div>
+    <header class="hero">
+      <div class="eyebrow">LOCAL SUBTITLE WORKSPACE / 01</div>
+      <h1>استودیوی زیرنویس</h1>
+      <p class="lead">فایل SRT یا WebVTT را وارد کن، زمان‌بندی و متن را ویرایش کن، کیفیت خوانایی را بررسی کن و خروجی استاندارد بگیر. برای هم‌زمان‌سازی، ویدئو را فقط از دستگاه خودت انتخاب کن.</p>
+      <span class="privacy-note"><span aria-hidden="true">●</span> پردازش کاملاً محلی؛ هیچ فایل یا متنی بارگذاری نمی‌شود.</span>
+    </header>
+
+    <div class="toolbar" aria-label="ابزارهای زیرنویس">
+      <label class="action file-action">ورود SRT / VTT<input id="importFile" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip" aria-label="انتخاب فایل زیرنویس"></label>
+      <label class="action file-action">پیش‌نمایش ویدئو<input id="videoFile" type="file" accept="video/*" aria-label="انتخاب ویدئوی محلی"></label>
+      <button class="action" id="addCue" type="button">افزودن زیرنویس ＋</button>
+      <button class="action" id="clearCues" type="button">پاک‌کردن فهرست</button>
+      <button class="action primary" id="exportSrt" type="button" disabled>خروجی SRT ↓</button>
+      <button class="action primary" id="exportVtt" type="button" disabled>خروجی WebVTT ↓</button>
+    </div>
+    <p class="status" id="studioStatus" role="status" aria-live="polite">برای شروع، یک فایل زیرنویس وارد کن یا زیرنویس تازه بساز.</p>
+
+    <div class="layout">
+      <section class="panel" aria-labelledby="editorTitle">
+        <div class="panel-head">
+          <h2 id="editorTitle">ویرایش زمان‌بندی و متن</h2>
+          <span class="muted" id="cueCount">۰ زیرنویس</span>
+        </div>
+        <div class="empty" id="emptyState">هنوز زیرنویسی وجود ندارد. از دکمه «افزودن زیرنویس» شروع کن.</div>
+        <div class="cue-list" id="cueList"></div>
+      </section>
+
+      <aside class="panel" aria-label="پیش‌نمایش و کنترل کیفیت">
+        <div class="panel-head"><h2>پیش‌نمایش محلی</h2><span class="muted">بدون آپلود</span></div>
+        <div class="preview-stage">
+          <video id="previewVideo" controls playsinline preload="metadata" hidden aria-label="پیش‌نمایش ویدئوی انتخاب‌شده"></video>
+          <div class="subtitle-overlay" id="subtitleOverlay" aria-live="off">برای نمایش هم‌زمان، یک ویدئو انتخاب کن.</div>
+        </div>
+        <section class="quality" aria-labelledby="qualityTitle">
+          <h2 id="qualityTitle">گزارش کیفیت زیرنویس</h2>
+          <div id="qualitySummary" role="status" aria-live="polite"></div>
+        </section>
+      </aside>
+    </div>
+    <p class="footer-note">محدودیت‌های ایمنی: فایل زیرنویس حداکثر ۲ مگابایت و ۱۰۰۰ cue؛ ویدئوی پیش‌نمایش حداکثر ۵۰۰ مگابایت. محتوای واردشده به‌صورت متن ساده نمایش داده می‌شود و در DOM به‌عنوان HTML اجرا نمی‌شود.</p>
+  </main>
+  <script type="module" src="./subtitle-studio.js"></script>
+</body>
+</html>
