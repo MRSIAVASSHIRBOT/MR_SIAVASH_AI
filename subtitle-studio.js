@@ -30,7 +30,7 @@ function downloadText(filename, content, type) {
   document.body.append(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 function cueCard(cue, index) {
@@ -177,6 +177,7 @@ $("#cueList").addEventListener("input", event => {
   if (!cue) return;
   cue[field] = field === "text" ? event.target.value : Number(event.target.value);
   updateQuality();
+  updateOverlay();
 });
 
 $("#cueList").addEventListener("click", event => {
@@ -215,7 +216,7 @@ $("#importFile").addEventListener("change", async event => {
 $("#videoFile").addEventListener("change", event => {
   const file = event.target.files?.[0];
   if (!file) return;
-  if (!file.type.startsWith("video/")) {
+  if (!file.type.startsWith("video/") && !/\\.(mp4|mov|webm|m4v|ogv)$/i.test(file.name)) {
     announce("فقط فایل ویدئویی محلی قابل انتخاب است.");
     event.target.value = "";
     return;
@@ -226,6 +227,7 @@ $("#videoFile").addEventListener("change", event => {
     return;
   }
   if (state.videoUrl) URL.revokeObjectURL(state.videoUrl);
+  state.videoDuration = null;
   state.videoUrl = URL.createObjectURL(file);
   previewVideo.src = state.videoUrl;
   previewVideo.hidden = false;
