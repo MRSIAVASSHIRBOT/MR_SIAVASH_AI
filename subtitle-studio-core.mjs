@@ -193,7 +193,7 @@ export function shiftCueTimings(cues, offsetSeconds) {
       shiftedStart < 0 ||
       shiftedEnd <= shiftedStart
     ) {
-      throw new Error("این جابه‌جایی حداقل یک زیرنویس را پیش از زمان صفر می‌برد.");
+      throw new Error("این جابه‌جایی حداقل یک زیرنویس را قبل از زمان صفر می‌برد.");
     }
     return {
       ...cue,
