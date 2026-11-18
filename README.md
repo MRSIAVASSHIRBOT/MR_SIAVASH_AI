@@ -14,6 +14,7 @@ The repository provides a static web application with:
 - A Persian beginner Python course with 12 lessons, practical code samples, expected outputs, knowledge checks, and browser-local progress. The site does not execute Python; learners run copied examples in Python 3.
 - A Persian multi-course academy with six learning paths and 30 chapters covering HTML, CSS, JavaScript, Git/GitHub, Linux, and defensive web security. Course progress is stored locally in the current browser.
 - A dedicated Digital Studio portfolio with guided visitor paths, evidence-linked project case studies, curated official references, local project bookmarks, and a concise print-ready project profile. Project statuses are reviewed against each repository README and commit history; the page does not invent credentials or claim unverified production capabilities.
+- A private, browser-local Subtitle Studio for SRT/WebVTT import, cue editing, synchronized local-video preview, reading-speed/overlap checks, and bounded SRT/WebVTT export; selected media and subtitle text are never uploaded.
 - The Digital Studio registers the same versioned service worker for direct entry, includes its page and assets in the offline shell, and clearly distinguishes the browser-local support guide from the optional, consent-gated gateway assistant API.
 - Accessible global search with weighted Persian/Arabic normalization, module discovery, all 30 academy chapters and all 12 Python lessons, keyboard result navigation, and direct lesson deep links (Ctrl/Cmd + K).
 - A support assistant with a browser-local guide by default and a separately selectable online AI mode that sends only the current question after explicit per-question consent, plus a public ticket create/track/reply flow with an explicit privacy acknowledgement. Ticket intake is enabled only when the gateway readiness endpoint confirms a healthy D1 database and the configured support-retention policy; ticket tracking requires database readiness.
@@ -46,6 +47,7 @@ Production and Preview each have a dedicated Cloudflare Access self-hosted appli
 - app.js — navigation, registry validation, favorites, local workspace and data portability
 - python.html, python-course.js, python-course.css — standalone interactive Python beginner course
 - academy.html, academy.js, academy.css — searchable multi-course learning academy and local progress tracker
+- subtitle-studio.html, subtitle-studio.js, subtitle-studio-core.mjs, subtitle-studio.css — local subtitle authoring, preview and quality checks
 - modules.json — versioned, validated module catalog (public static metadata)
 - bounded-json.js — shared same-origin JSON loader with timeout, content-type validation, and streamed byte limits
 - search-index.json and site-search.js — bounded, validated global search index and accessible result navigation
