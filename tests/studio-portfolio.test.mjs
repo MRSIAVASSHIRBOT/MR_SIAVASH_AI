@@ -119,7 +119,7 @@ test("studio registers and is included in the offline shell", () => {
   assert.match(html, /studio-portfolio\.css/);
   assert.match(html, /studio-portfolio\.js/);
   assert.match(js, /serviceWorker\.register\("\.\/sw\.js"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v59"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v60"/);
   for (const asset of ["studio.html", "studio-portfolio.css", "studio-portfolio.js"]) {
     assert.ok(sw.includes('"./' + asset + '"'), "missing offline asset: " + asset);
   }
