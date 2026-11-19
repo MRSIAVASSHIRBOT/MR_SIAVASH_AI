@@ -7,7 +7,7 @@ const source = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 const validRegistry = JSON.stringify({ schema: "mr-siavash-ai-module-registry", version: 1, modules: [{}] });
 
 test("service worker cache version advances when subtitle modules change", () => {
-  assert.match(source, /mr-siavash-ai-shell-v60/);
+  assert.match(source, /const CACHE_NAME = CACHE_PREFIX \+ "v60"/);
 });
 
 function createHarness(fetchImpl = async () => new Response("asset", {
