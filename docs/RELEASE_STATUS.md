@@ -1,3 +1,36 @@
+# Live Cloudflare and GitHub reconciliation — 2026-11-20 UTC
+
+This is a fresh read-only operational snapshot. It supersedes earlier commit-count and active-version observations only where explicitly stated.
+
+## Production Worker
+
+- Active Worker: `mr-siavash-ai-gateway`.
+- Latest observed Production deployment: `5d335319-826a-40b0-8d65-cd9fdbe1c4ad`, created 2026-11-11 12:31:27 UTC.
+- Active version: **14** (`62e8a337-d804-4748-8bb2-d5e0180ee2f8`) receiving **100%** of traffic.
+- The active version's source annotation identifies commit `1616545a2e204cb378e2c824299412ca20ef598b` in this repository.
+- No newer Production deployment was observed in the current deployment inventory.
+
+## Preview Worker
+
+- The separate Preview Worker is active on version **6** (`2b737abb-0303-41cc-b96d-2b02bdb1dea8`).
+- Its source annotation identifies `92ef4c4fb646cd7c9045de5aacffa6d161f84a2d`.
+- Preview remains separate from Production. A current active version does not by itself establish acceptance of the latest `main` candidate.
+
+## GitHub source comparison and CI
+
+- Current GitHub `main`: `c3c7d37a6bfc36d6198d3962f0bd2d170c9214d8`.
+- GitHub compare from the active Production source annotation to current `main`: **51 commits ahead, 0 behind**.
+- Exact-current-main checks observed as successful: repository tests, syntax/structure, workflow security audit, supply-chain posture, Preview API smoke, and Gateway health/CORS smoke. The static Pages deployment job was skipped; no Pages deployment is inferred.
+- The delta includes Gateway runtime/tests, migrations `0004_support_retention_runs.sql` and `0005_support_ticket_status_history.sql`, Academy/support changes, and the local Subtitle Studio. The exact list is available in the GitHub compare view.
+- The repository's isolated SQLite migration suite validates migration syntax/order and constraints; it does **not** prove that migrations 0004/0005 are applied to Production D1. Production D1 migration state was not queried in this snapshot.
+
+## Release decision and safety boundary
+
+**Production deployment remains blocked.** Before any release, review the complete 51-commit source delta, verify Production D1 migration state without reading application rows, validate backup and rollback, and run the exact candidate through an accepted Preview deployment. Any Production deployment remains subject to the existing owner-controlled manual release gate and explicit approval.
+
+No Worker deployment, D1 migration, application-row read, route/DNS change, secret, schedule, or Cloudflare setting was changed during this snapshot.
+
+---
 ## GitHub source-drift verification — 2026-11-19 UTC
 
 This is a GitHub-only comparison against the last Production source annotation recorded below. It is not a fresh Cloudflare deployment inventory.
