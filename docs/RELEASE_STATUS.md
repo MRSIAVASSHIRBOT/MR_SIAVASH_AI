@@ -1,3 +1,22 @@
+## GitHub source-drift verification — 2026-11-19 UTC
+
+This is a GitHub-only comparison against the last Production source annotation recorded below. It is not a fresh Cloudflare deployment inventory.
+
+- Current GitHub `main`: `17e190e7876e4955845876c9188f9e0eb65f785c`.
+- Last recorded Production source annotation: `1616545a2e204cb378e2c824299412ca20ef598b` (Worker version 14, recorded in the 2026-11-16 evidence snapshot below; not independently re-read from Cloudflare during this verification).
+- GitHub compare from that recorded annotation to current `main`: **49 commits ahead, 0 behind**.
+- The source delta includes Gateway runtime and tests, D1 migrations `0004_support_retention_runs.sql` and `0005_support_ticket_status_history.sql`, Academy and support workflows, and the private local Subtitle Studio.
+- Current-main check-runs on this SHA: repository tests, syntax/structure, Workflow Security Audit, supply-chain posture, Preview API smoke, and Gateway health/CORS smoke succeeded. The static Pages deployment job was skipped because it is not an automatic deployment on this event.
+- The isolated SQLite migration tests validate the repository migration chain; they do not prove that migrations 0004/0005 are applied to Production D1. The live Production D1 migration state was not queried.
+- Cloudflare Production and Preview deployment metadata were not re-read during this verification. The active Worker/version and Preview version therefore remain **last-recorded values**, not newly confirmed current state.
+- The Production release workflow remains manual, defaults to `deploy=false`, requires `main` for a requested deployment, and retains the owner-controlled `cloudflare-production` environment gate.
+
+**Release decision:** keep Production deployment blocked pending a fresh read-only Cloudflare deployment inventory, migration-state verification without application-row access, exact-candidate Preview acceptance, backup/rollback rehearsal, and explicit owner approval. Do not infer deployment from green GitHub checks or this commit comparison.
+
+No Worker deployment, D1 migration or application-row read, route/DNS change, secret, schedule, or Cloudflare setting was changed for this snapshot.
+
+---
+
 ## Live Production/source-drift addendum — 2026-11-16 UTC
 
 This is a new read-only evidence snapshot. It supersedes the older commit-count statements below only for current source-drift status; historical deployment and telemetry records remain unchanged.
