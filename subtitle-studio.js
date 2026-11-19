@@ -62,6 +62,18 @@ function cueCard(cue, index) {
   actions.append(jump, remove);
   heading.append(title, actions);
 
+  const metadata = [];
+  if (cue.vttIdentifier) metadata.push("شناسه WebVTT: " + String(cue.vttIdentifier));
+  if (Array.isArray(cue.vttSettings) && cue.vttSettings.length) {
+    metadata.push("تنظیمات: " + cue.vttSettings.join(" "));
+  }
+  if (metadata.length) {
+    const details = document.createElement("p");
+    details.className = "muted";
+    details.textContent = metadata.join(" · ");
+    card.append(details);
+  }
+
   const times = document.createElement("div");
   times.className = "cue-times";
   for (const [field, labelText, value] of [
