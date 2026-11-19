@@ -24,6 +24,8 @@ test("WebVTT import supports cue identifiers and minute-only timestamps", () => 
   assert.equal(cues[0].start, 1.25);
   assert.equal(cues[0].end, 3);
   assert.equal(cues[0].text, "Welcome");
+  assert.equal(cues[0].vttIdentifier, "intro");
+  assert.deepEqual(cues[0].vttSettings, ["align:start"]);
 });
 
 test("subtitle exports round-trip through both supported formats", () => {
@@ -103,4 +105,63 @@ test("batch retiming enforces finite one-day bounds and valid intervals", () => 
   }
   assert.throws(() => shiftCueTimings([{ id: "bad", start: 2, end: 2, text: "x" }], 1));
   assert.throws(() => shiftCueTimings("not-an-array", 1));
+});
+
+
+test("WebVTT cue identifiers and supported settings survive editing and export", () => {
+  const source = [
+    "WEBVTT",
+    "",
+    "chapter-intro",
+    "00:01.250 --> 00:03.000 align:start line:12% position:20%,center size:80% vertical:rl",
+    "Welcome",
+    ""
+  ].join("\n");
+  const cues = parseSubtitles(source, "vtt");
+  assert.equal(cues[0].vttIdentifier, "chapter-intro");
+  assert.deepEqual(cues[0].vttSettings, [
+    "align:start",
+    "line:12%",
+    "position:20%,center",
+    "size:80%",
+    "vertical:rl"
+  ]);
+
+  cues[0].text = "Welcome back";
+  const exported = serializeVtt(cues);
+  const roundTrip = parseSubtitles(exported, "vtt");
+  assert.equal(roundTrip[0].vttIdentifier, "chapter-intro");
+  assert.deepEqual(roundTrip[0].vttSettings, cues[0].vttSettings);
+  assert.equal(roundTrip[0].text, "Welcome back");
+});
+
+
+test("WebVTT export filters invalid settings and replaces duplicate identifiers", () => {
+  const cues = [
+    {
+      id: "first",
+      start: 0,
+      end: 1,
+      text: "First",
+      vttIdentifier: "chapter-1",
+      vttSettings: ["align:evil", "position:101%", "size:80%", "vertical:side"]
+    },
+    {
+      id: "second",
+      start: 1,
+      end: 2,
+      text: "Second",
+      vttIdentifier: "chapter-1",
+      vttSettings: ["align:center"]
+    }
+  ];
+
+  const exported = serializeVtt(cues);
+  assert.match(exported, /chapter-1\n/);
+  assert.match(exported, /cue-2\n/);
+  assert.doesNotMatch(exported, /align:evil|position:101%|vertical:side/);
+  assert.match(exported, /size:80%/);
+  const parsed = parseSubtitles(exported, "vtt");
+  assert.deepEqual(parsed.map(cue => cue.vttIdentifier), ["chapter-1", "cue-2"]);
+  assert.deepEqual(parsed.map(cue => cue.vttSettings), [["size:80%"], ["align:center"]]);
 });
