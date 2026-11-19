@@ -22,9 +22,72 @@ function parseTimestamp(value) {
 }
 
 function timestampLine(line) {
-  const match = /^\s*(\S+)\s*-->\s*(\S+)(?:\s+.*)?$/.exec(line);
+  const match = /^\s*(\S+)\s*-->\s*(\S+)(?:\s+(.+))?\s*$/.exec(line);
   if (!match) throw new Error("خط زمان زیرنویس معتبر نیست.");
-  return { start: parseTimestamp(match[1]), end: parseTimestamp(match[2]) };
+  return {
+    start: parseTimestamp(match[1]),
+    end: parseTimestamp(match[2]),
+    settings: match[3] || ""
+  };
+}
+
+function safeVttIdentifier(value) {
+  if (typeof value !== "string") return null;
+  const identifier = value.trim();
+  if (
+    !identifier ||
+    identifier.length > 128 ||
+    identifier.includes("-->") ||
+    /[\u0000-\u001f\u007f]/.test(identifier)
+  ) return null;
+  return identifier;
+}
+
+function parseVttSettings(value) {
+  const tokens = Array.isArray(value)
+    ? value
+    : String(value ?? "").trim().split(/\s+/);
+  const settings = [];
+  const seen = new Set();
+
+  for (const rawToken of tokens) {
+    const token = String(rawToken).trim();
+    const separator = token.indexOf(":");
+    if (!token || separator <= 0) continue;
+    const key = token.slice(0, separator);
+    const setting = token.slice(separator + 1);
+    if (seen.has(key)) continue;
+
+    let valid = false;
+    if (key === "vertical") {
+      valid = /^(?:rl|lr)$/.test(setting);
+    } else if (key === "align") {
+      valid = /^(?:start|center|end|left|right)$/.test(setting);
+    } else if (key === "line") {
+      const match = /^(auto|-?\d+(?:\.\d+)?%?)(?:,(?:start|center|end))?$/.exec(setting);
+      if (match) {
+        const rawNumber = match[1];
+        const number = Number(rawNumber.replace(/%$/, ""));
+        valid = rawNumber === "auto" || (
+          Number.isFinite(number) &&
+          Math.abs(number) <= 1000 &&
+          (!rawNumber.endsWith("%") || (number >= 0 && number <= 100))
+        );
+      }
+    } else if (key === "position" || key === "size") {
+      const pattern = key === "position"
+        ? /^(\d+(?:\.\d+)?)%(?:,(?:line-left|center|line-right|auto))?$/
+        : /^(\d+(?:\.\d+)?)%$/;
+      const match = pattern.exec(setting);
+      valid = Boolean(match) && Number(match[1]) <= 100;
+    }
+
+    if (valid) {
+      settings.push(key + ":" + setting);
+      seen.add(key);
+    }
+  }
+  return settings;
 }
 
 export function parseSubtitles(source, format = "srt") {
@@ -53,12 +116,21 @@ export function parseSubtitles(source, format = "srt") {
     const cueText = lines.slice(timeIndex + 1).join("\n").trim();
     if (!cueText) throw new Error("یکی از زیرنویس‌ها متن خالی دارد.");
     if (cueText.length > MAX_CUE_TEXT_CHARS) throw new Error("متن یک زیرنویس بیش از ۱۰۰۰ نویسه است.");
-    cues.push({
+    const cue = {
       id: "cue-" + String(cues.length + 1),
       start: timing.start,
       end: timing.end,
       text: cueText
-    });
+    };
+    if (kind === "vtt") {
+      const identifier = timeIndex > 0
+        ? safeVttIdentifier(lines[timeIndex - 1])
+        : null;
+      const settings = parseVttSettings(timing.settings);
+      if (identifier) cue.vttIdentifier = identifier;
+      if (settings.length) cue.vttSettings = settings;
+    }
+    cues.push(cue);
     if (cues.length > MAX_SUBTITLE_CUES) throw new Error("تعداد زیرنویس‌ها از سقف ۱۰۰۰ مورد بیشتر است.");
   }
   if (cues.length === 0) throw new Error("هیچ زیرنویس زمان‌بندی‌شده‌ای در فایل پیدا نشد.");
@@ -142,11 +214,26 @@ export function serializeSrt(cues) {
 }
 
 export function serializeVtt(cues) {
-  return "WEBVTT\n\n" + orderedExport(cues).map((cue, index) =>
-    "cue-" + String(index + 1) + "\n" +
-    formatTimestamp(cue.start, ".") + " --> " + formatTimestamp(cue.end, ".") + "\n" +
-    String(cue.text).trim()
-  ).join("\n\n") + "\n";
+  const identifiers = new Set();
+  const blocks = orderedExport(cues).map((cue, index) => {
+    let identifier = safeVttIdentifier(cue.vttIdentifier);
+    if (!identifier || identifiers.has(identifier)) {
+      let suffix = index + 1;
+      identifier = "cue-" + String(suffix);
+      while (identifiers.has(identifier)) {
+        suffix += 1;
+        identifier = "cue-" + String(suffix);
+      }
+    }
+    identifiers.add(identifier);
+    const settings = parseVttSettings(cue.vttSettings).join(" ");
+    const timing = formatTimestamp(cue.start, ".") + " --> " +
+      formatTimestamp(cue.end, ".");
+    return identifier + "\n" + timing +
+      (settings ? " " + settings : "") + "\n" +
+      String(cue.text).trim();
+  });
+  return "WEBVTT\n\n" + blocks.join("\n\n") + "\n";
 }
 
 /**
