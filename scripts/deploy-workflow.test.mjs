@@ -171,3 +171,21 @@ test("Preview release smoke checks report the exact failing contract without log
   assert.doesNotMatch(smoke, /console\.log\(assistant\.payload\.answer/);
   assert.match(smoke, /redact\(raw\)/);
 });
+
+
+test("Preview release tags and verifies the deployed Worker version against the exact GitHub commit", () => {
+  const deployStart = previewWorkflow.indexOf("Deploy preview Worker");
+  const verifyStart = previewWorkflow.indexOf("Verify preview bindings and preserved admin access configuration");
+  const rollbackStart = previewWorkflow.indexOf("Roll back Preview traffic after failed deployment or smoke checks");
+  assert.ok(deployStart >= 0 && verifyStart > deployStart && rollbackStart > verifyStart);
+  const deployStep = previewWorkflow.slice(deployStart, verifyStart);
+  const verifyStep = previewWorkflow.slice(verifyStart, rollbackStart);
+  assert.match(deployStep, /GITHUB_SHA:\s*\$\{\{\s*github\.sha\s*\}\}/);
+  assert.match(deployStep, /--tag\s+"\$GITHUB_SHA"/);
+  assert.match(deployStep, /--message\s+"Preview release from commit \$GITHUB_SHA"/);
+  assert.match(verifyStep, /GITHUB_SHA:\s*\$\{\{\s*github\.sha\s*\}\}/);
+  assert.match(verifyStep, /workers\\/tag/);
+  assert.match(verifyStep, /workers\\/message/);
+  assert.match(verifyStep, /process\.env\.GITHUB_SHA/);
+  assert.match(verifyStep, /Preview Worker source tag verified/);
+});
