@@ -103,5 +103,5 @@ jobs:
       - name: Verify published static assets match this commit
         env:
           PAGES_URL: ${{ steps.deployment.outputs.page_url }}
-          GITHUB_SHA: ${{ github.sha }}
+          PAGES_SOURCE_SHA: ${{ github.sha }}
         run: node scripts/verify-pages-publication.mjs
