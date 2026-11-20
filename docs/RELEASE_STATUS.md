@@ -1,36 +1,41 @@
-# Live Cloudflare and GitHub reconciliation — 2026-11-20 UTC
+# Live Cloudflare and GitHub reconciliation — 2026-11-20 13:10 UTC
 
-This is a fresh read-only operational snapshot. It supersedes earlier commit-count and active-version observations only where explicitly stated.
+This is a fresh operational snapshot after Preview acceptance work and Production D1 migration reconciliation. Earlier snapshots below remain historical records; this section supersedes their live-state statements where they differ.
 
 ## Production Worker
 
 - Active Worker: `mr-siavash-ai-gateway`.
-- Latest observed Production deployment: `5d335319-826a-40b0-8d65-cd9fdbe1c4ad`, created 2026-11-11 12:31:27 UTC.
-- Active version: **14** (`62e8a337-d804-4748-8bb2-d5e0180ee2f8`) receiving **100%** of traffic.
-- The active version's source annotation identifies commit `1616545a2e204cb378e2c824299412ca20ef598b` in this repository.
-- No newer Production deployment was observed in the current deployment inventory.
+- Active Production deployment remains deployment `5d335319-826a-40b0-8d65-cd9fdbe1c4ad`; version **14** (`62e8a337-d804-4748-8bb2-d5e0180ee2f8`) still receives **100%** of traffic.
+- The deployed version annotation identifies source commit `1616545a2e204cb378e2c824299412ca20ef598b`. The current Gateway source has not yet been rolled out to Production.
+- The live Worker configuration still contains the Workers AI binding with `@cf/zai-org/glm-4.7-flash`, `SUPPORT_RETENTION_DAYS=90`, and daily Cron `0 3 * * *` UTC. Query-string redaction, logs, and traces remain enabled.
+- Production D1 schema was inspected without reading ticket/message bodies or contact information. The existing schema matched the final forms of migrations 0001–0003; its migration ledger was absent. The standard `d1_migrations` ledger was reconciled on 2026-11-20 from that verified schema, then migrations 0004 and 0005 were applied.
+- The ledger timestamps for migrations 0001–0003 are **reconciliation timestamps**, not claims about their original historical application dates.
+- Migration 0005 created two truthful baseline status events for the two existing open tickets. Aggregate counts after migration remain **2 tickets and 5 messages**; status-event count is **2**. No support ticket or message was deleted or edited. `PRAGMA foreign_key_check` returned no violations.
+- A D1 Time Travel bookmark was captured immediately before the Production schema writes. No restore was performed.
 
 ## Preview Worker
 
-- The separate Preview Worker is active on version **6** (`2b737abb-0303-41cc-b96d-2b02bdb1dea8`).
-- Its source annotation identifies `92ef4c4fb646cd7c9045de5aacffa6d161f84a2d`.
-- Preview remains separate from Production. A current active version does not by itself establish acceptance of the latest `main` candidate.
+- Preview Worker `mr-siavash-ai-gateway-preview` now runs version **8** (`144012c6-6731-476c-8127-70fade6585b3`) at **100%** traffic.
+- Version 8 carries the reviewed current-main source annotation `6c459596cf1211667995d6b2f6b815de1dae17f5`. It preserves the isolated Preview D1 binding and the existing Cloudflare Access administrator variables, and includes the Workers AI binding/model.
+- Preview D1 migrations 0001–0005 are present in its migration ledger. Migrations 0004/0005 created the retention-run and ticket-status-history tables, indexes, and status triggers. The Preview database had zero tickets before migration, so no ticket baseline rows were written.
+- Live HTTP checks passed: `/v1/health/live` **200**, `/v1/health/ready` **200** (database ready, retention 90 days), and `/v1/modules` **200** (9 modules).
+- The Workers AI model API returned a Persian final answer when given sufficient output-token budget. The full Gateway `POST /v1/assistant/chat` acceptance request has **not yet been independently verified**; the production release workflow includes this grounded-response smoke check.
 
 ## GitHub source comparison and CI
 
-- Current GitHub `main`: `c3c7d37a6bfc36d6198d3962f0bd2d170c9214d8`.
-- GitHub compare from the active Production source annotation to current `main`: **51 commits ahead, 0 behind**.
-- Exact-current-main checks observed as successful: repository tests, syntax/structure, workflow security audit, supply-chain posture, Preview API smoke, and Gateway health/CORS smoke. The static Pages deployment job was skipped; no Pages deployment is inferred.
-- The delta includes Gateway runtime/tests, migrations `0004_support_retention_runs.sql` and `0005_support_ticket_status_history.sql`, Academy/support changes, and the local Subtitle Studio. The exact list is available in the GitHub compare view.
-- The repository's isolated SQLite migration suite validates migration syntax/order and constraints; it does **not** prove that migrations 0004/0005 are applied to Production D1. Production D1 migration state was not queried in this snapshot.
+- Current GitHub `main`: `6c459596cf1211667995d6b2f6b815de1dae17f5`.
+- Compared with the active Production source annotation, GitHub reports **56 commits ahead and 0 behind**.
+- PR #204 (Preview AI binding, migration acceptance, and rollback checks) was merged to `main`. Its exact PR head `d4046e6288b284f4be36e062ab6f8123d35bea0e` passed Gateway CI, Workflow Security Audit, and Quality checks. The static Pages deployment job was skipped.
+- The Production release script and workflow remain manual-only. A current-main Preview deployment is not itself approval to change Production Worker traffic.
 
 ## Release decision and safety boundary
 
-**Production deployment remains blocked.** Before any release, review the complete 51-commit source delta, verify Production D1 migration state without reading application rows, validate backup and rollback, and run the exact candidate through an accepted Preview deployment. Any Production deployment remains subject to the existing owner-controlled manual release gate and explicit approval.
+**Production Worker code remains on version 14.** Production D1 migrations 0004/0005 are applied and additive, while the old Worker remains healthy and compatible. A Production code rollout still requires the existing manual workflow on `main`, first with `deploy=false` for read-only validation, followed by the protected `deploy=true` release with Workers AI and 90-day retention explicitly preserved. Its grounded AI, consent-gate, CORS, readiness, and rollback checks must pass before the release is considered complete.
 
-No Worker deployment, D1 migration, application-row read, route/DNS change, secret, schedule, or Cloudflare setting was changed during this snapshot.
+No DNS, route, Cloudflare Access policy, administrator allowlist, secret, Production Worker traffic split, or Cron schedule was changed during this reconciliation. No ticket/message content was read; only schema and aggregate row counts were queried.
 
 ---
+
 ## GitHub source-drift verification — 2026-11-19 UTC
 
 This is a GitHub-only comparison against the last Production source annotation recorded below. It is not a fresh Cloudflare deployment inventory.
