@@ -569,3 +569,43 @@ The deployment workflow explicitly gates its static-site job to `workflow_dispat
 **Operational conclusion:** this is a confirmed publication lag, not a website outage and not a source/CI failure. Keep Issue #207 open until the official manual Pages workflow is dispatched and all four public assets are re-fetched with cache v62, the 80-second request timeout, the 74-item search index, and the `course-python` overview confirmed.
 
 No Pages setting, workflow trigger, GitHub Pages configuration, or public asset was changed by this verification.
+
+---
+
+## Pages publication verification checkpoint — 2026-11-20 UTC
+
+This addendum supersedes earlier same-day repository/Pages checkpoints and records the operational state after PR #226 merged. It does not record a Pages deployment.
+
+### GitHub source and CI
+
+- Current `main`: `87a3eb962b95eeedd86372f958d7f18b2316ba8d`.
+- PR [#226](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/pull/226) was squash-merged. No open PRs remained at this checkpoint.
+- The PR added `scripts/verify-pages-publication.mjs` and a post-deploy verification step to `.github/workflows/deploy.yml`.
+- The verifier checks the exact published bytes of `support.js`, `search-index.json`, `site-search.js`, and `sw.js` against the checked-out source using SHA-256. It sends no-store/cache-busted requests, allows bounded retries for CDN propagation, and fails the deploy job if any asset remains unavailable or differs.
+- The existing Pages job condition is unchanged: `github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch'`. Pushes and pull requests still do not publish the site.
+- All six post-merge workflows on `87a3eb9` succeeded: Quality (including repository tests, isolated D1 migration checks, Academy Chromium E2E, and accessibility/responsive audit), Gateway CI, Workflow Security Audit, OpenSSF Scorecard, Production Runtime Smoke, and Preview Runtime Smoke.
+- The Pages deployment job was skipped on the push-triggered Quality run as designed. No manual Pages dispatch has been recorded after PR #226.
+
+### Last public Pages asset observation
+
+The last read-only public-site verification on 2026-11-20 fetched the site and all four assets successfully (HTTP 200). The public bytes were stale relative to the current source; the PR #226 change does not modify these assets.
+
+| Indicator | Last public response | Current source on `main` |
+| --- | --- | --- |
+| Service-worker shell cache | `mr-siavash-ai-shell-v51` | `mr-siavash-ai-shell-v62` |
+| Online support request timeout | `15000` ms | `ASSISTANT_REQUEST_TIMEOUT_MS = 80_000` |
+| Search-index item count | 15 | 74 |
+| Dedicated Python course overview | Missing; 12 individual `python-lesson` entries | `course-python` entry present, summarizing 12 lessons, 12 exercises, and a final project |
+| Local relevance filtering | Any positive score; top 3 results | Relevance floor `Math.max(8, Math.ceil(ranked[0].score * 0.6))`; top 3 results |
+| `site-search.js` | HTTP 200 | Current source remains present |
+
+The public page is reachable; this is a publication lag, not evidence of an outage. HTTP 200 alone does not establish that the current source has been published.
+
+### Remaining operational action
+
+- Dispatch the official `Quality checks and GitHub Pages deployment` workflow manually from current `main`: https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/workflows/deploy.yml
+- After a successful dispatch, the new post-deploy verifier will require exact-byte agreement for all four assets. Re-fetch the public assets independently and confirm cache v62, the 80-second timeout, the 74-item index, and the `course-python` overview before resolving Issue #207.
+- The connected GitHub actions available to this session support workflow-run inspection but do not expose a workflow-dispatch operation. An authenticated GitHub session is therefore still required for the manual dispatch.
+
+No Pages publication, Pages configuration, Worker deployment, D1 migration or data change, Secret change, Access policy change, DNS change, or traffic change occurred in this checkpoint.
+
