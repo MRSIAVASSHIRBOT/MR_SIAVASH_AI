@@ -39,7 +39,7 @@ test("GitHub Pages publication is manual-only while quality checks stay on push"
 });
 
 test("Preview release accepts the established Cloudflare secret name and legacy alias", () => {
-  assert.match(previewWorkflow, /secrets\\.CLOUDFLARE_API_TOKEN \\|\\| secrets\\.CF_API_TOKEN/);
+  assert.match(previewWorkflow, /secrets\.CLOUDFLARE_API_TOKEN \|\| secrets\.CF_API_TOKEN/);
   assert.match(previewWorkflow, /Missing gateway-preview secret CLOUDFLARE_API_TOKEN or CF_API_TOKEN/);
 });
 
