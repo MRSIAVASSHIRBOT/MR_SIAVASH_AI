@@ -119,6 +119,8 @@ test("provider errors are normalized without exposing upstream details", () => {
     ["401 invalid token", "authentication", false],
     ["HTTP 429 rate limit", "rate_limit", true],
     ["504 request timeout", "timeout", true],
+    ["Cloudflare Workers AI error 3007", "timeout", true],
+    ["Cloudflare Workers AI error 3008", "timeout", true],
     ["400 unsupported model", "invalid_request", false],
     ["7003 User Input Error", "invalid_request", false],
     ["upstream unavailable", "unavailable", true]
@@ -127,7 +129,7 @@ test("provider errors are normalized without exposing upstream details", () => {
     const error = classifyAssistantProviderError(new Error(message));
     assert.equal(error.category, category);
     assert.equal(error.retryable, retryable);
-    assert.doesNotMatch(error.message, /invalid token|HTTP 429|504 request timeout|400 unsupported model/i);
+    assert.doesNotMatch(error.message, /invalid token|HTTP 429|504 request timeout|3007|3008|400 unsupported model/i);
   }
 });
 
