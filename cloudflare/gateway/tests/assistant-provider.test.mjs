@@ -58,7 +58,7 @@ test("provider adapter does not send GLM-specific options to another valid model
   let call;
   const provider = createAssistantProvider({
     AI_MODEL: "@cf/meta/llama-3.1-8b-instruct",
-    AI: { run: async (model, input) => { call = { model, input }; return "ok"; } }
+    AI: { run: async (model, input, options) => { call = { model, input, options }; return "ok"; } }
   });
   await provider.generate({ messages: [{ role: "user", content: "hello" }] });
   assert.equal(call.model, "@cf/meta/llama-3.1-8b-instruct");
