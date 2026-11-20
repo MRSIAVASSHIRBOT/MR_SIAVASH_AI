@@ -76,10 +76,10 @@ test("Preview release documentation matches the deployed AI-enabled release cont
 
 test("recurring Preview assistant smoke matches the manual release inference timeout budget", () => {
   const manualAssistantCurl = previewWorkflow
-    .split("\\n")
+    .split(/\\r?\\n/)
     .find(line => line.includes('assistant="$(curl'));
   const recurringAssistantCurl = previewSmokeWorkflow
-    .split("\\n")
+    .split(/\\r?\\n/)
     .find(line => line.includes('body="$(curl') && line.includes("/v1/assistant/chat"));
 
   assert.ok(manualAssistantCurl, "manual Preview release must have an assistant request");
