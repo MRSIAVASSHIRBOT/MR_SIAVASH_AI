@@ -1665,7 +1665,7 @@ test("online support sends only the current question after per-question consent"
   consent.checked = true;
   await submit({ preventDefault() {}, currentTarget: form });
   assert.equal(fetchCalls, 1);
-  assert.equal(timeoutMs, 50000, "online request timeout must include the Gateway budget and safety buffer");
+  assert.equal(timeoutMs, 80000, "online request timeout must exceed the 75-second Gateway budget");
   assert.equal(requestUrl, "https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev/v1/assistant/chat");
   assert.equal(requestOptions.method, "POST");
   assert.equal(requestOptions.credentials, "omit");
@@ -1684,7 +1684,7 @@ test("online support sends only the current question after per-question consent"
   simulateTimeout = true;
   await submit({ preventDefault() {}, currentTarget: form });
   assert.equal(fetchCalls, 2);
-  assert.match(status.textContent, /۵۰ ثانیه/);
+  assert.match(status.textContent, /۸۰ ثانیه/);
   assert.equal(clearedTimeouts, 2, "the timeout is cleared after an aborted request");
   assert.equal(consent.checked, false, "consent is reset after a timed-out request");
   assert.equal(submitButton.disabled, false, "the form is usable again after a timeout");
@@ -1699,7 +1699,7 @@ test("online assistant client timeout exceeds the manual Preview inference budge
 
   assert.ok(releaseTimeout, "manual Preview release must define an assistant timeout");
   assert.ok(clientTimeout, "online assistant client must define a named timeout");
-  assert.equal(Number(releaseTimeout[1]), 45);
+  assert.equal(Number(releaseTimeout[1]), 75);
   assert.ok(
     Number(clientTimeout[1].replaceAll("_", "")) >= Number(releaseTimeout[1]) * 1000 + 5000,
     "the browser must allow the Gateway inference budget plus a five-second network buffer",
