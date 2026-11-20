@@ -38,6 +38,11 @@ test("GitHub Pages publication is manual-only while quality checks stay on push"
   assert.doesNotMatch(workflow, /github\.event_name != 'pull_request'/);
 });
 
+test("Preview release accepts the established Cloudflare secret name and legacy alias", () => {
+  assert.match(previewWorkflow, /secrets\.CLOUDFLARE_API_TOKEN \|\| secrets\.CF_API_TOKEN/);
+  assert.match(previewWorkflow, /Missing gateway-preview secret CLOUDFLARE_API_TOKEN or CF_API_TOKEN/);
+});
+
 test("Preview keeps dashboard-managed admin variables while explicitly binding Workers AI", () => {
   assert.match(previewWorkflow, /keep_vars:\s*true/);
   assert.match(previewWorkflow, /ai:\s*\{\s*binding:\s*"AI"\s*\}/);
