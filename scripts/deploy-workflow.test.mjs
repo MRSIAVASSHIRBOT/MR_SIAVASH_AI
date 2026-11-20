@@ -66,7 +66,7 @@ test("Preview applies and verifies both additive D1 migrations before deploying 
 });
 
 test("Preview acceptance requires grounded AI output and has an automatic traffic rollback", () => {
-  assert.match(previewWorkflow, /mode!=="ai_grounded"/);
+  assert.match(previewWorkflow, /assistant\.payload\?\.mode !== "ai_grounded"/);
   assert.match(previewWorkflow, /steps\.deploy_preview\.outcome != 'skipped'/);
   assert.match(previewWorkflow, /gateway-preview-rollback\.json/);
   assert.match(previewWorkflow, /Automatic rollback after failed Preview acceptance/);
@@ -74,7 +74,7 @@ test("Preview acceptance requires grounded AI output and has an automatic traffi
 
 
 test("Preview release documentation matches the deployed AI-enabled release contract", () => {
-  assert.match(previewWorkflow, /if\(x\.mode!==\"ai_grounded\"/);
+  assert.match(previewWorkflow, /assistant\.payload\?\.mode !== "ai_grounded"/);
   assert.match(
     previewSmokeWorkflow,
     /const supportedMode=x\.mode===\"ai_grounded\"\|\|x\.mode===\"knowledge_fallback\"/,
@@ -88,18 +88,17 @@ test("Preview release documentation matches the deployed AI-enabled release cont
 });
 
 test("recurring Preview assistant smoke matches the manual release inference timeout budget", () => {
-  const manualAssistantCurl = previewWorkflow
-    .split(/\r?\n/)
-    .find(line => line.includes('assistant="$(curl'));
+  assert.ok(previewWorkflow.includes("timeoutMs: 75000"), "manual Preview release must define a 75-second assistant timeout");
   const recurringAssistantCurl = previewSmokeWorkflow
     .split(/\r?\n/)
     .find(line => line.includes('body="$(curl') && line.includes("/v1/assistant/chat"));
 
-  assert.ok(manualAssistantCurl, "manual Preview release must have an assistant request");
   assert.ok(recurringAssistantCurl, "recurring Preview smoke must have an assistant request");
-  assert.match(manualAssistantCurl, /--connect-timeout 10 --max-time 75/);
   assert.match(recurringAssistantCurl, /--connect-timeout 10 --max-time 75/);
-  assert.doesNotMatch(manualAssistantCurl, /--retry/);
+  assert.doesNotMatch(previewWorkflow.slice(
+    previewWorkflow.indexOf("assistant.workers-ai"),
+    previewWorkflow.indexOf("Roll back Preview traffic"),
+  ), /retry/i);
   assert.doesNotMatch(recurringAssistantCurl, /--retry/);
 });
 
@@ -108,7 +107,7 @@ test("Workers AI response deadline fits the Preview and browser request budgets 
   const defaultLine = assistantProvider.split("\n").find(line => line.includes("DEFAULT_REQUEST_TIMEOUT_MS ="));
   const maximumLine = assistantProvider.split("\n").find(line => line.includes("MAX_REQUEST_TIMEOUT_MS ="));
   const browserLine = supportClient.split("\n").find(line => line.includes("ASSISTANT_REQUEST_TIMEOUT_MS ="));
-  const releaseLine = previewWorkflow.split("\n").find(line => line.includes('$BASE_URL/v1/assistant/chat'));
+  const releaseLine = previewWorkflow.split("\n").find(line => line.includes("timeoutMs: 75000"));
   const smokeLine = previewSmokeWorkflow.split("\n").find(line => line.includes('$BASE_URL/v1/assistant/chat'));
 
   assert.ok(defaultLine);
@@ -119,6 +118,8 @@ test("Workers AI response deadline fits the Preview and browser request budgets 
 
   const numericValue = line => Number(line.slice(line.indexOf("=") + 1).trim().replaceAll("_", "").replace(";", ""));
   const requestBudget = line => {
+    const timeout = line.match(/timeoutMs:\s*(\d+)/);
+    if (timeout) return Number(timeout[1]);
     const marker = "--max-time ";
     const start = line.indexOf(marker);
     assert.notEqual(start, -1, "assistant request must declare a maximum duration");
@@ -138,9 +139,9 @@ test("Workers AI response deadline fits the Preview and browser request budgets 
   assert.equal(smokeMs, 75_000);
   assert.ok(maximumMs + 10_000 <= releaseMs);
   assert.ok(maximumMs + 15_000 <= browserMs);
-  assert.match(releaseLine, /--connect-timeout 10/);
+  assert.match(releaseLine, /timeoutMs: 75000/);
   assert.match(smokeLine, /--connect-timeout 10/);
-  assert.doesNotMatch(releaseLine, /--retry/);
+  assert.doesNotMatch(releaseLine, /retry/i);
   assert.doesNotMatch(smokeLine, /--retry/);
   assert.match(assistantProvider, /requestTimeout: true/);
   assert.match(assistantProvider, /cancellation: false/);
