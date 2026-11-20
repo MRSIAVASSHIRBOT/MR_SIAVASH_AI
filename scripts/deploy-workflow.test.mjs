@@ -145,3 +145,28 @@ test("Workers AI response deadline fits the Preview and browser request budgets 
   assert.match(assistantProvider, /requestTimeout: true/);
   assert.match(assistantProvider, /cancellation: false/);
 });
+
+
+test("Preview release smoke checks report the exact failing contract without logging assistant content", () => {
+  const smokeStart = previewWorkflow.indexOf("Verify deployed preview routes and grounded AI");
+  const rollbackStart = previewWorkflow.indexOf("Roll back Preview traffic after failed deployment or smoke checks");
+  assert.ok(smokeStart >= 0 && rollbackStart > smokeStart);
+  const smoke = previewWorkflow.slice(smokeStart, rollbackStart);
+  for (const check of [
+    "health.live",
+    "health.ready (D1 readiness)",
+    "modules.catalog",
+    "cors.preflight",
+    "assistant.workers-ai",
+    "HTTP ",
+    "answerChars=",
+    "sourceCount",
+    "requestId",
+    "AbortSignal.timeout",
+  ]) assert.ok(smoke.includes(check), "diagnostic smoke must include " + check);
+  assert.match(smoke, /function safeBody\(payload, raw\)/);
+  assert.match(smoke, /process\.exit\(1\)/);
+  assert.doesNotMatch(smoke, /console\.log\(JSON\.stringify\(assistant\.payload/);
+  assert.doesNotMatch(smoke, /console\.log\(assistant\.payload\.answer/);
+  assert.match(smoke, /redact\(raw\)/);
+});
