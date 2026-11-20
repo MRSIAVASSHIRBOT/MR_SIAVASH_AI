@@ -1695,13 +1695,13 @@ test("online assistant client timeout exceeds the manual Preview inference budge
     .split(/\r?\n/)
     .find(line => line.includes('assistant="$(curl'));
   const releaseTimeout = manualAssistantCurl?.match(/--max-time\s+(\d+)/);
-  const clientTimeout = support.match(/ASSISTANT_REQUEST_TIMEOUT_MS\s*=\s*(\d+)/);
+  const clientTimeout = support.match(/ASSISTANT_REQUEST_TIMEOUT_MS\s*=\s*([0-9_]+)/);
 
   assert.ok(releaseTimeout, "manual Preview release must define an assistant timeout");
   assert.ok(clientTimeout, "online assistant client must define a named timeout");
   assert.equal(Number(releaseTimeout[1]), 45);
   assert.ok(
-    Number(clientTimeout[1]) >= Number(releaseTimeout[1]) * 1000 + 5000,
+    Number(clientTimeout[1].replaceAll("_", "")) >= Number(releaseTimeout[1]) * 1000 + 5000,
     "the browser must allow the Gateway inference budget plus a five-second network buffer",
   );
 });
