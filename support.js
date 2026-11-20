@@ -110,7 +110,7 @@
 
   function rank(query) {
     const q = normalise(query);
-    const terms = [...new Set(q.split(/\\s+/).filter(term => term && !LOCAL_SEARCH_STOP_WORDS.has(term)))];
+    const terms = [...new Set(q.split(/\s+/).filter(term => term && !LOCAL_SEARCH_STOP_WORDS.has(term)))];
     if (!terms.length) return [];
     const ranked = knowledge.map(item => {
       const title = normalise(item.title), body = normalise([item.description, ...item.terms].join(" "));
