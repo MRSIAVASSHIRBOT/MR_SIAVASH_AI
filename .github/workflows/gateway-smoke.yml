@@ -85,10 +85,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          headers="$(curl --silent --show-error --retry 2 --retry-all-errors --retry-delay 2 --max-time 15 --dump-header - --output /dev/null \\
-            --request OPTIONS "$GATEWAY_BASE_URL/v1/health/live" \\
-            --header "Origin: $ALLOWED_ORIGIN" \\
-            --header "Access-Control-Request-Method: GET" \\
+          headers="$(curl --silent --show-error --retry 2 --retry-all-errors --retry-delay 2 --max-time 15 --dump-header - --output /dev/null \
+            --request OPTIONS "$GATEWAY_BASE_URL/v1/health/live" \
+            --header "Origin: $ALLOWED_ORIGIN" \
+            --header "Access-Control-Request-Method: GET" \
             --header "Access-Control-Request-Headers: content-type,x-request-id")"
 
           grep -Eiq '^HTTP/[^ ]+ 204([[:space:]]|$)' <<< "$headers"
@@ -105,9 +105,9 @@ jobs:
           headers_file="$(mktemp)"
           body_file="$(mktemp)"
           trap 'rm -f "$headers_file" "$body_file"' EXIT
-          status="$(curl --silent --show-error --max-time 15 --dump-header "$headers_file" --output "$body_file" --write-out '%{http_code}' \\
-            --request OPTIONS "$GATEWAY_BASE_URL/v1/health/live" \\
-            --header "Origin: https://untrusted.invalid" \\
+          status="$(curl --silent --show-error --max-time 15 --dump-header "$headers_file" --output "$body_file" --write-out '%{http_code}' \
+            --request OPTIONS "$GATEWAY_BASE_URL/v1/health/live" \
+            --header "Origin: https://untrusted.invalid" \
             --header "Access-Control-Request-Method: GET")"
 
           case "$status" in
