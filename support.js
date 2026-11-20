@@ -103,10 +103,16 @@
     try { return await loading; } finally { loading = null; }
   }
 
+  const LOCAL_SEARCH_STOP_WORDS = new Set([
+    "از", "تا", "به", "را", "و", "در", "برای", "با", "چند", "دارد",
+    "درس", "است", "آیا", "می", "شود", "کنم", "چطور", "چگونه", "این", "آن", "یک"
+  ]);
+
   function rank(query) {
-    const q = normalise(query), terms = [...new Set(q.split(/\s+/).filter(Boolean))];
+    const q = normalise(query);
+    const terms = [...new Set(q.split(/\\s+/).filter(term => term && !LOCAL_SEARCH_STOP_WORDS.has(term)))];
     if (!terms.length) return [];
-    return knowledge.map(item => {
+    const ranked = knowledge.map(item => {
       const title = normalise(item.title), body = normalise([item.description, ...item.terms].join(" "));
       let score = title === q ? 100 : title.startsWith(q) ? 55 : title.includes(q) ? 35 : 0, matched = 0;
       for (const term of terms) {
@@ -117,7 +123,10 @@
       }
       if (matched === terms.length) score += 12;
       return { item, score };
-    }).filter(result => result.score > 0).sort((a, b) => b.score - a.score).slice(0, 3);
+    }).filter(result => result.score > 0).sort((a, b) => b.score - a.score);
+    if (!ranked.length) return [];
+    const relevanceFloor = Math.max(8, Math.ceil(ranked[0].score * 0.6));
+    return ranked.filter(result => result.score >= relevanceFloor).slice(0, 3);
   }
 
   async function askOnline(query) {
