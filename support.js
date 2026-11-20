@@ -2,6 +2,7 @@
   "use strict";
   const $ = selector => document.querySelector(selector);
   const ASSISTANT_API = "https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev/v1/assistant/chat";
+  const ASSISTANT_REQUEST_TIMEOUT_MS = 50_000;
   const normalise = value => String(value || "").normalize("NFKC").toLocaleLowerCase("fa")
     .replace(/[يى]/g, "ی").replace(/ك/g, "ک")
     .replace(/[\u064b-\u065f\u0670\u0640]/g, "")
@@ -131,7 +132,7 @@
 
   async function askOnline(query) {
     const controller = typeof AbortController === "function" ? new AbortController() : null;
-    const timeoutId = controller ? window.setTimeout(() => controller.abort(), 15000) : null;
+    const timeoutId = controller ? window.setTimeout(() => controller.abort(), ASSISTANT_REQUEST_TIMEOUT_MS) : null;
     let response, data = {};
     try {
       response = await window.fetch(ASSISTANT_API, {
@@ -143,7 +144,7 @@
       try { data = await response.json(); } catch (error) { if (error?.name === "AbortError") throw error; }
     } catch (error) {
       if (error?.name === "AbortError") {
-        throw new Error("پاسخ آنلاین بیش از ۱۵ ثانیه طول کشید؛ اتصال را بررسی کن یا از راهنمای محلی استفاده کن.");
+        throw new Error("پاسخ آنلاین بیش از ۵۰ ثانیه طول کشید؛ اتصال را بررسی کن یا از راهنمای محلی استفاده کن.");
       }
       throw new Error("ارتباط آنلاین برقرار نشد؛ اتصال را بررسی کن یا از راهنمای محلی استفاده کن.");
     } finally {
