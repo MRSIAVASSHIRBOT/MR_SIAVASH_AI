@@ -73,3 +73,17 @@ test("Preview release documentation matches the deployed AI-enabled release cont
   assert.match(previewReleaseDoc, /accepts both `ai_grounded` and `knowledge_fallback`/);
   assert.doesNotMatch(previewReleaseDoc, /No AI binding or service token is configured/);
 });
+
+test("recurring Preview assistant smoke matches the manual release inference timeout budget", () => {
+  const manualAssistantCurl = previewWorkflow
+    .split(/\r?\n/)
+    .find(line => line.includes('assistant="$(curl'));
+  const recurringAssistantCurl = previewSmokeWorkflow
+    .split(/\r?\n/)
+    .find(line => line.includes('body="$(curl') && line.includes("/v1/assistant/chat"));
+
+  assert.ok(manualAssistantCurl, "manual Preview release must have an assistant request");
+  assert.ok(recurringAssistantCurl, "recurring Preview smoke must have an assistant request");
+  assert.match(manualAssistantCurl, /--max-time 45/);
+  assert.match(recurringAssistantCurl, /--max-time 45/);
+});
