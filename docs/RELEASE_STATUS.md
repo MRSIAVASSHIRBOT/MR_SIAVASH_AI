@@ -251,3 +251,19 @@ the public deployment job now runs only after an explicit
 `workflow_dispatch` on `main`. Merging ordinary development PRs no longer
 publishes the public site automatically.
 
+
+
+---
+
+## GitHub-only source-drift checkpoint — 2026-11-20 UTC
+
+This checkpoint updates the source comparison only. It does not represent a new Cloudflare inventory or a release approval.
+
+- Observed GitHub `main` at the start of this checkpoint: `046dcdbc8add03fac4ffa92cb281bdf51e952f06`.
+- Compared with the last recorded Production source annotation `1616545a2e204cb378e2c824299412ca20ef598b`, GitHub reports **52 commits ahead and 0 behind**.
+- On the exact observed `main` SHA, Gateway CI, Quality/structure checks, Workflow Security Audit, OpenSSF Scorecard, Preview runtime smoke, and Gateway health/CORS smoke completed successfully. The static-site deployment job was skipped; these checks do not establish a Pages or Cloudflare deployment.
+- The comparison includes the current Subtitle Studio and WebVTT cue-preservation work, as well as the previously documented Gateway, Academy, support, and migration changes. The complete file list is available in the GitHub compare view.
+- The last Cloudflare inventory recorded in this document remains historical evidence: Production version 14 and Preview version 6. Cloudflare deployment metadata and D1 migration state were **not re-read during this GitHub-only checkpoint**.
+- Production release remains blocked pending a fresh read-only deployment inventory, verification of D1 migration state without application-row access, exact-candidate Preview acceptance, backup/rollback rehearsal, and explicit owner approval.
+
+No Worker deployment, D1 migration or application-row read, route/DNS change, secret, schedule, or Cloudflare setting was changed for this checkpoint.
