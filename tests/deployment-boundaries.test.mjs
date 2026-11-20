@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-const [architecture,gatewayReadme,backendGuide,roadmap,security,adminPage,workerSource,releaseWorkflow,releaseScript] = await Promise.all([
+const [architecture,gatewayReadme,backendGuide,roadmap,security,adminPage,workerSource,releaseWorkflow,releaseScript,previewSmokeWorkflow,previewReleaseWorkflow,supportClient] = await Promise.all([
   readFile(new URL("../docs/ARCHITECTURE.md", import.meta.url), "utf8"),
   readFile(new URL("../cloudflare/gateway/README.md", import.meta.url), "utf8"),
   readFile(new URL("../docs/backend/README.md", import.meta.url), "utf8"),
@@ -11,7 +11,10 @@ const [architecture,gatewayReadme,backendGuide,roadmap,security,adminPage,worker
   readFile(new URL("../admin-support.html", import.meta.url), "utf8"),
   readFile(new URL("../cloudflare/gateway/src/index.js", import.meta.url), "utf8"),
   readFile(new URL("../.github/workflows/gateway-production.yml", import.meta.url), "utf8"),
-  readFile(new URL("../scripts/deploy-production-worker.mjs", import.meta.url), "utf8")
+  readFile(new URL("../scripts/deploy-production-worker.mjs", import.meta.url), "utf8"),
+  readFile(new URL("../.github/workflows/gateway-preview-smoke.yml", import.meta.url), "utf8"),
+  readFile(new URL("../.github/workflows/gateway-preview.yml", import.meta.url), "utf8"),
+  readFile(new URL("../support.js", import.meta.url), "utf8")
 ]);
 
 test("production documentation distinguishes deployed routes from current source and preview", () => {
@@ -75,4 +78,24 @@ test("production admin entry links to the Access-protected Worker console", () =
   assert.match(adminPage, /workers\.dev\/admin/);
   assert.match(adminPage, /Cloudflare Access/);
   assert.doesNotMatch(adminPage, /support-admin\.js|\/v1\/admin\//);
+});
+
+
+test("preview assistant acceptance uses one bounded inference attempt and a longer browser deadline", () => {
+  assert.match(previewSmokeWorkflow, /timeout-minutes: 7/);
+  const smokeAssistantLine = previewSmokeWorkflow.split("\n").find(line =>
+    line.includes("$BASE_URL/v1/assistant/chat")
+  );
+  assert.ok(smokeAssistantLine);
+  assert.match(smokeAssistantLine, /--connect-timeout 10 --max-time 75/);
+  assert.doesNotMatch(smokeAssistantLine, /--retry/);
+
+  const releaseAssistantLine = previewReleaseWorkflow.split("\n").find(line =>
+    line.includes("$BASE_URL/v1/assistant/chat")
+  );
+  assert.ok(releaseAssistantLine);
+  assert.match(releaseAssistantLine, /--connect-timeout 10 --max-time 75/);
+  assert.doesNotMatch(releaseAssistantLine, /--retry/);
+
+  assert.match(supportClient, /ASSISTANT_REQUEST_TIMEOUT_MS = 80_000/);
 });
