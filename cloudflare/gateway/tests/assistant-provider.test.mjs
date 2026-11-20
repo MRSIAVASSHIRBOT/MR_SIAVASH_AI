@@ -15,8 +15,8 @@ test("provider adapter stays disabled without an AI binding", () => {
 test("provider adapter uses a safe default model and a reasoning-safe bounded token budget", async () => {
   let call;
   const provider = createAssistantProvider({
-    AI: { run: async (model, input) => {
-      call = { model, input };
+    AI: { run: async (model, input, options) => {
+      call = { model, input, options };
       return { response: "پاسخ تأییدشده" };
     } }
   });
@@ -25,7 +25,9 @@ test("provider adapter uses a safe default model and a reasoning-safe bounded to
   assert.equal(assistantProviderDefaults.maxOutputTokens, 512);
   const result = await provider.generate({ messages: [{ role: "user", content: "سلام" }], maxTokens: 4096 });
   assert.equal(call.model, assistantProviderDefaults.model);
-  assert.equal(call.input.max_tokens, 512);
+  assert.equal(call.input.max_completion_tokens, 512);
+  assert.equal(Object.hasOwn(call.input, "max_tokens"), false);
+  assert.deepEqual(call.options, { rejectIfBusy: true });
   assert.deepEqual(call.input.chat_template_kwargs, { enable_thinking: false });
   assert.equal(result.text, "پاسخ تأییدشده");
   assert.equal(result.usage, null);
@@ -34,10 +36,11 @@ test("provider adapter uses a safe default model and a reasoning-safe bounded to
 test("provider adapter uses the configured token budget when no override is supplied", async () => {
   let input;
   const provider = createAssistantProvider({
-    AI: { run: async (_model, value) => { input = value; return { response: "ok" }; } }
+    AI: { run: async (_model, value, options) => { input = { ...value, options }; return { response: "ok" }; } }
   });
   await provider.generate({ messages: [{ role: "user", content: "hello" }] });
-  assert.equal(input.max_tokens, assistantProviderDefaults.maxOutputTokens);
+  assert.equal(input.max_completion_tokens, assistantProviderDefaults.maxOutputTokens);
+  assert.deepEqual(input.options, { rejectIfBusy: true });
   assert.deepEqual(input.chat_template_kwargs, { enable_thinking: false });
 });
 
@@ -55,11 +58,12 @@ test("provider adapter does not send GLM-specific options to another valid model
   let call;
   const provider = createAssistantProvider({
     AI_MODEL: "@cf/meta/llama-3.1-8b-instruct",
-    AI: { run: async (model, input) => { call = { model, input }; return "ok"; } }
+    AI: { run: async (model, input, options) => { call = { model, input, options }; return "ok"; } }
   });
   await provider.generate({ messages: [{ role: "user", content: "hello" }] });
   assert.equal(call.model, "@cf/meta/llama-3.1-8b-instruct");
-  assert.equal(call.input.max_tokens, 512);
+  assert.equal(call.input.max_completion_tokens, 512);
+  assert.deepEqual(call.options, { rejectIfBusy: true });
   assert.equal(Object.hasOwn(call.input, "chat_template_kwargs"), false);
 });
 

@@ -69,6 +69,9 @@ export function classifyAssistantProviderError(error) {
   if (/\b(401|403)\b|unauthori[sz]ed|forbidden|authentication/.test(message)) {
     return new AssistantProviderError("authentication", "The AI provider rejected its configured credentials.");
   }
+  if (/\b3040\b|capacity temporarily exceeded/.test(message)) {
+    return new AssistantProviderError("capacity", "The AI provider is temporarily at capacity.", { retryable: true });
+  }
   if (/\b429\b|rate.?limit|too many requests|quota/.test(message)) {
     return new AssistantProviderError("rate_limit", "The AI provider rate limit or quota was reached.", { retryable: true });
   }
@@ -133,8 +136,10 @@ export function createAssistantProvider(env) {
       try {
         result = await binding.run(model, {
           messages,
-          max_tokens: boundedTokens,
+          max_completion_tokens: boundedTokens,
           ...(model === DEFAULT_MODEL ? { chat_template_kwargs: { enable_thinking: false } } : {})
+        }, {
+          rejectIfBusy: true
         });
       } catch (error) {
         throw classifyAssistantProviderError(error);
