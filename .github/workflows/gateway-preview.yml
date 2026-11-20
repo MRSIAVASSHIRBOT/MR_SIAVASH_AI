@@ -179,7 +179,7 @@ jobs:
           }
           console.log("Preview AI, D1 isolation, admin Access variables, and retention configuration verified.");
           NODE
-      - name: Verify deployed preview routes and grounded AI
+      - name: Verify deployed preview routes and grounded AI (single bounded inference attempt)
         env:
           BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
           ALLOWED_ORIGIN: https://mrsiavasshirbot.github.io
@@ -193,7 +193,7 @@ jobs:
           node -e 'const x=JSON.parse(process.argv[1]);if(!Array.isArray(x.items)||x.items.length!==9)process.exit(1)' "$modules"
           status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request OPTIONS "$BASE_URL/v1/modules" --header "Origin: $ALLOWED_ORIGIN" --header "Access-Control-Request-Method: GET" --header "Access-Control-Request-Headers: content-type")"
           test "$status" = "204"
-          assistant="$(curl --fail --silent --show-error --retry 2 --retry-all-errors --max-time 45 "$BASE_URL/v1/assistant/chat" --header "Content-Type: application/json" --data '{"message":"آموزش پایتون"}')"
+          assistant="$(curl --fail --silent --show-error --connect-timeout 10 --max-time 75 "$BASE_URL/v1/assistant/chat" --header "Content-Type: application/json" --data '{"message":"آموزش پایتون"}')"
           node -e 'const x=JSON.parse(process.argv[1]);if(x.mode!=="ai_grounded"||!Array.isArray(x.sources)||x.sources.length<1||typeof x.answer!=="string"||!x.answer.trim())process.exit(1)' "$assistant"
           echo "Preview liveness, D1 readiness, module contract, CORS, and grounded Workers AI passed."
       - name: Roll back Preview traffic after failed deployment or smoke checks
