@@ -95,7 +95,7 @@ test("preview assistant acceptance uses one bounded inference attempt and a long
     previewReleaseWorkflow.indexOf("Roll back Preview traffic"),
   );
   assert.match(releaseSmoke, /timeoutMs: 75000/);
-  assert.match(releaseSmoke, /AbortSignal\.timeout/);
+  assert.match(previewReleaseWorkflow, /AbortSignal\.timeout/);
   assert.doesNotMatch(releaseSmoke, /retry/i);
 
   assert.match(supportClient, /ASSISTANT_REQUEST_TIMEOUT_MS = 80_000/);
