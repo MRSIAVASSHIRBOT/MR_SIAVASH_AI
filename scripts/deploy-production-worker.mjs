@@ -243,6 +243,14 @@ export async function waitForReadyRoute(fetchImpl, base, {
     " checks (last HTTP status: " + lastStatus + "; " + lastReason + ").");
 }
 
+export async function assertAdminRoutesFailClosed(fetchImpl, base) {
+  for (const path of ["/admin", "/v1/admin/support/tickets"]) {
+    const response = await fetchImpl(base + path, { redirect: "manual" });
+    if (![302, 401, 403].includes(response.status)) {
+      throw new Error("Production administrator route is not protected: " + path + " (HTTP " + response.status + ").");
+    }
+  }
+}
 async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSupportRetention = false, retentionDays = 90 } = {}) {
   const base = "https://" + WORKER + ".mrsiavashirbot.workers.dev";
   async function call(path, init, status) {
@@ -257,6 +265,7 @@ async function smokeProduction(fetchImpl, { enableWorkersAI = false, enableSuppo
   if (live.body.status !== "ok") throw new Error("Production liveness payload is invalid.");
   await waitForReadyRoute(fetchImpl, base, { enableSupportRetention, retentionDays });
   await waitForModulesRoute(fetchImpl, base);
+  await assertAdminRoutesFailClosed(fetchImpl, base);
 
   const unknown = await call("/v1/support/tickets/MS-0000000000000000", {}, 404);
   if (unknown.body.error?.code !== "ticket_not_found") throw new Error("Production public ticket route is not responding with the expected private-not-found result.");

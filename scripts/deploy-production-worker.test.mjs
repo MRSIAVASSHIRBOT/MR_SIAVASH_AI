@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
-import { buildVersionMetadata, buildWorkerUploadForm, mergeCronSchedules, configureCronSchedules, getFeatureRemovalRequirements, releaseProductionWorker, waitForModulesRoute, waitForReadyRoute } from "./deploy-production-worker.mjs";
+import { assertAdminRoutesFailClosed, buildVersionMetadata, buildWorkerUploadForm, mergeCronSchedules, configureCronSchedules, getFeatureRemovalRequirements, releaseProductionWorker, waitForModulesRoute, waitForReadyRoute } from "./deploy-production-worker.mjs";
 
 const settings = {
   compatibility_date: "2026-11-06",
@@ -449,4 +449,23 @@ test("production workflow requires a separate feature-removal acknowledgement", 
   assert.ok(inputStart >= 0);
   assert.ok(workflow.slice(inputStart, inputStart + 400).includes("default: false"));
   assert.ok(workflow.includes("ALLOW_FEATURE_REMOVAL: ${{ inputs.allow_feature_removal }}"));
+});
+
+test("production release smoke requires both administrator routes to deny anonymous requests", async () => {
+  const calls = [];
+  const statuses = [302, 401];
+  await assertAdminRoutesFailClosed(async (url, init) => {
+    calls.push({ url, init });
+    return new Response(null, { status: statuses[calls.length - 1] });
+  }, "https://gateway.example.test");
+  assert.deepEqual(calls.map(call => call.url), [
+    "https://gateway.example.test/admin",
+    "https://gateway.example.test/v1/admin/support/tickets"
+  ]);
+  assert.ok(calls.every(call => call.init?.redirect === "manual"));
+});
+
+test("production release smoke fails closed if an administrator route is public", async () => {
+  await assert.rejects(assertAdminRoutesFailClosed(async () => new Response("public", { status: 200 }),
+    "https://gateway.example.test"), /administrator route is not protected/);
 });
