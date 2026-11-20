@@ -1227,6 +1227,7 @@ test("scroll reveal leaves content untouched without observer support or when mo
 test("global search and support center are wired without inline script execution", () => {
   assert.match(html, /id="globalSearchButton"/);
   assert.match(html, /aria-keyshortcuts="Control\+K Meta\+K"/);
+  assert.match(html, /id="siteSearchInput" type="search" maxlength="120"/);
   assert.match(html, /id="siteSearchDialog"/);
   assert.match(html, /id="supportLauncher"/);
   assert.match(html, /id="supportDialog"/);
@@ -1299,6 +1300,23 @@ test("global search opens with Ctrl+K and Cmd+K and normalizes Persian and Arabi
   assert.equal(dialog.open, true);
   assert.equal(focusCount, 2);
   assert.equal(prevented, 2);
+});
+
+test("global search tolerates bounded Persian typos without fuzzy-matching short or numeric tokens", () => {
+  const normaliseMatch = searchSource.match(/const normalise=([\s\S]*?);\nconst LABELS=/);
+  assert.ok(normaliseMatch);
+  const scoreStart = searchSource.indexOf("function editDistanceAtMost(");
+  const scoreEnd = searchSource.indexOf("\nfunction showMessage", scoreStart);
+  assert.ok(scoreStart >= 0 && scoreEnd > scoreStart);
+  const score = vm.runInNewContext(
+    "(()=>{const normalise=(" + normaliseMatch[1] + ");" +
+    searchSource.slice(scoreStart, scoreEnd) + ";return score;})()"
+  );
+  const python = { title: "آموزش پایتون", description: "یادگیری برنامه‌نویسی پایتون", terms: ["python"] };
+  assert.ok(score(python, "پایتن", ["پایتن"]) > 0);
+  assert.ok(score(python, "پایتون", ["پایتون"]) > score(python, "پایتن", ["پایتن"]));
+  assert.equal(score({ title: "CSS", description: "", terms: [] }, "CSX", ["CSX"]), 0);
+  assert.equal(score({ title: "درس 123", description: "", terms: [] }, "درس 124", ["درس", "124"]), 0);
 });
 
 test("global search indexes primary destinations and the support center", async () => {
