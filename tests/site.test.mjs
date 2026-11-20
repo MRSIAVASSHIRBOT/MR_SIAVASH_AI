@@ -196,7 +196,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v60"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v61"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -289,7 +289,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v60"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v61"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -462,7 +462,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v60"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v61"/);
 });
 
 
@@ -1255,7 +1255,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v60"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v61"/);
 });
 
 test("homepage experience additions are present and versioned", () => {
@@ -1316,7 +1316,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyCss, /#a8e2b7/);
   assert.doesNotMatch(academyCss, /#9c8cff|#68dff5|#b7aaff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v60"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v61"/);
 });
 
 
@@ -1377,7 +1377,7 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(supportTickets, /consent: \$\("#supportConsent"\)\.checked/);
   assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
   assert.match(sw, /"\.\/support-tickets\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v60"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v61"/);
 });
 
 test("local support guide retries loading its index after an initial offline failure", async () => {
@@ -1467,6 +1467,83 @@ test("local support guide retries loading its index after an initial offline fai
   assert.equal(fetchCalls, 4, "submitting after recovery should retry both public indexes");
   assert.ok(messages.children.some(node => String(node.textContent).includes("راهنمای پایتون")));
   assert.equal(button.disabled, false);
+});
+
+test("local support search answers the Python course lesson-count query without unrelated sources", async () => {
+  let ready;
+  let submit;
+  let onlineCalls = 0;
+  const submitButton = { disabled: false, textContent: "" };
+  const input = { value: "دوره مقدماتی پایتون چند درس دارد", focus() {} };
+  const messages = {
+    children: [],
+    scrollHeight: 0,
+    scrollTop: 0,
+    append(...items) { this.children.push(...items); }
+  };
+  const makeElement = () => ({
+    children: [],
+    get childElementCount() { return this.children.length; },
+    className: "",
+    dataset: {},
+    textContent: "",
+    append(...items) { this.children.push(...items); },
+    setAttribute() {},
+    addEventListener(name, callback) { if (name === "submit") submit = callback; },
+    querySelector() { return submitButton; },
+    querySelectorAll() { return []; },
+    focus() {},
+    close() {},
+    showModal() {}
+  });
+  const form = makeElement();
+  const elements = new Map([
+    ["#supportDialog", makeElement()],
+    ["#supportLauncher", makeElement()],
+    ["#supportClose", makeElement()],
+    ["#assistantForm", form],
+    ["#assistantInput", input],
+    ["#assistantMessages", messages]
+  ]);
+  const document = {
+    readyState: "loading",
+    addEventListener(name, callback) { if (name === "DOMContentLoaded") ready = callback; },
+    querySelector(selector) { return elements.get(selector) || null; },
+    querySelectorAll() { return []; },
+    createElement() { return makeElement(); }
+  };
+  const index = JSON.parse(await readFile(new URL("../search-index.json", import.meta.url), "utf8"));
+  const window = {
+    MRSIAVASHReadJson: async path => path.includes("search-index")
+      ? index
+      : { schema: "mr-siavash-ai-module-registry", version: 1, modules: [] },
+    fetch: async () => { onlineCalls++; throw new Error("online mode must remain unused"); }
+  };
+
+  vm.runInNewContext(support, {
+    document,
+    window,
+    URL,
+    TextEncoder,
+    location: { href: "https://example.test/", origin: "https://example.test" }
+  });
+  ready();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(typeof submit, "function");
+  await submit({ preventDefault() {}, currentTarget: form });
+
+  const answer = messages.children.find(node =>
+    node.className === "assistant-bubble" && String(node.textContent).includes("نزدیک‌ترین راهنمای موجود")
+  );
+  assert.ok(answer, "local assistant should produce a ranked answer");
+  assert.match(answer.textContent, /۱۲ درس/, "the course overview must answer the lesson-count intent");
+  const sourceGroup = messages.children.find(node => Array.isArray(node.children) && node.children.length > 0);
+  assert.ok(sourceGroup, "the answer should include at least one source link");
+  const sourceTitles = sourceGroup.children.map(link => link.textContent);
+  assert.deepEqual(sourceTitles, ["آموزش پایتون مقدماتی"]);
+  assert.ok(sourceGroup.children.every(link => new URL(link.href).origin === "https://example.test"));
+  assert.equal(onlineCalls, 0, "local search must not call the online assistant API");
+  assert.equal(submitButton.disabled, false);
 });
 
 test("online support sends only the current question after per-question consent", async () => {
@@ -1717,7 +1794,7 @@ test("emerald flagship experience layer overrides the conflicting studio palette
   assert.match(experienceNextCss, /:focus-visible/);
   assert.equal((experienceNextCss.match(/\{/g)||[]).length,(experienceNextCss.match(/\}/g)||[]).length);
   assert.match(sw, /"\.\/experience-next\.css"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v60"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v61"/);
 });
 
 
@@ -1813,7 +1890,7 @@ test("all local assets referenced by public HTML pages exist and core routes are
     if (["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "privacy.html"].includes(asset)) continue;
     assert.ok(shell.has(asset), asset + " is referenced by a public page but missing from the offline shell");
   }
-  assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v60"/);
+  assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v61"/);
 });
 
 
@@ -1830,7 +1907,7 @@ test("curated knowledge library is searchable and included in the offline shell"
     assert.equal(item.type, "page");
     assert.ok(item.href.startsWith("./index.html#"));
   }
-  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v60"'));
+  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v61"'));
 });
 
 test("Hub integration is documented as separate until the security gates pass", async () => {
