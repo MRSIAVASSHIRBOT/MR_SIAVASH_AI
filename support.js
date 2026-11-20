@@ -144,7 +144,7 @@
       try { data = await response.json(); } catch (error) { if (error?.name === "AbortError") throw error; }
     } catch (error) {
       if (error?.name === "AbortError") {
-        throw new Error("پاسخ آنلاین بیش از ۵۰ ثانیه طول کشید؛ اتصال را بررسی کن یا از راهنمای محلی استفاده کن.");
+        throw new Error("پاسخ آنلاین بیش از ۸۰ ثانیه طول کشید؛ اتصال را بررسی کن یا از راهنمای محلی استفاده کن.");
       }
       throw new Error("ارتباط آنلاین برقرار نشد؛ اتصال را بررسی کن یا از راهنمای محلی استفاده کن.");
     } finally {
