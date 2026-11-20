@@ -7,9 +7,15 @@ This addendum records a failed runtime smoke and the source-level correction. It
 - The smoke request previously had a 45-second maximum. The browser support client also used a 50-second timeout. The smoke did not have enough time to cover the longer tail of the non-streaming Workers AI call and fallback path.
 - The Preview runtime smoke is now bounded at 75 seconds with a 10-second connect timeout and a 7-minute job budget. The Preview release acceptance uses a single 75-second assistant request without curl retries, avoiding duplicate model inference requests on an uncertain POST outcome. The browser client timeout is 80 seconds.
 - This does **not** add provider retries or claim model cancellation. The current Workers AI adapter still documents one provider attempt and no request-timeout/cancellation capability. A timed-out provider request may therefore still end as a knowledge fallback or a smoke failure; the next exact workflow result is the acceptance evidence.
-- A repository test now checks the smoke/release timeout contract and ensures the assistant POST has no automatic curl retry. Current GitHub CI and the next Preview smoke must pass before marking this correction verified.
+- The exact-head automated checks passed on source commit `230933b5cef14de176306fde28032ba0c5216972`:
+  - Gateway CI [44764820219](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44764820219): passed.
+  - Cloudflare Gateway Runtime Smoke [44764820326](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44764820326): passed.
+  - Cloudflare Gateway Preview Runtime Smoke [44764821935](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44764821935): passed all seven steps, including the 75-second grounded-assistant request, D1 readiness, support/admin fail-closed checks, and trusted/untrusted CORS checks.
+  - Quality checks / GitHub Pages workflow [44764819820](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44764819820): syntax/structure, repository tests, isolated D1 migrations, Academy Chromium acceptance, and accessibility/responsive audit all passed. The static-site Deploy job was skipped because this was a push-triggered run, not a manual deployment.
+  - Workflow Security Audit [44764820823](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44764820823): passed.
+- The timeout correction is therefore verified for the deployed Preview endpoint and exact source commit. This demonstrates a successful request under the 75-second bound; it does not prove provider-side cancellation or guarantee all future model requests finish within that bound.
 
-**Release boundary:** no Cloudflare Worker was deployed, no D1 migration or row was changed, no secret/binding/route/Cron/Access policy was modified, and Production remains on its previously recorded version 14. The Preview runtime result after this source correction is pending.
+**Release boundary:** no Cloudflare Worker was deployed by this work, no D1 migration or row was changed, and no secret, binding, route, Cron, Access policy, or Production traffic split was modified. Preview validation exercised the already deployed Preview Worker only. Production remains on its previously recorded version 14.
 
 ---
 
