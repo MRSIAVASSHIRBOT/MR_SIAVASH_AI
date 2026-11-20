@@ -398,7 +398,7 @@ This checkpoint supersedes the earlier 2026-11-20 source and Preview-release sna
 The official manual Preview workflow was dispatched on `main` at source SHA `84ced97560fcd775cca8c71da7bec930295b4a76` (after PR #218, before PRs #219 and #220).
 
 - The secret-configuration preflight passed, demonstrating that one of the supported secret names was populated for this run; no secret value was read or logged.
-- The workflow captured the existing 100% traffic split and Cron schedule, built the isolated Preview configuration, applied Preview-only D1 migrations, and passed the Preview migration-ledger check.
+- The workflow captured the existing 100% traffic split and Cron schedule, built the isolated Preview configuration, ran the Preview-only D1 migration command (Wrangler reported `No migrations to apply`), and passed the Preview migration-ledger check.
 - Worker version upload completed, and the following binding/admin-configuration verification passed.
 - The combined deployed-route and grounded-AI acceptance step failed. The older workflow version emitted only the step exit code and did not expose which inner request/contract failed; therefore the exact failing sub-check is **not established** from this run's logs.
 - The workflow's automatic rollback completed successfully and restored Preview traffic and Cron schedules to the captured pre-release state.
@@ -430,4 +430,4 @@ Both active Workers retain the AI binding, configured `@cf/zai-org/glm-4.7-flash
 - `main` remains unprotected and the repository Rulesets endpoint is empty; governance configuration remains an owner/admin action.
 - No Backup/Restore rehearsal has been completed. Use a separate test target; never restore over either live D1 database as a test.
 
-No Production Worker, Production D1, secret, Access policy, DNS, Production traffic, or Pages configuration was changed during this reconciliation. The only Preview-side effects were the official manual release workflow's isolated D1 migration application, candidate upload, and automatic rollback; no manual D1 application-row write or traffic override was performed outside that workflow.
+No Production Worker, Production D1, secret, Access policy, DNS, Production traffic, or Pages configuration was changed during this reconciliation. The Preview-side effects were the official manual release workflow's no-op migration check, candidate upload, and automatic rollback; no manual D1 application-row write or traffic override was performed outside that workflow.
