@@ -46,7 +46,7 @@ export async function verifyPagesPublication({
   wait = sleep,
 } = {}) {
   if (!FULL_GIT_SHA.test(expectedSha || "")) {
-    throw new TypeError("GITHUB_SHA must be a full 40-character commit SHA");
+    throw new TypeError("PAGES_SOURCE_SHA must be a full 40-character commit SHA");
   }
   if (typeof fetchImpl !== "function") {
     throw new TypeError("A Fetch-compatible implementation is required");
@@ -123,11 +123,11 @@ async function runCli() {
     const results = await verifyPagesPublication({
       baseUrl: process.env.PAGES_URL,
       sourceDir: process.cwd(),
-      expectedSha: process.env.GITHUB_SHA,
+      expectedSha: process.env.PAGES_SOURCE_SHA,
     });
 
     console.log("Verified " + results.length + " public Pages assets against commit " +
-      process.env.GITHUB_SHA + ".");
+      process.env.PAGES_SOURCE_SHA + ".");
     for (const result of results) {
       console.log(result.asset + ": HTTP " + result.status + ", SHA-256 " +
         result.sha256.slice(0, 16) + "…");
