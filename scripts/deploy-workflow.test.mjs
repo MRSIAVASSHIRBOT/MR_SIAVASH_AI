@@ -19,6 +19,14 @@ const previewReleaseDoc = await readFile(
   new URL("../cloudflare/gateway/PREVIEW_RELEASE.md", import.meta.url),
   "utf8",
 );
+const assistantProvider = await readFile(
+  new URL("../cloudflare/gateway/src/assistant-provider.js", import.meta.url),
+  "utf8",
+);
+const supportClient = await readFile(
+  new URL("../support.js", import.meta.url),
+  "utf8",
+);
 
 test("GitHub Pages publication is manual-only while quality checks stay on push", () => {
   assert.match(workflow, /workflow_dispatch:/);
@@ -86,4 +94,36 @@ test("recurring Preview assistant smoke matches the manual release inference tim
   assert.ok(recurringAssistantCurl, "recurring Preview smoke must have an assistant request");
   assert.match(manualAssistantCurl, /--max-time 45/);
   assert.match(recurringAssistantCurl, /--max-time 45/);
+});
+
+test("Workers AI response deadline preserves slack inside Gateway and browser timeout budgets", () => {
+  const inferenceMatch = assistantProvider.match(/const DEFAULT_REQUEST_TIMEOUT_MS = (\\d+);/);
+  const maximumMatch = assistantProvider.match(/const MAX_REQUEST_TIMEOUT_MS = (\\d+);/);
+  const browserMatch = supportClient.match(/const ASSISTANT_REQUEST_TIMEOUT_MS = ([\\d_]+);/);
+  const manualLine = previewWorkflow.split(/\\r?\\n/).find(line => line.includes('assistant="$(curl'));
+  const recurringLine = previewSmokeWorkflow
+    .split(/\\r?\\n/)
+    .find(line => line.includes('body="$(curl') && line.includes("/v1/assistant/chat"));
+  const manualBudget = manualLine?.match(/--max-time\\s+(\\d+)/);
+  const recurringBudget = recurringLine?.match(/--max-time\\s+(\\d+)/);
+
+  assert.ok(inferenceMatch, "provider must declare a default response deadline");
+  assert.ok(maximumMatch, "provider must declare a hard maximum response deadline");
+  assert.ok(browserMatch, "browser support client must declare its request deadline");
+  assert.ok(manualBudget, "manual Preview gate must declare its request budget");
+  assert.ok(recurringBudget, "recurring Preview smoke must declare its request budget");
+
+  const inferenceMs = Number(inferenceMatch[1]);
+  const maximumMs = Number(maximumMatch[1]);
+  const browserMs = Number(browserMatch[1].replaceAll("_", ""));
+  const manualMs = Number(manualBudget[1]) * 1000;
+  const recurringMs = Number(recurringBudget[1]) * 1000;
+
+  assert.equal(inferenceMs, 25_000);
+  assert.equal(maximumMs, 30_000);
+  assert.ok(maximumMs + 10_000 <= manualMs, "manual release must retain at least ten seconds of response slack");
+  assert.ok(maximumMs + 10_000 <= recurringMs, "recurring smoke must retain at least ten seconds of response slack");
+  assert.ok(maximumMs + 20_000 <= browserMs, "browser must retain at least twenty seconds of response slack");
+  assert.match(assistantProvider, /requestTimeout: true/);
+  assert.match(assistantProvider, /cancellation: false/);
 });
