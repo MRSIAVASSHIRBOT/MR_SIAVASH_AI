@@ -1469,6 +1469,82 @@ test("local support guide retries loading its index after an initial offline fai
   assert.equal(button.disabled, false);
 });
 
+test("local support search answers the Python course lesson-count query without unrelated sources", async () => {
+  let ready;
+  let submit;
+  let onlineCalls = 0;
+  const submitButton = { disabled: false, textContent: "" };
+  const input = { value: "دوره مقدماتی پایتون چند درس دارد", focus() {} };
+  const messages = {
+    children: [],
+    scrollHeight: 0,
+    scrollTop: 0,
+    append(...items) { this.children.push(...items); }
+  };
+  const makeElement = () => ({
+    children: [],
+    className: "",
+    dataset: {},
+    textContent: "",
+    append(...items) { this.children.push(...items); },
+    setAttribute() {},
+    addEventListener(name, callback) { if (name === "submit") submit = callback; },
+    querySelector() { return submitButton; },
+    querySelectorAll() { return []; },
+    focus() {},
+    close() {},
+    showModal() {}
+  });
+  const form = makeElement();
+  const elements = new Map([
+    ["#supportDialog", makeElement()],
+    ["#supportLauncher", makeElement()],
+    ["#supportClose", makeElement()],
+    ["#assistantForm", form],
+    ["#assistantInput", input],
+    ["#assistantMessages", messages]
+  ]);
+  const document = {
+    readyState: "loading",
+    addEventListener(name, callback) { if (name === "DOMContentLoaded") ready = callback; },
+    querySelector(selector) { return elements.get(selector) || null; },
+    querySelectorAll() { return []; },
+    createElement() { return makeElement(); }
+  };
+  const index = JSON.parse(await readFile(new URL("../search-index.json", import.meta.url), "utf8"));
+  const window = {
+    MRSIAVASHReadJson: async path => path.includes("search-index")
+      ? index
+      : { schema: "mr-siavash-ai-module-registry", version: 1, modules: [] },
+    fetch: async () => { onlineCalls++; throw new Error("online mode must remain unused"); }
+  };
+
+  vm.runInNewContext(support, {
+    document,
+    window,
+    URL,
+    TextEncoder,
+    location: { href: "https://example.test/" }
+  });
+  ready();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  assert.equal(typeof submit, "function");
+  await submit({ preventDefault() {}, currentTarget: form });
+
+  const answer = messages.children.find(node =>
+    node.className === "assistant-bubble" && String(node.textContent).includes("نزدیک‌ترین راهنمای موجود")
+  );
+  assert.ok(answer, "local assistant should produce a ranked answer");
+  assert.match(answer.textContent, /۱۲ درس/, "the course overview must answer the lesson-count intent");
+  const sourceGroup = messages.children.find(node => Array.isArray(node.children) && node.children.length > 0);
+  assert.ok(sourceGroup, "the answer should include at least one source link");
+  const sourceTitles = sourceGroup.children.map(link => link.textContent);
+  assert.deepEqual(sourceTitles, ["آموزش پایتون مقدماتی"]);
+  assert.ok(sourceGroup.children.every(link => new URL(link.href).origin === "https://example.test"));
+  assert.equal(onlineCalls, 0, "local search must not call the online assistant API");
+  assert.equal(submitButton.disabled, false);
+});
+
 test("online support sends only the current question after per-question consent", async () => {
   let ready;
   let submit;
@@ -1830,7 +1906,7 @@ test("curated knowledge library is searchable and included in the offline shell"
     assert.equal(item.type, "page");
     assert.ok(item.href.startsWith("./index.html#"));
   }
-  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v60"'));
+  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v61"'));
 });
 
 test("Hub integration is documented as separate until the security gates pass", async () => {
