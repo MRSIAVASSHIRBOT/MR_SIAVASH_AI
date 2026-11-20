@@ -113,6 +113,25 @@ test("digital identity page exposes public social profiles and GitHub tools safe
   assert.ok(html.includes("<strong>06</strong>"));
 });
 
+test("featured repository directory lists the four active ecosystem projects", () => {
+  const start = html.indexOf('<div class="identity-repo-grid">');
+  const end = html.indexOf("</div>", start);
+  assert.ok(start >= 0 && end > start, "featured repository grid must exist");
+  const grid = html.slice(start, end);
+  for (const repo of [
+    "MR_SIAVASH_AI",
+    "MR_SIAVASH_HUB_AI",
+    "MR_SIAVASH_EL_AI",
+    "MR_SIAVASH_EL_AGENT"
+  ]) {
+    assert.match(grid, new RegExp(">" + repo + "<"));
+    assert.ok(grid.includes("https://github.com/MRSIAVASSHIRBOT/" + repo));
+  }
+  assert.equal((grid.match(/identity-repo-card/g) || []).length, 4);
+  assert.doesNotMatch(grid, /Gshop/);
+  assert.match(css, /\.identity-repo-grid\s*\{[^}]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+});
+
 test("all static DOM IDs used by the application exist in the HTML", () => {
   const htmlIds = new Set([...html.matchAll(/\bid="([^"]+)"/g)].map(match => match[1]));
   const referencedIds = [...app.matchAll(/\$\("#([A-Za-z][A-Za-z0-9_-]*)"/g)].map(match => match[1]).filter(id => !id.endsWith("-"));
