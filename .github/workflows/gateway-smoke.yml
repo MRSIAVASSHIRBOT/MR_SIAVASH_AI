@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   smoke:
-    name: Verify deployed gateway health and CORS
+    name: Verify deployed gateway health, support, admin authorization, and CORS
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -62,6 +62,21 @@ jobs:
             node -e 'const x=JSON.parse(require("node:fs").readFileSync("/tmp/invalid-ticket.json","utf8"));if(x.error?.code!=="invalid_ticket")process.exit(1)'
           fi
 
+      - name: Verify administrator routes fail closed without an Access identity
+        env:
+          GATEWAY_BASE_URL: https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for path in /admin /v1/admin/support/tickets; do
+            status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' "$GATEWAY_BASE_URL$path")"
+            case "$status" in
+              302|401|403) ;;
+              *) echo "An anonymous administrator route was not blocked (HTTP $status): $path" >&2; exit 1 ;;
+            esac
+          done
+
       - name: Verify exact-origin CORS preflight
         env:
           GATEWAY_BASE_URL: https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev
@@ -70,10 +85,10 @@ jobs:
         run: |
           set -euo pipefail
 
-          headers="$(curl --silent --show-error --retry 2 --retry-all-errors --retry-delay 2 --max-time 15 --dump-header - --output /dev/null \
-            --request OPTIONS "$GATEWAY_BASE_URL/v1/health/live" \
-            --header "Origin: $ALLOWED_ORIGIN" \
-            --header "Access-Control-Request-Method: GET" \
+          headers="$(curl --silent --show-error --retry 2 --retry-all-errors --retry-delay 2 --max-time 15 --dump-header - --output /dev/null \\
+            --request OPTIONS "$GATEWAY_BASE_URL/v1/health/live" \\
+            --header "Origin: $ALLOWED_ORIGIN" \\
+            --header "Access-Control-Request-Method: GET" \\
             --header "Access-Control-Request-Headers: content-type,x-request-id")"
 
           grep -Eiq '^HTTP/[^ ]+ 204([[:space:]]|$)' <<< "$headers"
@@ -90,9 +105,9 @@ jobs:
           headers_file="$(mktemp)"
           body_file="$(mktemp)"
           trap 'rm -f "$headers_file" "$body_file"' EXIT
-          status="$(curl --silent --show-error --max-time 15 --dump-header "$headers_file" --output "$body_file" --write-out '%{http_code}' \
-            --request OPTIONS "$GATEWAY_BASE_URL/v1/health/live" \
-            --header "Origin: https://untrusted.invalid" \
+          status="$(curl --silent --show-error --max-time 15 --dump-header "$headers_file" --output "$body_file" --write-out '%{http_code}' \\
+            --request OPTIONS "$GATEWAY_BASE_URL/v1/health/live" \\
+            --header "Origin: https://untrusted.invalid" \\
             --header "Access-Control-Request-Method: GET")"
 
           case "$status" in
