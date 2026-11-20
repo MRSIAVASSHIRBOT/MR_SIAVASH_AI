@@ -1773,20 +1773,18 @@ test("online support sends only the current question after per-question consent"
 });
 
 test("online assistant client timeout exceeds the manual Preview inference budget by five seconds", () => {
-  const manualAssistantCurl = previewReleaseWorkflowText
-    .split(/\r?\n/)
-    .find(line => line.includes('assistant="$(curl'));
-  const releaseTimeout = manualAssistantCurl?.match(/--max-time\s+(\d+)/);
-  const clientTimeout = support.match(/ASSISTANT_REQUEST_TIMEOUT_MS\s*=\s*([0-9_]+)/);
+  const releaseTimeout = previewReleaseWorkflowText.match(/timeoutMs:\\s*(\\d+)/);
+  const clientTimeout = support.match(/ASSISTANT_REQUEST_TIMEOUT_MS\\s*=\\s*([0-9_]+)/);
 
   assert.ok(releaseTimeout, "manual Preview release must define an assistant timeout");
   assert.ok(clientTimeout, "online assistant client must define a named timeout");
-  assert.equal(Number(releaseTimeout[1]), 75);
+  assert.equal(Number(releaseTimeout[1]), 75000);
   assert.ok(
-    Number(clientTimeout[1].replaceAll("_", "")) >= Number(releaseTimeout[1]) * 1000 + 5000,
+    Number(clientTimeout[1].replaceAll("_", "")) >= Number(releaseTimeout[1]) + 5000,
     "the browser must allow the Gateway inference budget plus a five-second network buffer",
   );
 });
+
 
 test("support assistant defaults to local search and gates optional online AI behind explicit consent", () => {
   assert.match(html, /راهنمای محلی/);
