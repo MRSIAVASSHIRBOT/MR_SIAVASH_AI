@@ -1525,7 +1525,7 @@ test("local support search answers the Python course lesson-count query without 
     window,
     URL,
     TextEncoder,
-    location: { href: "https://example.test/" }
+    location: { href: "https://example.test/", origin: "https://example.test" }
   });
   ready();
   await new Promise(resolve => setTimeout(resolve, 0));
