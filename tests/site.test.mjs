@@ -1555,6 +1555,7 @@ test("online support sends only the current question after per-question consent"
   let requestUrl = "";
   let requestOptions;
   let timeoutCallback = null;
+  let timeoutMs = 0;
   let clearedTimeouts = 0;
   let simulateTimeout = false;
   const submitButton = { disabled: false, textContent: "" };
@@ -1637,7 +1638,7 @@ test("online support sends only the current question after per-question consent"
       };
     },
     setTimeout(callback, delay) {
-      assert.equal(delay, 50000);
+      timeoutMs = delay;
       timeoutCallback = callback;
       return 42;
     },
@@ -1664,6 +1665,7 @@ test("online support sends only the current question after per-question consent"
   consent.checked = true;
   await submit({ preventDefault() {}, currentTarget: form });
   assert.equal(fetchCalls, 1);
+  assert.equal(timeoutMs, 50000, "online request timeout must include the Gateway budget and safety buffer");
   assert.equal(requestUrl, "https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev/v1/assistant/chat");
   assert.equal(requestOptions.method, "POST");
   assert.equal(requestOptions.credentials, "omit");
