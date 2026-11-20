@@ -1,7 +1,9 @@
 (()=>{"use strict";
 const $=s=>document.querySelector(s);
 const normalise=value=>String(value||"").normalize("NFKC").toLocaleLowerCase("fa")
-  .replace(/[يى]/g,"ی").replace(/ك/g,"ک")
+  .replace(/[يى]/g,"ی").replace(/ك/g,"ک").replace(/[أإآٱ]/g,"ا").replace(/ة/g,"ه")
+  .replace(/[٠-٩۰-۹]/g,digit=>String(digit.charCodeAt(0)-(digit.charCodeAt(0)>=0x06f0?0x06f0:0x0660)))
+  .replace(/[\u200b-\u200f\u202a-\u202e\u2060\ufeff]/g,"")
   .replace(/[\u064b-\u065f\u0670\u0640]/g,"")
   .replace(/[^\p{L}\p{N}]+/gu," ").trim();
 const LABELS={course:"مسیر آموزشی",lesson:"فصل آکادمی", "python-lesson":"درس پایتون",module:"ماژول",page:"صفحه",action:"دسترسی سریع"};
@@ -107,6 +109,11 @@ function open(){
 }
 function init(){
  if(!dialog()||!input()||!root())return;
+ document.addEventListener("keydown",event=>{
+  if(!event.isComposing&&(event.ctrlKey||event.metaKey)&&!event.altKey&&event.key.toLowerCase()==="k"){
+   event.preventDefault();open();
+  }
+ });
  $("#globalSearchButton").addEventListener("click",open);
  $("#siteSearchClose").addEventListener("click",()=>dialog().close());
  input().addEventListener("input",event=>render(event.target.value));
