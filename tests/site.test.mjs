@@ -1692,8 +1692,8 @@ test("online assistant client timeout exceeds the manual Preview inference budge
   const manualAssistantCurl = previewReleaseWorkflowText
     .split(/\r?\n/)
     .find(line => line.includes('assistant="$(curl'));
-  const releaseTimeout = manualAssistantCurl?.match(/--max-time\\s+(\\d+)/);
-  const clientTimeout = support.match(/ASSISTANT_REQUEST_TIMEOUT_MS\\s*=\\s*(\\d+)/);
+  const releaseTimeout = manualAssistantCurl?.match(/--max-time\s+(\d+)/);
+  const clientTimeout = support.match(/ASSISTANT_REQUEST_TIMEOUT_MS\s*=\s*(\d+)/);
 
   assert.ok(releaseTimeout, "manual Preview release must define an assistant timeout");
   assert.ok(clientTimeout, "online assistant client must define a named timeout");
