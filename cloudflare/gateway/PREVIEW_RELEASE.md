@@ -12,7 +12,7 @@ A dedicated D1 database named `mr-siavash-ai-preview` is provisioned in the WEUR
 
 The Preview Worker `mr-siavash-ai-gateway-preview` uses Cloudflare's native Workers AI binding `AI` with `AI_MODEL=@cf/zai-org/glm-4.7-flash`. This is a platform binding, not a separately configured external-provider API-key or service-token binding. `CF_API_TOKEN` is used only by the GitHub Actions release job for Cloudflare control-plane operations; it is not a runtime Worker binding.
 
-The Worker also uses the isolated Preview D1 binding `DB`, a 90-day support-retention policy, and the daily `0 3 * * *` UTC Cron schedule. The release workflow sets `keep_vars: true) and verifies the dashboard-managed administrator configuration remains present: `ADMIN_EMAILS`, `CF_ACCESS_TEAM_DOMAIN`, and `CF_ACCESS_AUD`. A dedicated Cloudflare Access self-hosted application protects `/admin` and `/v1/admin/*`; the Worker independently verifies the Access JWT signature, issuer, audience, expiry, not-before time, and administrator allowlist.
+The Worker also uses the isolated Preview D1 binding `DB`, a 90-day support-retention policy, and the daily `0 3 * * *` UTC Cron schedule. The release workflow sets `keep_vars: true` and verifies the dashboard-managed administrator configuration remains present: `ADMIN_EMAILS`, `CF_ACCESS_TEAM_DOMAIN`, and `CF_ACCESS_AUD`. A dedicated Cloudflare Access self-hosted application protects `/admin` and `/v1/admin/*`; the Worker independently verifies the Access JWT signature, issuer, audience, expiry, not-before time, and administrator allowlist.
 
 ## D1 migration contract
 
@@ -22,7 +22,7 @@ A green isolated SQLite migration test proves the repository migration chain, no
 
 ## Release and acceptance
 
-The `gateway-preview.yml` workflow is manual-only (`workflow_dispatch)) and must be run from the current `main` branch. It captures the existing Preview traffic split and Cron schedules for rollback, applies pending migrations to Preview D1, deploys the reviewed Worker source, and verifies the resulting AI binding, isolated D1 binding, Access variables, retention configuration, and daily schedule.
+The `gateway-preview.yml` workflow is manual-only (`workflow_dispatch`) and must be run from the current `main` branch. It captures the existing Preview traffic split and Cron schedules for rollback, applies pending migrations to Preview D1, deploys the reviewed Worker source, and verifies the resulting AI binding, isolated D1 binding, Access variables, retention configuration, and daily schedule.
 
 The manual release acceptance requires successful liveness and D1 readiness checks, the nine-module public catalog, the trusted-origin CORS preflight, and one successful `ai_grounded` response with a non-empty answer and at least one verified source. This proves that the configured Workers AI integration can actually complete an inference. A `knowledge_fallback` response is a valid runtime resilience mode, but it does not prove that a new Preview candidate can call Workers AI; therefore it does not satisfy this stricter release gate. A failed post-deployment acceptance check triggers restoration of the captured Preview traffic split and Cron schedules.
 
@@ -35,4 +35,4 @@ The recurring `gateway-preview-smoke.yml` workflow serves a different purpose: i
 - Do not add Production secrets to the `gateway-preview` environment.
 - A successful Preview is necessary but not sufficient for Production. Authentication, administrator Access JWT verification, support ticket lifecycle, privacy/retention, backup/restore, tenant isolation, and rollback still require their separate acceptance checks and explicit Production release approval.
 
-The workflow pins Wrangler to `4.45.0) and uses Node.js 22. Its generated Wrangler configuration and rollback snapshot live only in the runner's temporary directory and are not committed.
+The workflow pins Wrangler to `4.45.0` and uses Node.js 22. Its generated Wrangler configuration and rollback snapshot live only in the runner's temporary directory and are not committed.
