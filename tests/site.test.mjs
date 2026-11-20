@@ -36,6 +36,7 @@ const openapiValidatorText = await readFile(new URL("../scripts/validate-openapi
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 const workflowText = await readFile(new URL("../.github/workflows/deploy.yml", import.meta.url), "utf8");
 const gatewaySmokeWorkflowText = await readFile(new URL("../.github/workflows/gateway-smoke.yml", import.meta.url), "utf8");
+const previewReleaseWorkflowText = await readFile(new URL("../.github/workflows/gateway-preview.yml", import.meta.url), "utf8");
 const dependabotText = await readFile(new URL("../.github/dependabot.yml", import.meta.url), "utf8");
 
 test("Cloudflare gateway runtime smoke checks live health and exact-origin CORS", () => {
@@ -1636,7 +1637,7 @@ test("online support sends only the current question after per-question consent"
       };
     },
     setTimeout(callback, delay) {
-      assert.equal(delay, 15000);
+      assert.equal(delay, 50000);
       timeoutCallback = callback;
       return 42;
     },
@@ -1681,10 +1682,26 @@ test("online support sends only the current question after per-question consent"
   simulateTimeout = true;
   await submit({ preventDefault() {}, currentTarget: form });
   assert.equal(fetchCalls, 2);
-  assert.match(status.textContent, /۱۵ ثانیه/);
+  assert.match(status.textContent, /۵۰ ثانیه/);
   assert.equal(clearedTimeouts, 2, "the timeout is cleared after an aborted request");
   assert.equal(consent.checked, false, "consent is reset after a timed-out request");
   assert.equal(submitButton.disabled, false, "the form is usable again after a timeout");
+});
+
+test("online assistant client timeout exceeds the manual Preview inference budget by five seconds", () => {
+  const manualAssistantCurl = previewReleaseWorkflowText
+    .split(/\\r?\\n/)
+    .find(line => line.includes('assistant="$(curl'));
+  const releaseTimeout = manualAssistantCurl?.match(/--max-time\\s+(\\d+)/);
+  const clientTimeout = support.match(/ASSISTANT_REQUEST_TIMEOUT_MS\\s*=\\s*(\\d+)/);
+
+  assert.ok(releaseTimeout, "manual Preview release must define an assistant timeout");
+  assert.ok(clientTimeout, "online assistant client must define a named timeout");
+  assert.equal(Number(releaseTimeout[1]), 45);
+  assert.ok(
+    Number(clientTimeout[1]) >= Number(releaseTimeout[1]) * 1000 + 5000,
+    "the browser must allow the Gateway inference budget plus a five-second network buffer",
+  );
 });
 
 test("support assistant defaults to local search and gates optional online AI behind explicit consent", () => {
