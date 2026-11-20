@@ -11,6 +11,15 @@ const previewWorkflow = await readFile(
   "utf8",
 );
 
+const previewSmokeWorkflow = await readFile(
+  new URL("../.github/workflows/gateway-preview-smoke.yml", import.meta.url),
+  "utf8",
+);
+const previewReleaseDoc = await readFile(
+  new URL("../cloudflare/gateway/PREVIEW_RELEASE.md", import.meta.url),
+  "utf8",
+);
+
 test("GitHub Pages publication is manual-only while quality checks stay on push", () => {
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /push:\s*\n\s*branches:\s*\n\s*- main/);
@@ -48,4 +57,19 @@ test("Preview acceptance requires grounded AI output and has an automatic traffi
   assert.match(previewWorkflow, /steps\.deploy_preview\.outcome != 'skipped'/);
   assert.match(previewWorkflow, /gateway-preview-rollback\.json/);
   assert.match(previewWorkflow, /Automatic rollback after failed Preview acceptance/);
+});
+
+
+test("Preview release documentation matches the deployed AI-enabled release contract", () => {
+  assert.match(previewWorkflow, /if\(x\.mode!==\"ai_grounded\"/);
+  assert.match(
+    previewSmokeWorkflow,
+    /const supportedMode=x\.mode===\"ai_grounded\"\|\|x\.mode===\"knowledge_fallback\"/,
+  );
+  assert.match(previewReleaseDoc, /Workers AI binding `AI`/);
+  assert.match(previewReleaseDoc, /AI_MODEL/);
+  assert.match(previewReleaseDoc, /migrations 0001–0005/);
+  assert.match(previewReleaseDoc, /one successful `ai_grounded` response/);
+  assert.match(previewReleaseDoc, /accepts both `ai_grounded` and `knowledge_fallback`/);
+  assert.doesNotMatch(previewReleaseDoc, /No AI binding or service token is configured/);
 });
