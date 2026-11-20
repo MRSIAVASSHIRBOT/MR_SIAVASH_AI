@@ -190,6 +190,7 @@ jobs:
           const redact = value => String(value)
             .replace(/(authorization\s*[:=]\s*|bearer\s+)[^\s,"]+/gi, "$1[REDACTED]")
             .replace(/(api[_-]?key|token|secret)(\s*[:=]\s*)[^\s,"]+/gi, "$1$2[REDACTED]")
+            .replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A")
             .slice(0, 280);
           function fail(check, detail) {
             console.error("::error title=Preview acceptance failed::" + check + " — " + redact(detail));
