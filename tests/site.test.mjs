@@ -1773,7 +1773,7 @@ test("online support sends only the current question after per-question consent"
 });
 
 test("online assistant client timeout exceeds the manual Preview inference budget by five seconds", () => {
-  const releaseTimeout = previewReleaseWorkflowText.match(/timeoutMs:\s*(\\d+)/);
+  const releaseTimeout = previewReleaseWorkflowText.match(/timeoutMs:\s*(\d+)/);
   const clientTimeout = support.match(/ASSISTANT_REQUEST_TIMEOUT_MS\s*=\s*([0-9_]+)/);
 
   assert.ok(releaseTimeout, "manual Preview release must define an assistant timeout");
