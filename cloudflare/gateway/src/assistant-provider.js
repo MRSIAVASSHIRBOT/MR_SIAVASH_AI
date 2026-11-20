@@ -1,6 +1,9 @@
 const DEFAULT_MODEL = "@cf/zai-org/glm-4.7-flash";
 const MAX_OUTPUT_TOKENS = 512;
 const MAX_MESSAGES = 10;
+const DEFAULT_REQUEST_TIMEOUT_MS = 25_000;
+const MIN_REQUEST_TIMEOUT_MS = 1_000;
+const MAX_REQUEST_TIMEOUT_MS = 30_000;
 
 export class AssistantProviderError extends Error {
   constructor(category, message, { retryable = false } = {}) {
@@ -15,6 +18,12 @@ function safeModel(value) {
   return typeof value === "string" && /^@cf\/[a-z0-9][a-z0-9._/-]*$/i.test(value)
     ? value
     : DEFAULT_MODEL;
+}
+
+function configuredRequestTimeout(env) {
+  const configured = Number(env?.AI_REQUEST_TIMEOUT_MS);
+  if (!Number.isSafeInteger(configured) || configured <= 0) return DEFAULT_REQUEST_TIMEOUT_MS;
+  return Math.min(MAX_REQUEST_TIMEOUT_MS, Math.max(MIN_REQUEST_TIMEOUT_MS, configured));
 }
 
 function contentText(value) {
@@ -101,14 +110,16 @@ export function createAssistantProvider(env) {
   if (!binding || typeof binding.run !== "function") return null;
 
   const model = safeModel(env.AI_MODEL);
+  const requestTimeoutMs = configuredRequestTimeout(env);
   return Object.freeze({
     provider: "cloudflare-workers-ai",
     model,
     capabilities: Object.freeze({
       streaming: false,
-      requestTimeout: false,
+      requestTimeout: true,
       cancellation: false
     }),
+    requestTimeoutMs,
     retryPolicy: Object.freeze({
       maxAttempts: 1,
       automatic: false
@@ -133,16 +144,33 @@ export function createAssistantProvider(env) {
         : MAX_OUTPUT_TOKENS;
 
       let result;
+      let timeoutHandle;
       try {
-        result = await binding.run(model, {
+        const inference = binding.run(model, {
           messages,
           max_completion_tokens: boundedTokens,
           ...(model === DEFAULT_MODEL ? { chat_template_kwargs: { enable_thinking: false } } : {})
         }, {
           rejectIfBusy: true
         });
+
+        // Bound how long this request waits. The Workers AI binding does not
+        // expose cancellation here, so the underlying inference may continue.
+        const deadline = new Promise((_, reject) => {
+          timeoutHandle = setTimeout(() => {
+            reject(new AssistantProviderError(
+              "timeout",
+              "The AI provider request exceeded its response deadline.",
+              { retryable: true }
+            ));
+          }, requestTimeoutMs);
+        });
+        result = await Promise.race([inference, deadline]);
       } catch (error) {
+        if (error instanceof AssistantProviderError) throw error;
         throw classifyAssistantProviderError(error);
+      } finally {
+        if (timeoutHandle !== undefined) clearTimeout(timeoutHandle);
       }
 
       const text = extractText(result);
@@ -163,5 +191,7 @@ export function createAssistantProvider(env) {
 export const assistantProviderDefaults = Object.freeze({
   model: DEFAULT_MODEL,
   maxOutputTokens: MAX_OUTPUT_TOKENS,
-  maxMessages: MAX_MESSAGES
+  maxMessages: MAX_MESSAGES,
+  requestTimeoutMs: DEFAULT_REQUEST_TIMEOUT_MS,
+  maxRequestTimeoutMs: MAX_REQUEST_TIMEOUT_MS
 });
