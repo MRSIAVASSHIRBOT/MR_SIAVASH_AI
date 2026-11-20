@@ -184,18 +184,97 @@ jobs:
           BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
           ALLOWED_ORIGIN: https://mrsiavasshirbot.github.io
         run: |
-          set -euo pipefail
-          live="$(curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 2 --max-time 15 "$BASE_URL/v1/health/live")"
-          node -e 'const x=JSON.parse(process.argv[1]);if(x.status!=="ok"||x.service!=="mr-siavash-ai-gateway")process.exit(1)' "$live"
-          ready="$(curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 2 --max-time 15 "$BASE_URL/v1/health/ready")"
-          node -e 'const x=JSON.parse(process.argv[1]);if(x.status!=="ready"||x.dependencies?.database!=="ready"||x.features?.supportRetentionDays!==90)process.exit(1)' "$ready"
-          modules="$(curl --fail --silent --show-error --max-time 15 "$BASE_URL/v1/modules")"
-          node -e 'const x=JSON.parse(process.argv[1]);if(!Array.isArray(x.items)||x.items.length!==9)process.exit(1)' "$modules"
-          status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request OPTIONS "$BASE_URL/v1/modules" --header "Origin: $ALLOWED_ORIGIN" --header "Access-Control-Request-Method: GET" --header "Access-Control-Request-Headers: content-type")"
-          test "$status" = "204"
-          assistant="$(curl --fail --silent --show-error --connect-timeout 10 --max-time 75 "$BASE_URL/v1/assistant/chat" --header "Content-Type: application/json" --data '{"message":"آموزش پایتون"}')"
-          node -e 'const x=JSON.parse(process.argv[1]);if(x.mode!=="ai_grounded"||!Array.isArray(x.sources)||x.sources.length<1||typeof x.answer!=="string"||!x.answer.trim())process.exit(1)' "$assistant"
-          echo "Preview liveness, D1 readiness, module contract, CORS, and grounded Workers AI passed."
+          node --input-type=module <<'NODE'
+          const base = process.env.BASE_URL;
+          const origin = process.env.ALLOWED_ORIGIN;
+          const redact = value => String(value)
+            .replace(/(authorization\s*[:=]\s*|bearer\s+)[^\s,"]+/gi, "$1[REDACTED]")
+            .replace(/(api[_-]?key|token|secret)(\s*[:=]\s*)[^\s,"]+/gi, "$1$2[REDACTED]")
+            .replace(/%/g, "%25").replace(/\r/g, "%0D").replace(/\n/g, "%0A")
+            .slice(0, 280);
+          function fail(check, detail) {
+            console.error("::error title=Preview acceptance failed::" + check + " — " + redact(detail));
+            process.exit(1);
+          }
+          function safeBody(payload, raw) {
+            if (payload && typeof payload === "object") {
+              const fields = ["error", "code", "message", "status", "success"];
+              const summary = Object.fromEntries(fields.filter(key => payload[key] !== undefined).map(key => [key, payload[key]]));
+              return Object.keys(summary).length ? JSON.stringify(summary) : "JSON response received; body omitted";
+            }
+            return raw ? "non-JSON response (" + raw.length + " bytes): " + redact(raw) : "empty response body";
+          }
+          async function request(check, path, options = {}) {
+            let response;
+            try {
+              response = await fetch(new URL(path, base), {
+                method: options.method || "GET",
+                headers: options.headers || {},
+                body: options.body,
+                signal: AbortSignal.timeout(options.timeoutMs || 15000)
+              });
+            } catch (error) {
+              fail(check, (error?.name || "NetworkError") + ": " + (error?.message || "request failed"));
+            }
+            const raw = await response.text();
+            let payload = null;
+            if (raw) {
+              try { payload = JSON.parse(raw); }
+              catch { /* report a bounded non-JSON summary below */ }
+            }
+            if (!response.ok) fail(check, "HTTP " + response.status + "; " + safeBody(payload, raw));
+            if (raw && payload === null) fail(check, "HTTP " + response.status + "; expected JSON; " + safeBody(null, raw));
+            console.log("PASS " + check + " — HTTP " + response.status);
+            return { response, payload };
+          }
+          const live = await request("health.live", "/v1/health/live");
+          if (live.payload?.status !== "ok" || live.payload?.service !== "mr-siavash-ai-gateway") {
+            fail("health.live contract", "expected status=ok and service=mr-siavash-ai-gateway; received " + JSON.stringify({
+              status: live.payload?.status ?? null, service: live.payload?.service ?? null
+            }));
+          }
+          const ready = await request("health.ready (D1 readiness)", "/v1/health/ready");
+          if (ready.payload?.status !== "ready" || ready.payload?.dependencies?.database !== "ready" || ready.payload?.features?.supportRetentionDays !== 90) {
+            fail("health.ready contract", "expected status=ready, dependencies.database=ready, supportRetentionDays=90; received " + JSON.stringify({
+              status: ready.payload?.status ?? null,
+              database: ready.payload?.dependencies?.database ?? null,
+              supportRetentionDays: ready.payload?.features?.supportRetentionDays ?? null
+            }));
+          }
+          const modules = await request("modules.catalog", "/v1/modules");
+          const moduleCount = Array.isArray(modules.payload?.items) ? modules.payload.items.length : null;
+          if (moduleCount !== 9) fail("modules.catalog contract", "expected exactly 9 items; received " + String(moduleCount));
+          const cors = await request("cors.preflight", "/v1/modules", {
+            method: "OPTIONS",
+            headers: {
+              Origin: origin,
+              "Access-Control-Request-Method": "GET",
+              "Access-Control-Request-Headers": "content-type"
+            }
+          });
+          const allowOrigin = cors.response.headers.get("access-control-allow-origin");
+          if (cors.response.status !== 204 || allowOrigin !== origin) {
+            fail("cors.preflight contract", "expected HTTP 204 and Access-Control-Allow-Origin matching configured origin; received HTTP " +
+              cors.response.status + " and allow-origin=" + String(allowOrigin));
+          }
+          const assistant = await request("assistant.workers-ai (single inference; max 75s)", "/v1/assistant/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: "آموزش پایتون" }),
+            timeoutMs: 75000
+          });
+          const answerLength = typeof assistant.payload?.answer === "string" ? assistant.payload.answer.trim().length : 0;
+          const sourceCount = Array.isArray(assistant.payload?.sources) ? assistant.payload.sources.length : 0;
+          if (assistant.payload?.mode !== "ai_grounded" || sourceCount < 1 || answerLength < 1) {
+            fail("assistant.workers-ai contract", "expected mode=ai_grounded, sources>=1, non-empty answer; received " + JSON.stringify({
+              mode: assistant.payload?.mode ?? null, sourceCount, answerLength,
+              requestId: assistant.payload?.request_id ?? null,
+              error: assistant.payload?.error ?? assistant.payload?.code ?? null
+            }));
+          }
+          console.log("PASS assistant.workers-ai — mode=ai_grounded, sources=" + sourceCount + ", answerChars=" + answerLength);
+          console.log("Preview acceptance passed: liveness, D1 readiness, 9-module catalog, trusted-origin CORS, grounded Workers AI.");
+          NODE
       - name: Roll back Preview traffic after failed deployment or smoke checks
         if: ${{ failure() && steps.deploy_preview.outcome != 'skipped' }}
         env:

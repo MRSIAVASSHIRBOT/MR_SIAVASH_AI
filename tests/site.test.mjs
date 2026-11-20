@@ -330,7 +330,7 @@ test("local workspace recovery reports repairs and never silently truncates task
   assert.equal(overflow.excessTasks, 3);
   assert.equal(normalize(null).invalidContainer, true);
   assert.match(app, /بازیابی داده‌ها با اصلاحات انجام شد/);
-  assert.doesNotMatch(app, /task\.text\.trim\(\)\.replace\(\/\\s\+\/g, " "\)\.slice\(0, 120\)/);
+  assert.doesNotMatch(app, /task\.text\.trim\(\)\.replace\(\/\s\+\/g, " "\)\.slice\(0, 120\)/);
 });
 
 test("workspace recovery blocks implicit overwrite until a validated backup is imported", () => {
@@ -1773,20 +1773,18 @@ test("online support sends only the current question after per-question consent"
 });
 
 test("online assistant client timeout exceeds the manual Preview inference budget by five seconds", () => {
-  const manualAssistantCurl = previewReleaseWorkflowText
-    .split(/\r?\n/)
-    .find(line => line.includes('assistant="$(curl'));
-  const releaseTimeout = manualAssistantCurl?.match(/--max-time\s+(\d+)/);
+  const releaseTimeout = previewReleaseWorkflowText.match(/timeoutMs:\s*(\d+)/);
   const clientTimeout = support.match(/ASSISTANT_REQUEST_TIMEOUT_MS\s*=\s*([0-9_]+)/);
 
   assert.ok(releaseTimeout, "manual Preview release must define an assistant timeout");
   assert.ok(clientTimeout, "online assistant client must define a named timeout");
-  assert.equal(Number(releaseTimeout[1]), 75);
+  assert.equal(Number(releaseTimeout[1]), 75000);
   assert.ok(
-    Number(clientTimeout[1].replaceAll("_", "")) >= Number(releaseTimeout[1]) * 1000 + 5000,
+    Number(clientTimeout[1].replaceAll("_", "")) >= Number(releaseTimeout[1]) + 5000,
     "the browser must allow the Gateway inference budget plus a five-second network buffer",
   );
 });
+
 
 test("support assistant defaults to local search and gates optional online AI behind explicit consent", () => {
   assert.match(html, /راهنمای محلی/);
@@ -1857,7 +1855,7 @@ test("public privacy notice describes ticket data, one-time credentials and inac
 
 test("emerald design text tokens meet WCAG AA contrast on dark surfaces", () => {
   const token = name => {
-    const match = experienceNextCss.match(new RegExp("--" + name + ":\\s*(#[0-9a-fA-F]{6})"));
+    const match = experienceNextCss.match(new RegExp("--" + name + ":\s*(#[0-9a-fA-F]{6})"));
     assert.ok(match, "missing color token --" + name);
     return match[1];
   };

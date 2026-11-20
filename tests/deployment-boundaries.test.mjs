@@ -90,12 +90,13 @@ test("preview assistant acceptance uses one bounded inference attempt and a long
   assert.match(smokeAssistantLine, /--connect-timeout 10 --max-time 75/);
   assert.doesNotMatch(smokeAssistantLine, /--retry/);
 
-  const releaseAssistantLine = previewReleaseWorkflow.split("\n").find(line =>
-    line.includes("$BASE_URL/v1/assistant/chat")
+  const releaseSmoke = previewReleaseWorkflow.slice(
+    previewReleaseWorkflow.indexOf("assistant.workers-ai"),
+    previewReleaseWorkflow.indexOf("Roll back Preview traffic"),
   );
-  assert.ok(releaseAssistantLine);
-  assert.match(releaseAssistantLine, /--connect-timeout 10 --max-time 75/);
-  assert.doesNotMatch(releaseAssistantLine, /--retry/);
+  assert.match(releaseSmoke, /timeoutMs: 75000/);
+  assert.match(previewReleaseWorkflow, /AbortSignal\.timeout/);
+  assert.doesNotMatch(releaseSmoke, /retry/i);
 
   assert.match(supportClient, /ASSISTANT_REQUEST_TIMEOUT_MS = 80_000/);
 });
