@@ -284,3 +284,20 @@ This checkpoint updates GitHub source evidence only. It is not a fresh Cloudflar
 - Production release remains blocked pending a fresh read-only Cloudflare deployment inventory, verification of D1 migration state without application-row access, exact-candidate Preview acceptance, backup/rollback rehearsal, and explicit owner approval.
 
 No Worker deployment, D1 migration or application-row read, route/DNS change, secret, schedule, or Cloudflare setting was changed for this checkpoint.
+
+
+---
+
+## GitHub-only source-drift checkpoint — 2026-11-20 12:08 UTC
+
+This checkpoint follows the documentation-only merge of PR #202. It updates GitHub source evidence only; it is not a fresh Cloudflare inventory, D1 migration check, or release approval.
+
+- Current GitHub `main`: `e16009ba5b0a42cfa7e59ded6346b35bb688c42d`.
+- Compared with the last recorded Production source annotation `1616545a2e204cb378e2c824299412ca20ef598b`, GitHub reports **54 commits ahead and 0 behind** (79 changed paths in the compare result).
+- On this exact `main` SHA, the latest observed push runs all completed successfully: Gateway runtime smoke (44733034614), Preview runtime smoke (44733034598), Gateway CI (44733034654), Quality checks (44733034684), Workflow Security Audit (44733034633), and OpenSSF Scorecard (44733034761).
+- The static Pages deployment job was skipped. These checks do not establish a Pages deployment or a new Cloudflare Worker deployment.
+- The latest Cloudflare deployment inventory recorded in this document remains historical: Production version 14 and Preview version 6. Cloudflare deployment metadata and Production D1 migration state were **not re-read** after this source comparison.
+- The isolated SQLite migration suite validates the repository migration chain; it does not prove that migrations 0004/0005 are applied to Production D1.
+- Production release remains blocked pending a fresh read-only Cloudflare deployment inventory, verification of D1 migration state without application-row access, exact-candidate Preview acceptance, backup/rollback rehearsal, and explicit owner approval.
+
+No Worker deployment, D1 migration or application-row read, route/DNS change, secret, schedule, or Cloudflare setting was changed for this checkpoint.
