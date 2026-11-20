@@ -19,6 +19,14 @@ const previewReleaseDoc = await readFile(
   new URL("../cloudflare/gateway/PREVIEW_RELEASE.md", import.meta.url),
   "utf8",
 );
+const assistantProvider = await readFile(
+  new URL("../cloudflare/gateway/src/assistant-provider.js", import.meta.url),
+  "utf8",
+);
+const supportClient = await readFile(
+  new URL("../support.js", import.meta.url),
+  "utf8",
+);
 
 test("GitHub Pages publication is manual-only while quality checks stay on push", () => {
   assert.match(workflow, /workflow_dispatch:/);
@@ -88,4 +96,48 @@ test("recurring Preview assistant smoke matches the manual release inference tim
   assert.match(recurringAssistantCurl, /--connect-timeout 10 --max-time 75/);
   assert.doesNotMatch(manualAssistantCurl, /--retry/);
   assert.doesNotMatch(recurringAssistantCurl, /--retry/);
+});
+
+
+test("Workers AI response deadline fits the Preview and browser request budgets without retries", () => {
+  const defaultLine = assistantProvider.split("\n").find(line => line.includes("DEFAULT_REQUEST_TIMEOUT_MS ="));
+  const maximumLine = assistantProvider.split("\n").find(line => line.includes("MAX_REQUEST_TIMEOUT_MS ="));
+  const browserLine = supportClient.split("\n").find(line => line.includes("ASSISTANT_REQUEST_TIMEOUT_MS ="));
+  const releaseLine = previewWorkflow.split("\n").find(line => line.includes('$BASE_URL/v1/assistant/chat'));
+  const smokeLine = previewSmokeWorkflow.split("\n").find(line => line.includes('$BASE_URL/v1/assistant/chat'));
+
+  assert.ok(defaultLine);
+  assert.ok(maximumLine);
+  assert.ok(browserLine);
+  assert.ok(releaseLine);
+  assert.ok(smokeLine);
+
+  const numericValue = line => Number(line.slice(line.indexOf("=") + 1).trim().replaceAll("_", "").replace(";", ""));
+  const requestBudget = line => {
+    const marker = "--max-time ";
+    const start = line.indexOf(marker);
+    assert.notEqual(start, -1, "assistant request must declare a maximum duration");
+    return Number(line.slice(start + marker.length).split(/\s/, 1)[0]) * 1000;
+  };
+
+  const defaultMs = numericValue(defaultLine);
+  const maximumMs = numericValue(maximumLine);
+  const browserMs = numericValue(browserLine);
+  const releaseMs = requestBudget(releaseLine);
+  const smokeMs = requestBudget(smokeLine);
+
+  assert.equal(defaultMs, 25_000);
+  assert.equal(maximumMs, 30_000);
+  assert.equal(browserMs, 80_000);
+  assert.equal(releaseMs, 75_000);
+  assert.equal(smokeMs, 75_000);
+  assert.ok(maximumMs + 10_000 <= releaseMs);
+  assert.ok(maximumMs + 10_000 <= smokeMs);
+  assert.ok(maximumMs + 20_000 <= browserMs);
+  assert.match(releaseLine, /--connect-timeout 10/);
+  assert.match(smokeLine, /--connect-timeout 10/);
+  assert.doesNotMatch(releaseLine, /--retry/);
+  assert.doesNotMatch(smokeLine, /--retry/);
+  assert.match(assistantProvider, /requestTimeout: true/);
+  assert.match(assistantProvider, /cancellation: false/);
 });
