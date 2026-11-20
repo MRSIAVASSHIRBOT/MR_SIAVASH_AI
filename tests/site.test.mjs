@@ -1690,7 +1690,7 @@ test("online support sends only the current question after per-question consent"
 
 test("online assistant client timeout exceeds the manual Preview inference budget by five seconds", () => {
   const manualAssistantCurl = previewReleaseWorkflowText
-    .split(/\\r?\\n/)
+    .split(/\r?\n/)
     .find(line => line.includes('assistant="$(curl'));
   const releaseTimeout = manualAssistantCurl?.match(/--max-time\\s+(\\d+)/);
   const clientTimeout = support.match(/ASSISTANT_REQUEST_TIMEOUT_MS\\s*=\\s*(\\d+)/);
