@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
+import { assertPreviewVersionMetadata } from "./verify-preview-version.mjs";
 
 const workflow = await readFile(
   new URL("../.github/workflows/deploy.yml", import.meta.url),
@@ -170,4 +171,49 @@ test("Preview release smoke checks report the exact failing contract without log
   assert.doesNotMatch(smoke, /console\.log\(JSON\.stringify\(assistant\.payload/);
   assert.doesNotMatch(smoke, /console\.log\(assistant\.payload\.answer/);
   assert.match(smoke, /redact\(raw\)/);
+});
+
+const previewCommitSha = "0123456789abcdef0123456789abcdef01234567";
+const previewVersion = {
+  id: "5c02fb2b-6d7a-4aed-a3ff-2b0cfeb05f9c",
+  number: 10,
+  annotations: {
+    "workers/tag": previewCommitSha,
+    "workers/message": "Preview release from commit " + previewCommitSha,
+  },
+};
+
+test("Preview version metadata accepts the exact GitHub commit tag and release message", () => {
+  assert.doesNotThrow(() => assertPreviewVersionMetadata(previewVersion, previewCommitSha));
+});
+
+test("Preview version metadata rejects a tag from a different commit", () => {
+  const version = { ...previewVersion, annotations: { ...previewVersion.annotations, "workers/tag": "fedcba9876543210fedcba9876543210fedcba98" } };
+  assert.throws(() => assertPreviewVersionMetadata(version, previewCommitSha), /tag does not match/i);
+});
+
+test("Preview version metadata rejects a message that does not identify the deployed commit", () => {
+  const version = { ...previewVersion, annotations: { ...previewVersion.annotations, "workers/message": "Preview release" } };
+  assert.throws(() => assertPreviewVersionMetadata(version, previewCommitSha), /message does not match/i);
+});
+
+test("Preview version metadata rejects absent annotations and malformed GitHub SHAs", () => {
+  assert.throws(() => assertPreviewVersionMetadata({ id: previewVersion.id }, previewCommitSha), /tag does not match/i);
+  assert.throws(() => assertPreviewVersionMetadata(previewVersion, "not-a-full-sha"), /40-character Git commit SHA/i);
+});
+
+test("Preview deployment passes and verifies the exact GitHub source SHA", () => {
+  const deployStart = previewWorkflow.indexOf("Deploy preview Worker");
+  const verifyStart = previewWorkflow.indexOf("Verify preview version source metadata");
+  const rollbackStart = previewWorkflow.indexOf("Roll back Preview traffic after failed deployment or smoke checks");
+  assert.ok(deployStart >= 0 && verifyStart > deployStart && rollbackStart > verifyStart);
+  const deployStep = previewWorkflow.slice(deployStart, verifyStart);
+  const verifyStep = previewWorkflow.slice(verifyStart, rollbackStart);
+  assert.match(deployStep, /GITHUB_SHA:\s*\$\{\{\s*github\.sha\s*\}\}/);
+  assert.match(deployStep, /--tag\s+"\$GITHUB_SHA"/);
+  assert.match(deployStep, /--message\s+"Preview release from commit \$GITHUB_SHA"/);
+  assert.match(verifyStep, /GITHUB_SHA:\s*\$\{\{\s*github\.sha\s*\}\}/);
+  assert.match(verifyStep, /assertPreviewVersionMetadata\(/);
+  assert.match(verifyStep, /find\(item => item\.percentage === 100\)/);
+  assert.match(verifyStep, /get\(worker \+ "\/versions\/" \+ activeVersion\.version_id\)/);
 });
