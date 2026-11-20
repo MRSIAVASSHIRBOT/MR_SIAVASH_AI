@@ -8,9 +8,9 @@ A dedicated D1 database named `mr-siavash-ai-preview` is provisioned in the WEUR
 
 - Cloudflare account ID (non-secret): `ae50292f7e60c0d6d0052727e61c4033`.
 - Preview D1 database ID (non-secret): `a764f930-430f-4898-a0b6-b57f5caf9c78`.
-- Configure the GitHub Actions environment named `gateway-preview` with the secret `CF_API_TOKEN`, scoped to the Workers Scripts and D1 operations required by this workflow.
+- Configure the GitHub Actions environment named `gateway-preview` with either `CLOUDFLARE_API_TOKEN` (preferred; consistent with the Production workflow's secret name) or `CF_API_TOKEN`, scoped to the Workers Scripts and D1 operations required by this workflow. The Preview workflow accepts either name and maps it to its internal `CF_API_TOKEN` variable. The secret value must be a Cloudflare API token with the Preview Worker and Preview D1 permissions required below; never place the token in repository files or logs.
 
-The Preview Worker `mr-siavash-ai-gateway-preview` uses Cloudflare's native Workers AI binding `AI` with `AI_MODEL=@cf/zai-org/glm-4.7-flash`. This is a platform binding, not a separately configured external-provider API-key or service-token binding. `CF_API_TOKEN` is used only by the GitHub Actions release job for Cloudflare control-plane operations; it is not a runtime Worker binding.
+The Preview Worker `mr-siavash-ai-gateway-preview` uses Cloudflare's native Workers AI binding `AI` with `AI_MODEL=@cf/zai-org/glm-4.7-flash`. This is a platform binding, not a separately configured external-provider API-key or service-token binding. The selected GitHub Actions secret is used only by the release job for Cloudflare control-plane operations; it is not a runtime Worker binding.
 
 The Worker also uses the isolated Preview D1 binding `DB`, a 90-day support-retention policy, and the daily `0 3 * * *` UTC Cron schedule. The release workflow sets `keep_vars: true` and verifies the dashboard-managed administrator configuration remains present: `ADMIN_EMAILS`, `CF_ACCESS_TEAM_DOMAIN`, and `CF_ACCESS_AUD`. A dedicated Cloudflare Access self-hosted application protects `/admin` and `/v1/admin/*`; the Worker independently verifies the Access JWT signature, issuer, audience, expiry, not-before time, and administrator allowlist.
 
