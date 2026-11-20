@@ -38,3 +38,8 @@ The recurring `gateway-preview-smoke.yml` workflow serves a different purpose: i
 - A successful Preview is necessary but not sufficient for Production. Authentication, administrator Access JWT verification, support ticket lifecycle, privacy/retention, backup/restore, tenant isolation, and rollback still require their separate acceptance checks and explicit Production release approval.
 
 The workflow pins Wrangler to `4.45.0` and uses Node.js 22. Its generated Wrangler configuration and rollback snapshot live only in the runner's temporary directory and are not committed.
+
+
+## Preview acceptance diagnostics
+
+The manual Preview release reports each acceptance check independently: `health.live`, `health.ready` (including D1 readiness and retention), `modules.catalog`, `cors.preflight`, and `assistant.workers-ai`. A failing check emits its exact contract name, HTTP status when available, and a bounded/redacted error summary. The assistant diagnostic records only response mode, source count, answer character count, and request ID; it never prints the generated answer or full response body. Each network request has an explicit timeout, and the Workers AI inference remains a single attempt (no automatic retry).
