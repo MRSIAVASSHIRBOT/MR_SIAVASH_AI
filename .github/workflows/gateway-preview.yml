@@ -14,7 +14,7 @@ jobs:
   preview:
     name: Deploy isolated preview Worker
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     environment: gateway-preview
     steps:
       - name: Checkout source
@@ -30,10 +30,41 @@ jobs:
           CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
         run: |
           set -euo pipefail
-          test -n "$PREVIEW_D1_DATABASE_ID" || { echo "Missing gateway-preview variable PREVIEW_D1_DATABASE_ID"; exit 1; }
-          test -n "$CF_ACCOUNT_ID" || { echo "Missing gateway-preview variable CF_ACCOUNT_ID"; exit 1; }
-          test -n "$CF_API_TOKEN" || { echo "Missing gateway-preview secret CF_API_TOKEN"; exit 1; }
+          test -n "$PREVIEW_D1_DATABASE_ID" || { echo "::error::Missing gateway-preview variable PREVIEW_D1_DATABASE_ID"; exit 1; }
+          test -n "$CF_ACCOUNT_ID" || { echo "::error::Missing gateway-preview variable CF_ACCOUNT_ID"; exit 1; }
+          test -n "$CF_API_TOKEN" || { echo "::error::Missing gateway-preview secret CF_API_TOKEN"; exit 1; }
           node -e 'if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(process.argv[1]))process.exit(1)' "$PREVIEW_D1_DATABASE_ID"
+      - name: Capture current preview traffic and schedules for rollback
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ae50292f7e60c0d6d0052727e61c4033
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from "node:fs";
+          const root = "https://api.cloudflare.com/client/v4/accounts/" + process.env.CF_ACCOUNT_ID;
+          const headers = { Authorization: "Bearer " + process.env.CF_API_TOKEN, "Content-Type": "application/json" };
+          async function request(path) {
+            const response = await fetch(root + path, { headers });
+            const body = await response.json();
+            if (!response.ok || body.success !== true) throw new Error("Cloudflare preview rollback snapshot failed.");
+            return body.result;
+          }
+          const worker = "/workers/scripts/mr-siavash-ai-gateway-preview";
+          const [deploymentData, scheduleData] = await Promise.all([
+            request(worker + "/deployments"),
+            request(worker + "/schedules")
+          ]);
+          const versions = deploymentData.deployments?.[0]?.versions?.map(item => ({
+            version_id: item.version_id,
+            percentage: item.percentage
+          })) || [];
+          if (!versions.length || versions.reduce((sum, item) => sum + item.percentage, 0) !== 100) {
+            throw new Error("Preview rollback requires a complete existing 100% traffic split.");
+          }
+          const schedules = (scheduleData.schedules || []).map(item => ({ cron: item.cron }));
+          writeFileSync(process.env.RUNNER_TEMP + "/gateway-preview-rollback.json", JSON.stringify({ versions, schedules }));
+          NODE
       - name: Build isolated Wrangler configuration
         env:
           PREVIEW_D1_DATABASE_ID: a764f930-430f-4898-a0b6-b57f5caf9c78
@@ -51,14 +82,20 @@ jobs:
             main: resolve(root, "cloudflare/gateway/src/index.js"),
             compatibility_date: "2026-11-08",
             workers_dev: true,
+            keep_vars: true,
             observability: { enabled: true },
+            ai: { binding: "AI" },
             d1_databases: [{
               binding: "DB",
               database_name: "mr-siavash-ai-preview",
               database_id: process.env.PREVIEW_D1_DATABASE_ID,
               migrations_dir: resolve(root, "cloudflare/gateway/migrations")
             }],
-            vars: { ALLOWED_ORIGINS: "https://mrsiavasshirbot.github.io", SUPPORT_RETENTION_DAYS: "90" },
+            vars: {
+              ALLOWED_ORIGINS: "https://mrsiavasshirbot.github.io",
+              AI_MODEL: "@cf/zai-org/glm-4.7-flash",
+              SUPPORT_RETENTION_DAYS: "90"
+            },
             triggers: { crons: ["0 3 * * *"] }
           };
           writeFileSync(resolve(process.env.RUNNER_TEMP, "wrangler-preview.json"), JSON.stringify(config, null, 2));
@@ -68,12 +105,81 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ae50292f7e60c0d6d0052727e61c4033
         run: npx --yes wrangler@4.45.0 d1 migrations apply mr-siavash-ai-preview --remote --config "$RUNNER_TEMP/wrangler-preview.json"
+      - name: Verify preview D1 migration contract
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ae50292f7e60c0d6d0052727e61c4033
+          PREVIEW_D1_DATABASE_ID: a764f930-430f-4898-a0b6-b57f5caf9c78
+        run: |
+          node --input-type=module <<'NODE'
+          const root = "https://api.cloudflare.com/client/v4/accounts/" + process.env.CF_ACCOUNT_ID;
+          async function query(sql) {
+            const response = await fetch(root + "/d1/database/" + process.env.PREVIEW_D1_DATABASE_ID + "/query", {
+              method: "POST",
+              headers: { Authorization: "Bearer " + process.env.CF_API_TOKEN, "Content-Type": "application/json" },
+              body: JSON.stringify({ sql })
+            });
+            const payload = await response.json();
+            if (!response.ok || payload.success !== true) throw new Error("Preview D1 schema verification request failed.");
+            const result = Array.isArray(payload.result) ? payload.result[0] : payload.result;
+            if (result?.success === false) throw new Error("Preview D1 schema verification query failed.");
+            return Array.isArray(result?.results) ? result.results : [];
+          }
+          const [tables, migrations] = await Promise.all([
+            query("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('support_retention_runs','support_ticket_status_events') ORDER BY name"),
+            query("SELECT name FROM d1_migrations WHERE name IN ('0004_support_retention_runs.sql','0005_support_ticket_status_history.sql') ORDER BY name")
+          ]);
+          const tableNames = new Set(tables.map(row => row.name));
+          const migrationNames = new Set(migrations.map(row => row.name));
+          for (const name of ["support_retention_runs", "support_ticket_status_events"]) {
+            if (!tableNames.has(name)) throw new Error("Preview D1 is missing a required migration table.");
+          }
+          for (const name of ["0004_support_retention_runs.sql", "0005_support_ticket_status_history.sql"]) {
+            if (!migrationNames.has(name)) throw new Error("Preview D1 migration ledger is incomplete.");
+          }
+          console.log("Preview D1 migration contract verified (migrations 0004 and 0005).");
+          NODE
       - name: Deploy preview Worker
+        id: deploy_preview
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ae50292f7e60c0d6d0052727e61c4033
-        run: npx --yes wrangler@4.45.0 deploy --config "$RUNNER_TEMP/wrangler-preview.json"
-      - name: Verify deployed preview routes
+        run: |
+          touch "$RUNNER_TEMP/gateway-preview-deploy-started"
+          npx --yes wrangler@4.45.0 deploy --config "$RUNNER_TEMP/wrangler-preview.json"
+      - name: Verify preview bindings and preserved admin access configuration
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ae50292f7e60c0d6d0052727e61c4033
+          PREVIEW_D1_DATABASE_ID: a764f930-430f-4898-a0b6-b57f5caf9c78
+        run: |
+          node --input-type=module <<'NODE'
+          const root = "https://api.cloudflare.com/client/v4/accounts/" + process.env.CF_ACCOUNT_ID;
+          const headers = { Authorization: "Bearer " + process.env.CF_API_TOKEN };
+          async function get(path) {
+            const response = await fetch(root + path, { headers });
+            const payload = await response.json();
+            if (!response.ok || payload.success !== true) throw new Error("Preview binding verification request failed.");
+            return payload.result;
+          }
+          const worker = "/workers/scripts/mr-siavash-ai-gateway-preview";
+          const [settings, schedules] = await Promise.all([get(worker + "/settings"), get(worker + "/schedules")]);
+          const bindings = new Map((settings.bindings || []).map(item => [item.name, item]));
+          for (const name of ["DB", "AI", "AI_MODEL", "ALLOWED_ORIGINS", "SUPPORT_RETENTION_DAYS", "ADMIN_EMAILS", "CF_ACCESS_TEAM_DOMAIN", "CF_ACCESS_AUD"]) {
+            if (!bindings.has(name)) throw new Error("A required Preview binding was not preserved.");
+          }
+          if (bindings.get("DB").type !== "d1" || (bindings.get("DB").database_id || bindings.get("DB").id) !== process.env.PREVIEW_D1_DATABASE_ID) {
+            throw new Error("Preview Worker is not bound to the isolated Preview D1 database.");
+          }
+          if (bindings.get("AI").type !== "ai" || bindings.get("AI_MODEL").text !== "@cf/zai-org/glm-4.7-flash") {
+            throw new Error("Preview Workers AI binding or model configuration is invalid.");
+          }
+          if (bindings.get("SUPPORT_RETENTION_DAYS").text !== "90" || !(schedules.schedules || []).some(item => item.cron === "0 3 * * *")) {
+            throw new Error("Preview retention binding or daily schedule is invalid.");
+          }
+          console.log("Preview AI, D1 isolation, admin Access variables, and retention configuration verified.");
+          NODE
+      - name: Verify deployed preview routes and grounded AI
         env:
           BASE_URL: https://mr-siavash-ai-gateway-preview.mrsiavashirbot.workers.dev
           ALLOWED_ORIGIN: https://mrsiavasshirbot.github.io
@@ -82,8 +188,45 @@ jobs:
           live="$(curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 2 --max-time 15 "$BASE_URL/v1/health/live")"
           node -e 'const x=JSON.parse(process.argv[1]);if(x.status!=="ok"||x.service!=="mr-siavash-ai-gateway")process.exit(1)' "$live"
           ready="$(curl --fail --silent --show-error --retry 3 --retry-all-errors --retry-delay 2 --max-time 15 "$BASE_URL/v1/health/ready")"
-          node -e 'const x=JSON.parse(process.argv[1]);if(x.status!=="ready"||x.dependencies?.database!=="ready")process.exit(1)' "$ready"
+          node -e 'const x=JSON.parse(process.argv[1]);if(x.status!=="ready"||x.dependencies?.database!=="ready"||x.features?.supportRetentionDays!==90)process.exit(1)' "$ready"
           modules="$(curl --fail --silent --show-error --max-time 15 "$BASE_URL/v1/modules")"
-          node -e 'const x=JSON.parse(process.argv[1]);if(!Array.isArray(x.items)||x.items.length<1)process.exit(1)' "$modules"
+          node -e 'const x=JSON.parse(process.argv[1]);if(!Array.isArray(x.items)||x.items.length!==9)process.exit(1)' "$modules"
           status="$(curl --silent --show-error --max-time 15 --output /dev/null --write-out '%{http_code}' --request OPTIONS "$BASE_URL/v1/modules" --header "Origin: $ALLOWED_ORIGIN" --header "Access-Control-Request-Method: GET" --header "Access-Control-Request-Headers: content-type")"
           test "$status" = "204"
+          assistant="$(curl --fail --silent --show-error --retry 2 --retry-all-errors --max-time 45 "$BASE_URL/v1/assistant/chat" --header "Content-Type: application/json" --data '{"message":"آموزش پایتون"}')"
+          node -e 'const x=JSON.parse(process.argv[1]);if(x.mode!=="ai_grounded"||!Array.isArray(x.sources)||x.sources.length<1||typeof x.answer!=="string"||!x.answer.trim())process.exit(1)' "$assistant"
+          echo "Preview liveness, D1 readiness, module contract, CORS, and grounded Workers AI passed."
+      - name: Roll back Preview traffic after failed deployment or smoke checks
+        if: ${{ failure() && steps.deploy_preview.outcome != 'skipped' }}
+        env:
+          CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
+          CF_ACCOUNT_ID: ae50292f7e60c0d6d0052727e61c4033
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          if [[ ! -f "$RUNNER_TEMP/gateway-preview-deploy-started" || ! -f "$RUNNER_TEMP/gateway-preview-rollback.json" ]]; then
+            echo "::warning::Preview rollback snapshot or deployment marker is missing; no rollback was attempted."
+            exit 1
+          fi
+          node --input-type=module <<'NODE'
+          import { readFileSync } from "node:fs";
+          const snapshot = JSON.parse(readFileSync(process.env.RUNNER_TEMP + "/gateway-preview-rollback.json", "utf8"));
+          const root = "https://api.cloudflare.com/client/v4/accounts/" + process.env.CF_ACCOUNT_ID;
+          async function request(path, method, body) {
+            const response = await fetch(root + path, {
+              method,
+              headers: { Authorization: "Bearer " + process.env.CF_API_TOKEN, "Content-Type": "application/json" },
+              body: JSON.stringify(body)
+            });
+            const payload = await response.json();
+            if (!response.ok || payload.success !== true) throw new Error("Preview rollback request failed.");
+            return payload.result;
+          }
+          const worker = "/workers/scripts/mr-siavash-ai-gateway-preview";
+          await request(worker + "/deployments", "POST", {
+            strategy: "percentage",
+            versions: snapshot.versions,
+            annotations: { "workers/message": "Automatic rollback after failed Preview acceptance" }
+          });
+          await request(worker + "/schedules", "PUT", snapshot.schedules);
+          console.log("Preview traffic and Cron schedules restored to the captured pre-release state.");
+          NODE
