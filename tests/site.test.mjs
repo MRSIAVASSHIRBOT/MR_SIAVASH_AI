@@ -1226,6 +1226,7 @@ test("scroll reveal leaves content untouched without observer support or when mo
 
 test("global search and support center are wired without inline script execution", () => {
   assert.match(html, /id="globalSearchButton"/);
+  assert.match(html, /aria-keyshortcuts="Control\+K Meta\+K"/);
   assert.match(html, /id="siteSearchDialog"/);
   assert.match(html, /id="supportLauncher"/);
   assert.match(html, /id="supportDialog"/);
@@ -1235,6 +1236,69 @@ test("global search and support center are wired without inline script execution
   assert.match(sw, /"\.\/support\.js"/);
   assert.match(sw, /"\.\/support\.css"/);
   assert.doesNotMatch(support, /innerHTML\s*=/);
+});
+
+test("global search opens with Ctrl+K and Cmd+K and normalizes Persian and Arabic numerals", async () => {
+  const normaliseMatch = searchSource.match(/const normalise=([\s\S]*?);\nconst LABELS=/);
+  assert.ok(normaliseMatch, "search normalization function must remain independently testable");
+  const normalise = vm.runInNewContext("(" + normaliseMatch[1] + ")");
+  assert.equal(normalise("درس ۱۲۳ ١٢٣ كلمه ي أَ"), "درس 123 123 کلمه ی ا");
+
+  let keydown;
+  let focusCount = 0;
+  let prevented = 0;
+  const dialog = {
+    open: false,
+    showModal() { this.open = true; },
+    close() { this.open = false; }
+  };
+  const input = {
+    value: "",
+    focus() { focusCount += 1; },
+    removeAttribute() {},
+    setAttribute() {},
+    addEventListener() {}
+  };
+  const results = {
+    replaceChildren() {},
+    querySelectorAll() { return []; }
+  };
+  const button = { addEventListener() {} };
+  const elements = new Map([
+    ["#siteSearchDialog", dialog],
+    ["#siteSearchInput", input],
+    ["#siteSearchResults", results],
+    ["#globalSearchButton", button],
+    ["#siteSearchClose", button]
+  ]);
+  const document = {
+    readyState: "complete",
+    querySelector(selector) { return elements.get(selector) || null; },
+    addEventListener(name, callback) { if (name === "keydown") keydown = callback; },
+    createElement() { return { className: "", textContent: "" }; }
+  };
+  const window = {
+    MRSIAVASHReadJson: async path => path === "./search-index.json"
+      ? { schema: "mr-siavash-ai-search-index", version: 1, items: [] }
+      : { schema: "mr-siavash-ai-module-registry", version: 1, modules: [] }
+  };
+  vm.runInNewContext(searchSource, { document, window });
+
+  keydown({
+    key: "k", ctrlKey: true, metaKey: false, altKey: false, isComposing: false,
+    preventDefault() { prevented += 1; }
+  });
+  assert.equal(dialog.open, true);
+  assert.equal(focusCount, 1);
+
+  dialog.close();
+  keydown({
+    key: "K", ctrlKey: false, metaKey: true, altKey: false, isComposing: false,
+    preventDefault() { prevented += 1; }
+  });
+  assert.equal(dialog.open, true);
+  assert.equal(focusCount, 2);
+  assert.equal(prevented, 2);
 });
 
 test("global search indexes primary destinations and the support center", async () => {
@@ -1926,7 +1990,7 @@ test("curated knowledge library is searchable and included in the offline shell"
     assert.equal(item.type, "page");
     assert.ok(item.href.startsWith("./index.html#"));
   }
-  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v61"'));
+  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v62"'));
 });
 
 test("Hub integration is documented as separate until the security gates pass", async () => {
