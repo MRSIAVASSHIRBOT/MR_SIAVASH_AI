@@ -228,7 +228,7 @@ test("manual Pages deployment verifies every public asset against the checked-ou
   assert.ok(deployStart >= 0 && verifyStart > deployStart);
   const verifyStep = workflow.slice(verifyStart);
   assert.match(verifyStep, /PAGES_URL:\s*\$\{\{\s*steps\.deployment\.outputs\.page_url\s*\}\}/);
-  assert.match(verifyStep, /GITHUB_SHA:\s*\$\{\{\s*github\.sha\s*\}\}/);
+  assert.match(verifyStep, /PAGES_SOURCE_SHA:\s*\$\{\{\s*github\.sha\s*\}\}/);
   assert.match(verifyStep, /node scripts\/verify-pages-publication\.mjs/);
   assert.deepEqual(PAGES_PUBLIC_ASSETS, ["support.js", "search-index.json", "site-search.js", "sw.js"]);
 });
