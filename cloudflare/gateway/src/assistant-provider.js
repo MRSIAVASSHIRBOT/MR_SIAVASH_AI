@@ -84,7 +84,7 @@ export function classifyAssistantProviderError(error) {
   if (/\b429\b|rate.?limit|too many requests|quota/.test(message)) {
     return new AssistantProviderError("rate_limit", "The AI provider rate limit or quota was reached.", { retryable: true });
   }
-  if (/\b(408|504)\b|timed?\s*out|timeout|abort/.test(message)) {
+  if (/\b(3007|3008|408|504)\b|timed?\s*out|timeout|abort/.test(message)) {
     return new AssistantProviderError("timeout", "The AI provider request timed out.", { retryable: true });
   }
   if (/\b(400|7003)\b|bad request|invalid request|unsupported model/.test(message)) {
