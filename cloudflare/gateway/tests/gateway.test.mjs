@@ -247,6 +247,25 @@ test("assistant returns verified knowledge immediately when Workers AI capacity 
  assert.doesNotMatch(JSON.stringify(data),/3040|Capacity temporarily exceeded/);
 });
 
+
+test("assistant returns verified knowledge when Workers AI exceeds its response deadline", async () => {
+ const response = await worker.fetch(req("/v1/assistant/chat", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ message: "آموزش پایتون" })
+ }), {
+  DB: rateDb(),
+  AI_REQUEST_TIMEOUT_MS: "1000",
+  AI: { run: async () => new Promise(() => {}) }
+ });
+ const data = await response.json();
+ assert.equal(response.status, 200);
+ assert.equal(data.mode, "knowledge_fallback");
+ assert.equal(data.handoff, false);
+ assert.ok(data.answer.length > 0);
+ assert.ok(data.sources.some(x => x.href === "./python.html"));
+});
+
 test("assistant enforces its per-minute rate limit",async()=>{
  let requests=0;
  const db={prepare(sql){return{bind(){return this;},first:async()=>sql.startsWith("INSERT INTO api_rate_limits")?{request_count:++requests}:null};}};
