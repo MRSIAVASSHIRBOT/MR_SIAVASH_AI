@@ -40,8 +40,8 @@ test("disables GLM thinking mode when the default model is selected", async () =
   let received;
   const provider = createAssistantProvider({
     AI: {
-      async run(model, options) {
-        received = { model, options };
+      async run(model, input, options) {
+        received = { model, input, options };
         return { response: "ok" };
       }
     }
@@ -49,8 +49,9 @@ test("disables GLM thinking mode when the default model is selected", async () =
 
   await provider.generate({ messages: [{ role: "user", content: "test" }] });
   assert.equal(received.model, "@cf/zai-org/glm-4.7-flash");
-  assert.equal(received.options.max_tokens, 512);
-  assert.deepEqual(received.options.chat_template_kwargs, { enable_thinking: false });
+  assert.equal(received.input.max_completion_tokens, 512);
+  assert.deepEqual(received.input.chat_template_kwargs, { enable_thinking: false });
+  assert.deepEqual(received.options, { rejectIfBusy: true });
 });
 
 test("requests immediate rejection rather than waiting in the Workers AI capacity queue", async () => {
