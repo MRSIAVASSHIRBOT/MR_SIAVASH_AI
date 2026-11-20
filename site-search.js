@@ -48,8 +48,29 @@ async function load(){
  ready=true;
  if(!entries.length)showMessage("فهرست جست‌وجو بارگذاری نشد. اتصال را بررسی و صفحه را تازه‌سازی کن.");
 }
+function editDistanceAtMost(left,right,limit){
+ if(Math.abs(left.length-right.length)>limit)return limit+1;
+ let previous=Array.from({length:right.length+1},(_,index)=>index);
+ for(let i=1;i<=left.length;i++){
+  const current=[i];
+  for(let j=1;j<=right.length;j++){
+   const cost=left[i-1]===right[j-1]?0:1;
+   current[j]=Math.min(previous[j]+1,current[j-1]+1,previous[j-1]+cost);
+  }
+  previous=current;
+ }
+ return previous[right.length];
+}
+function fuzzyTokenMatch(term,candidate){
+ if(term===candidate)return true;
+ if(term.length<4||candidate.length<4||term.length>32||candidate.length>32)return false;
+ if(/^\d+$/.test(term)||/^\d+$/.test(candidate))return false;
+ const limit=Math.max(term.length,candidate.length)>=8?2:1;
+ return editDistanceAtMost(term,candidate,limit)<=limit;
+}
 function score(item,query,terms){
  const title=normalise(item.title),body=normalise([item.description,...(item.terms||[])].join(" "));
+ const titleTokens=title.split(" "),bodyTokens=body.split(" ");
  let score=0,matched=0;
  if(title===query)score+=100;
  else if(title.startsWith(query))score+=55;
@@ -57,7 +78,9 @@ function score(item,query,terms){
  for(const term of terms){
   let hit=false;
   if(title.includes(term)){score+=title.startsWith(term)?14:10;hit=true;}
+  else if(titleTokens.some(candidate=>fuzzyTokenMatch(term,candidate))){score+=7;hit=true;}
   if(body.includes(term)){score+=4;hit=true;}
+  else if(bodyTokens.some(candidate=>fuzzyTokenMatch(term,candidate))){score+=2;hit=true;}
   if(hit)matched++;
  }
  if(matched===terms.length)score+=12;
@@ -92,7 +115,7 @@ function render(query){
  root().replaceChildren();input().removeAttribute("aria-activedescendant");active=-1;
  if(!q){showMessage("برای شروع، نام یک موضوع، دوره یا قابلیت را بنویس.");return;}
  if(!ready){showMessage("در حال آماده‌سازی فهرست جست‌وجو…");return;}
- const terms=[...new Set(q.split(/\s+/).filter(Boolean))];
+ const terms=[...new Set(q.split(/\s+/).filter(Boolean))].slice(0,8);
  const results=entries.map(item=>({item,score:score(item,q,terms)}))
   .filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.item.title.localeCompare(b.item.title,"fa")).slice(0,14);
  if(!results.length){showMessage("نتیجه‌ای پیدا نشد. عبارت دیگری را امتحان کن.");return;}
