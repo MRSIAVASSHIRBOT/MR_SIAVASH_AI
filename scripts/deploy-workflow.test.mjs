@@ -84,6 +84,8 @@ test("recurring Preview assistant smoke matches the manual release inference tim
 
   assert.ok(manualAssistantCurl, "manual Preview release must have an assistant request");
   assert.ok(recurringAssistantCurl, "recurring Preview smoke must have an assistant request");
-  assert.match(manualAssistantCurl, /--max-time 45/);
-  assert.match(recurringAssistantCurl, /--max-time 45/);
+  assert.match(manualAssistantCurl, /--connect-timeout 10 --max-time 75/);
+  assert.match(recurringAssistantCurl, /--connect-timeout 10 --max-time 75/);
+  assert.doesNotMatch(manualAssistantCurl, /--retry/);
+  assert.doesNotMatch(recurringAssistantCurl, /--retry/);
 });
