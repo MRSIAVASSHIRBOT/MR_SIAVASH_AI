@@ -479,3 +479,58 @@ Preview Runtime Smoke passed all seven checks, including support/admin fail-clos
 - `main` remains unprotected and repository Rulesets are empty. Owner/admin governance configuration remains outstanding.
 
 No Pages publication or Production release occurred as part of the successful Preview deployment. The next safe operations are Pages publication with an authenticated GitHub session, a separate-target backup/restore rehearsal, and continued observation of the Preview retention audit after its scheduled run.
+
+
+---
+
+## Final release and automation reconciliation — 2026-11-20 UTC
+
+This addendum supersedes the earlier same-day state snapshots. It records the post-merge result of PR #223 and the latest read-only Cloudflare inventory. It does not represent a new Preview or Production release.
+
+### GitHub source and CI
+
+- Current `main`: **`a1aeffee8d701b31f4ecae2c3d9372330e58c20c`**. No open PRs remain.
+- PR #223 was squash-merged. It changes only the official Preview release workflow, its regression tests, and the small metadata validator; it does not change Worker runtime source.
+- All six post-merge workflows on this exact SHA succeeded:
+  - [Quality](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44794857904) — repository tests, OpenAPI, isolated D1 migration tests, Academy Chromium E2E, and accessibility/responsive checks passed; Pages deploy job skipped.
+  - [Workflow Security Audit](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44794858205)
+  - [Production Runtime Smoke](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44794858137)
+  - [Gateway CI](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44794858182)
+  - [OpenSSF Scorecard](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44794858179)
+  - [Preview Runtime Smoke](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44794858064)
+- The repository's Pages deployment job remains manual-only and was skipped on the push event. No Pages `workflow_dispatch` run was found in the current Actions inventory.
+
+### Preview provenance improvement (PR #223)
+
+- The official Preview deploy command now supplies the full `GITHUB_SHA` to Wrangler through `--tag` and `--message`.
+- Before binding checks and runtime acceptance continue, the workflow reads the latest active 100%-traffic version and verifies that Cloudflare's `workers/tag` and `workers/message` annotations exactly match the workflow SHA.
+- A missing/mismatched source annotation fails acceptance and enters the existing automatic Preview traffic/Cron rollback path.
+- Unit tests cover a correct tag/message, mismatched tag, mismatched message, missing annotations, malformed SHA, and the workflow wiring. They passed as part of PR #223 Quality.
+- **Not yet remotely exercised:** PR #223 has merged, but no new manual Preview dispatch has run after it. Do not claim the active Preview version has the new annotations yet.
+
+### Current Cloudflare state
+
+| Environment | Active version | Version ID | Traffic | Active source |
+| --- | ---: | --- | ---: | --- |
+| Preview | 10 | `5c02fb2b-6d7a-4aed-a3ff-2b0cfeb05f9c` | 100% | Released by successful run `44792360116` from `78a53457c0de96a376ff73c0dd2e55571efc2b2e` |
+| Production | 14 | `62e8a337-d804-4748-8bb2-d5e0180ee2f8` | 100% | `1616545a2e204cb378e2c824299412ca20ef598b` |
+
+The active Preview version still has no Cloudflare source tag/message annotations because it predates PR #223. Since its release at `78a5345`, the three commits now on `main` modify only documentation, Preview release automation, and tests; the Gateway Worker runtime source has not changed. Current `main` is 3 commits ahead of the active Preview release source and 83 commits ahead of the Production source.
+
+Both active Workers retain their AI binding and configured `@cf/zai-org/glm-4.7-flash` model, environment-specific D1 connection, 90-day retention configuration, and `0 3 * * *` UTC Cron schedule.
+
+### D1 and data boundaries
+
+- Production and Preview each have migration ledger entries `0001` through `0005`.
+- Read-only aggregate queries continue to report `support_retention_runs=0` in each environment, with `rows_written=0` and `changed_db=false`.
+- No support-ticket or message contents were read.
+- The prior Time Travel bookmarks are not exported backups and do not prove restore capability. No backup/restore rehearsal has been completed.
+
+### Remaining operational gates
+
+- **Preview:** run the official manual `gateway-preview.yml` from current `main` to exercise PR #223's source-tag/message verification and confirm the new version becomes active at 100% traffic.
+- **Pages:** dispatch the official `deploy.yml` workflow manually from `main`; then fetch and verify the published `support.js`, `search-index.json`, `site-search.js`, and `sw.js`. Public asset version remains unverified.
+- **Production:** keep the release gate closed. The active Production version is 83 commits behind current `main`; a complete source/migration/backup/rollback review and explicit owner approval are required before deployment.
+- **Governance:** `main.protected=false` and the repository Rulesets endpoint remains empty. Branch protection is still an owner/admin configuration action.
+
+No Production Worker, Production D1 data or migration, Pages configuration, DNS, Access policy, Secret, Cron schedule, or traffic split was changed in this reconciliation.
