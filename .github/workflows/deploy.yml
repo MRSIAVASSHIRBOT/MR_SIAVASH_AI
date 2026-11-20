@@ -100,3 +100,8 @@ jobs:
       - name: Deploy website
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      - name: Verify published static assets match this commit
+        env:
+          PAGES_URL: ${{ steps.deployment.outputs.page_url }}
+          PAGES_SOURCE_SHA: ${{ github.sha }}
+        run: node scripts/verify-pages-publication.mjs

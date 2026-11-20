@@ -2,6 +2,9 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { assertPreviewVersionMetadata } from "./verify-preview-version.mjs";
+import { PAGES_PUBLIC_ASSETS, normalizePagesBaseUrl, verifyPagesPublication } from "./verify-pages-publication.mjs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const workflow = await readFile(
   new URL("../.github/workflows/deploy.yml", import.meta.url),
@@ -216,4 +219,91 @@ test("Preview deployment passes and verifies the exact GitHub source SHA", () =>
   assert.match(verifyStep, /assertPreviewVersionMetadata\(/);
   assert.match(verifyStep, /find\(item => item\.percentage === 100\)/);
   assert.match(verifyStep, /get\(worker \+ "\/versions\/" \+ activeVersion\.version_id\)/);
+});
+
+
+test("manual Pages deployment verifies every public asset against the checked-out commit", () => {
+  const deployStart = workflow.indexOf("Deploy website");
+  const verifyStart = workflow.indexOf("Verify published static assets match this commit");
+  assert.ok(deployStart >= 0 && verifyStart > deployStart);
+  const verifyStep = workflow.slice(verifyStart);
+  assert.match(verifyStep, /PAGES_URL:\s*\$\{\{\s*steps\.deployment\.outputs\.page_url\s*\}\}/);
+  assert.match(verifyStep, /PAGES_SOURCE_SHA:\s*\$\{\{\s*github\.sha\s*\}\}/);
+  assert.match(verifyStep, /node scripts\/verify-pages-publication\.mjs/);
+  assert.deepEqual(PAGES_PUBLIC_ASSETS, ["support.js", "search-index.json", "site-search.js", "sw.js"]);
+});
+
+test("Pages URL normalization requires HTTPS and preserves a project subpath", () => {
+  assert.equal(
+    normalizePagesBaseUrl("https://example.github.io/MR_SIAVASH_AI").href,
+    "https://example.github.io/MR_SIAVASH_AI/",
+  );
+  assert.throws(() => normalizePagesBaseUrl("http://example.github.io/site"), /HTTPS/);
+  assert.throws(() => normalizePagesBaseUrl("https://user:secret@example.github.io/site"), /credentials/);
+});
+
+test("Pages publication verification checks no-store responses against exact source bytes", async () => {
+  const sourceDir = fileURLToPath(new URL("../", import.meta.url));
+  const expectedSha = "0123456789abcdef0123456789abcdef01234567";
+  const requests = [];
+
+  const results = await verifyPagesPublication({
+    baseUrl: "https://example.github.io/MR_SIAVASH_AI",
+    sourceDir,
+    expectedSha,
+    attempts: 1,
+    fetchImpl: async (input, options) => {
+      const url = new URL(input);
+      const asset = url.pathname.split("/").at(-1);
+      requests.push({ asset, cache: options.cache, verify: url.searchParams.get("verify") });
+      return new Response(await readFile(join(sourceDir, asset)), { status: 200 });
+    },
+  });
+
+  assert.equal(results.length, 4);
+  assert.ok(results.every(result => result.status === 200 && /^[a-f0-9]{64}$/.test(result.sha256)));
+  assert.deepEqual(requests.map(request => request.asset).sort(), [...PAGES_PUBLIC_ASSETS].sort());
+  assert.ok(requests.every(request => request.cache === "no-store" && request.verify === expectedSha));
+});
+
+test("Pages publication verification retries stale CDN content and accepts the matching release", async () => {
+  const sourceDir = fileURLToPath(new URL("../", import.meta.url));
+  const expectedSha = "0123456789abcdef0123456789abcdef01234567";
+  let waits = 0;
+
+  const results = await verifyPagesPublication({
+    baseUrl: "https://example.github.io/MR_SIAVASH_AI/",
+    sourceDir,
+    expectedSha,
+    attempts: 2,
+    retryDelayMs: 0,
+    wait: async () => { waits += 1; },
+    fetchImpl: async (input) => {
+      const url = new URL(input);
+      const asset = url.pathname.split("/").at(-1);
+      if (asset === "sw.js" && url.searchParams.get("attempt") === "1") {
+        return new Response("stale cache", { status: 200 });
+      }
+      return new Response(await readFile(join(sourceDir, asset)), { status: 200 });
+    },
+  });
+
+  assert.equal(waits, 1);
+  assert.equal(results.length, 4);
+});
+
+test("Pages publication verification fails closed when a public asset remains stale", async () => {
+  const sourceDir = fileURLToPath(new URL("../", import.meta.url));
+  await assert.rejects(
+    verifyPagesPublication({
+      baseUrl: "https://example.github.io/MR_SIAVASH_AI/",
+      sourceDir,
+      expectedSha: "0123456789abcdef0123456789abcdef01234567",
+      attempts: 2,
+      retryDelayMs: 0,
+      wait: async () => {},
+      fetchImpl: async () => new Response("stale asset", { status: 200 }),
+    }),
+    /publication verification failed.*SHA-256 mismatch/i,
+  );
 });
