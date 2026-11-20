@@ -376,3 +376,58 @@ Both Workers currently expose the AI binding and configured model, their environ
 - Repository branch protection remains an owner/admin configuration action; no write operation for it was available in the connected GitHub action set.
 
 No Worker version, traffic split, D1 application data, migration, secret, Access policy, DNS record, Cron schedule, Pages deployment, or repository governance setting was changed during this reconciliation.
+
+
+---
+
+## Preview release reconciliation after PRs #218–#220 — 2026-11-20 UTC
+
+This checkpoint supersedes the earlier 2026-11-20 source and Preview-release snapshots above. It records GitHub Actions and Cloudflare evidence after the Preview secret compatibility, search, and release-diagnostics changes were merged. It does not authorize Production release.
+
+### Current source and CI
+
+- Current `main`: **`78a53457c0de96a376ff73c0dd2e55571efc2b2e`**.
+- PR #218 (`84ced97560fcd775cca8c71da7bec930295b4a76`) accepts either `CLOUDFLARE_API_TOKEN` or the legacy `CF_API_TOKEN` in the `gateway-preview` environment. The selected secret remains a GitHub Actions control-plane credential and is not a Worker binding.
+- PR #219 (`5428acbfe658ed8dac5b3bc88371f543f6dcdad1`) adds the global Ctrl/Cmd+K search shortcut, Persian/Arabic letter and numeral normalization, bounded typo tolerance, and service-worker cache v62.
+- PR #220 (`78a53457c0de96a376ff73c0dd2e55571efc2b2e`) adds named Preview acceptance checks with bounded/redacted diagnostics. It avoids logging the generated answer or full response body and escapes GitHub workflow-command control characters.
+- All six main-branch workflows associated with this exact SHA completed successfully: [Preview Runtime Smoke](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44790687651), [Gateway CI](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44790687620), [Workflow Security Audit](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44790687579), [Production Runtime Smoke](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44790687578), [OpenSSF Scorecard](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44790687577), and [Quality](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44790687490).
+- The Preview Runtime Smoke's seven checks all passed against the **currently active Preview endpoint**. The Quality job passed, but its Pages deployment job was skipped on the push event. Neither result establishes deployment of current-main source to Preview or Pages.
+
+### Official Preview dispatch and rollback — run 44788083549
+
+The official manual Preview workflow was dispatched on `main` at source SHA `84ced97560fcd775cca8c71da7bec930295b4a76` (after PR #218, before PRs #219 and #220).
+
+- The secret-configuration preflight passed, demonstrating that one of the supported secret names was populated for this run; no secret value was read or logged.
+- The workflow captured the existing 100% traffic split and Cron schedule, built the isolated Preview configuration, ran the Preview-only D1 migration command (Wrangler reported `No migrations to apply`), and passed the Preview migration-ledger check.
+- Worker version upload completed, and the following binding/admin-configuration verification passed.
+- The combined deployed-route and grounded-AI acceptance step failed. The older workflow version emitted only the step exit code and did not expose which inner request/contract failed; therefore the exact failing sub-check is **not established** from this run's logs.
+- The workflow's automatic rollback completed successfully and restored Preview traffic and Cron schedules to the captured pre-release state.
+- Cloudflare records an uploaded Preview version **9** (`9e15434e-df74-41a7-995c-c4611e5e0de4`) created at 2026-11-20 17:57:03 UTC. It has no source-commit annotation in the version record and is not receiving traffic after rollback.
+
+### Current Cloudflare state after rollback
+
+| Environment | Active Worker version | Active version ID | Source annotation | Current main ahead |
+| --- | ---: | --- | --- | ---: |
+| Production | 14 | `62e8a337-d804-4748-8bb2-d5e0180ee2f8` | `1616545a2e204cb378e2c824299412ca20ef598b` | 80 commits |
+| Preview | 8 | `144012c6-6731-476c-8127-70fade6585b3` | `6c459596cf1211667995d6b2f6b815de1dae17f5` | 24 commits |
+
+Both deployed-source comparisons report zero commits behind current `main`. Production and Preview each have 100% of their respective traffic on the active version shown above. Preview version 9 is an uploaded candidate only; the post-rollback Preview smoke success applies to active version 8, not version 9 or current `main`.
+
+Both active Workers retain the AI binding, configured `@cf/zai-org/glm-4.7-flash` model, environment-specific D1 binding, 90-day support-retention variable, and `0 3 * * *` UTC Cron schedule.
+
+### D1 and retention audit
+
+- Production and Preview each report 10 tables and migration ledger entries `0001` through `0005`.
+- Read-only aggregate queries report `support_retention_runs=0` in both databases. The query metadata returned `rows_written=0` and `changed_db=false`; no support-ticket or message contents were inspected.
+- The existence of the migration/table is not proof of an observed scheduled retention completion. Verify a persisted audit row after the exact current-main Preview release and a later scheduled execution.
+- Previously recorded D1 Time Travel bookmarks are not exported backups and do not prove a tested restore path.
+
+### Remaining gates
+
+- Re-dispatch the official Preview workflow from current `main` so the #220 diagnostic changes are included. Review its named failing check if acceptance fails; confirm active version annotation, 100% traffic, D1 isolation, admin fail-closed, CORS, and grounded-AI acceptance before considering Preview accepted.
+- Do not deploy Production. It remains 80 commits ahead of its active source annotation; the separate production workflow defaults to `deploy=false` and requires the `cloudflare-production` environment gate plus explicit owner approval.
+- No Pages `workflow_dispatch` run was observed in the current Actions inventory. Public assets could not be fetched from the current network context, so the live Pages cache version is **unverified**. Run the official manual Pages workflow on `main`, then verify `support.js`, `search-index.json`, `site-search.js`, and `sw.js` from the public origin.
+- `main` remains unprotected and the repository Rulesets endpoint is empty; governance configuration remains an owner/admin action.
+- No Backup/Restore rehearsal has been completed. Use a separate test target; never restore over either live D1 database as a test.
+
+No Production Worker, Production D1, secret, Access policy, DNS, Production traffic, or Pages configuration was changed during this reconciliation. The Preview-side effects were the official manual release workflow's no-op migration check, candidate upload, and automatic rollback; no manual D1 application-row write or traffic override was performed outside that workflow.
