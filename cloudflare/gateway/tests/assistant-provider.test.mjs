@@ -22,10 +22,11 @@ test("provider adapter uses a safe default model and a reasoning-safe bounded to
   });
   assert.equal(provider.provider, "cloudflare-workers-ai");
   assert.equal(provider.model, assistantProviderDefaults.model);
-  assert.equal(assistantProviderDefaults.maxOutputTokens, 1536);
+  assert.equal(assistantProviderDefaults.maxOutputTokens, 512);
   const result = await provider.generate({ messages: [{ role: "user", content: "سلام" }], maxTokens: 4096 });
   assert.equal(call.model, assistantProviderDefaults.model);
-  assert.equal(call.input.max_tokens, 1536);
+  assert.equal(call.input.max_tokens, 512);
+  assert.deepEqual(call.input.chat_template_kwargs, { enable_thinking: false });
   assert.equal(result.text, "پاسخ تأییدشده");
   assert.equal(result.usage, null);
 });
@@ -37,6 +38,7 @@ test("provider adapter uses the configured token budget when no override is supp
   });
   await provider.generate({ messages: [{ role: "user", content: "hello" }] });
   assert.equal(input.max_tokens, assistantProviderDefaults.maxOutputTokens);
+  assert.deepEqual(input.chat_template_kwargs, { enable_thinking: false });
 });
 
 test("provider adapter accepts only a valid Workers AI model identifier", async () => {
