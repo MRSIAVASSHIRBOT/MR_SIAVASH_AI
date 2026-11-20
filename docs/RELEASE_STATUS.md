@@ -327,3 +327,52 @@ This checkpoint follows the documentation-only merge of PR #202. It updates GitH
 - Production release remains blocked pending a fresh read-only Cloudflare deployment inventory, verification of D1 migration state without application-row access, exact-candidate Preview acceptance, backup/rollback rehearsal, and explicit owner approval.
 
 No Worker deployment, D1 migration or application-row read, route/DNS change, secret, schedule, or Cloudflare setting was changed for this checkpoint.
+
+
+---
+
+## Live release reconciliation — 2026-11-20 (supersedes earlier same-day snapshots)
+
+This section records a fresh, read-only GitHub and Cloudflare inventory after PR #216. It does not authorize or represent a new deployment.
+
+### GitHub source and automation
+
+- Default branch `main`: **`21faae3e88d2f10a653948e75a42447141ed202a`**. No newer commit was present at the time of this inspection, and no open pull requests were found.
+- The six main-branch workflows associated with this exact SHA completed successfully:
+  - [Gateway Runtime Smoke](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44774478418)
+  - [OpenSSF Scorecard](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44774475839)
+  - [Quality](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44774475707)
+  - [Preview Runtime Smoke](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44774475588)
+  - [Workflow Security Audit](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44774475459)
+  - [Gateway CI](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44774475434)
+- The Quality run's `Syntax and structure checks` job succeeded; its `Deploy static site` job was **skipped** because this was a push event, not a manual dispatch. This is not evidence of a Pages publication.
+- `main` remains unprotected and the repository rulesets endpoint returned an empty list. No branch-protection setting was changed.
+
+### Cloudflare Worker source drift
+
+| Environment | Active version | Active version ID | Source annotation | Current main ahead |
+| --- | ---: | --- | --- | ---: |
+| Production | 14 | `62e8a337-d804-4748-8bb2-d5e0180ee2f8` | `1616545a2e204cb378e2c824299412ca20ef598b` | 76 commits |
+| Preview | 8 | `144012c6-6731-476c-8127-70fade6585b3` | `6c459596cf1211667995d6b2f6b815de1dae17f5` | 20 commits |
+
+Both comparisons report **0 commits behind** for the deployed source relative to `main`. Each active Worker receives 100% of its environment's traffic. These are separate environments; Preview version 8 is not the current `main` candidate, and Production version 14 is not current `main`.
+
+Both Workers currently expose the AI binding and configured model, their environment-specific D1 binding, a 90-day support-retention variable, and the `0 3 * * *` UTC Cron schedule. This verifies configuration only, not deployment of the latest source.
+
+### D1 schema and audit evidence
+
+- Production (`mr-siavash-ai-prod`) and Preview (`mr-siavash-ai-preview`) each report 10 tables.
+- Both migration ledgers contain `0001_workspace_tasks.sql` through `0005_support_ticket_status_history.sql`.
+- Read-only migration-ledger and aggregate queries returned `rows_written=0` and `changed_db=false`; no support-ticket or message contents were read.
+- Aggregate row count for `support_retention_runs` is currently **0** in both databases. The schema exists, but a persisted retention-run audit record has not been demonstrated in either environment by this query. Do not describe the retention audit history as operationally verified until an exact-source Preview release and a subsequent scheduled execution are checked.
+- A D1 Time Travel bookmark was returned for each database, but a bookmark is not a separately exported backup and does not prove that restore works. No export/import or restore rehearsal was performed.
+
+### Release decision and remaining gates
+
+- Keep Production release blocked. The deployed Production Worker remains 76 commits behind current `main`; the official release workflow defaults to `deploy=false` and uses the separate `cloudflare-production` environment.
+- Deploy the current reviewed candidate to Preview only through the repository's official manual `gateway-preview.yml` workflow, then verify its exact source annotation, readiness, grounded assistant response, admin-access denial, CORS behavior, and retention audit behavior.
+- Verify a restorable backup using a separate, approved test target before any Production migration or release. Do not restore over either live database as a test.
+- GitHub Pages publication also requires its official manual `workflow_dispatch` on `main`; the connected GitHub actions used for this inspection do not expose a workflow-dispatch operation. Public asset versions were not verified during this inspection.
+- Repository branch protection remains an owner/admin configuration action; no write operation for it was available in the connected GitHub action set.
+
+No Worker version, traffic split, D1 application data, migration, secret, Access policy, DNS record, Cron schedule, Pages deployment, or repository governance setting was changed during this reconciliation.
