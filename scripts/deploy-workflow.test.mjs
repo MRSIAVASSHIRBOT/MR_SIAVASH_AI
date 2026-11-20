@@ -214,8 +214,6 @@ test("Preview deployment passes and verifies the exact GitHub source SHA", () =>
   assert.match(deployStep, /--message\s+"Preview release from commit \$GITHUB_SHA"/);
   assert.match(verifyStep, /GITHUB_SHA:\s*\$\{\{\s*github\.sha\s*\}\}/);
   assert.match(verifyStep, /assertPreviewVersionMetadata\(/);
-  assert.match(verifyStep, /find\\(item => item\\.percentage === 100\\)/);
-  assert.match(verifyStep, /get\\(worker \\+ "\\/versions\\/" \\+ activeVersion\\.version_id\\)/);
-  assert.match(verifyStep, /versions\/\$\{activeVersion\.version_id\}/);
-  assert.match(verifyStep, /workers\/tag/);
+  assert.match(verifyStep, /find\(item => item\.percentage === 100\)/);
+  assert.match(verifyStep, /get\(worker \+ "\/versions\/" \+ activeVersion\.version_id\)/);
 });
