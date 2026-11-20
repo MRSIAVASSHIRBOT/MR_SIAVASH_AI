@@ -51,6 +51,18 @@ test("provider adapter accepts only a valid Workers AI model identifier", async 
   assert.equal(selected, assistantProviderDefaults.model);
 });
 
+test("provider adapter does not send GLM-specific options to another valid model", async () => {
+  let call;
+  const provider = createAssistantProvider({
+    AI_MODEL: "@cf/meta/llama-3.1-8b-instruct",
+    AI: { run: async (model, input) => { call = { model, input }; return "ok"; } }
+  });
+  await provider.generate({ messages: [{ role: "user", content: "hello" }] });
+  assert.equal(call.model, "@cf/meta/llama-3.1-8b-instruct");
+  assert.equal(call.input.max_tokens, 512);
+  assert.equal(Object.hasOwn(call.input, "chat_template_kwargs"), false);
+});
+
 test("provider adapter normalizes Workers AI and OpenAI-compatible response envelopes", async () => {
   const outputs = [
     [{ output_text: "first" }, "first"],
