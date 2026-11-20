@@ -12,8 +12,8 @@ test("normalizes provider text and usage while enforcing output token limits", a
   const provider = createAssistantProvider({
     AI_MODEL: "@cf/example/model",
     AI: {
-      async run(model, options) {
-        received = { model, options };
+      async run(model, input, options) {
+        received = { model, input, options };
         return {
           response: "  پاسخ آزمایشی  ",
           usage: { prompt_tokens: 10, completion_tokens: 20, total_tokens: 30 }
@@ -28,8 +28,10 @@ test("normalizes provider text and usage while enforcing output token limits", a
   });
 
   assert.equal(received.model, "@cf/example/model");
-  assert.equal(received.options.max_tokens, 512);
-  assert.equal(Object.hasOwn(received.options, "chat_template_kwargs"), false);
+  assert.equal(received.input.max_completion_tokens, 512);
+  assert.equal(Object.hasOwn(received.input, "max_tokens"), false);
+  assert.equal(Object.hasOwn(received.input, "chat_template_kwargs"), false);
+  assert.deepEqual(received.options, { rejectIfBusy: true });
   assert.equal(result.text, "پاسخ آزمایشی");
   assert.deepEqual(result.usage, { inputTokens: 10, outputTokens: 20, totalTokens: 30 });
 });
@@ -49,6 +51,22 @@ test("disables GLM thinking mode when the default model is selected", async () =
   assert.equal(received.model, "@cf/zai-org/glm-4.7-flash");
   assert.equal(received.options.max_tokens, 512);
   assert.deepEqual(received.options.chat_template_kwargs, { enable_thinking: false });
+});
+
+test("requests immediate rejection rather than waiting in the Workers AI capacity queue", async () => {
+  let call;
+  const provider = createAssistantProvider({
+    AI: {
+      async run(model, input, options) {
+        call = { model, input, options };
+        return { response: "fallback adapter test" };
+      }
+    }
+  });
+
+  await provider.generate({ messages: [{ role: "user", content: "test" }] });
+  assert.equal(call.options.rejectIfBusy, true);
+  assert.equal(call.input.max_completion_tokens, 512);
 });
 
 test("falls back to the safe default model for an invalid model name", async () => {
