@@ -431,3 +431,51 @@ Both active Workers retain the AI binding, configured `@cf/zai-org/glm-4.7-flash
 - No Backup/Restore rehearsal has been completed. Use a separate test target; never restore over either live D1 database as a test.
 
 No Production Worker, Production D1, secret, Access policy, DNS, Production traffic, or Pages configuration was changed during this reconciliation. The Preview-side effects were the official manual release workflow's no-op migration check, candidate upload, and automatic rollback; no manual D1 application-row write or traffic override was performed outside that workflow.
+
+
+---
+
+## Successful current-code Preview release — 2026-11-20 UTC
+
+This addendum supersedes the earlier same-day Preview failure-only status above. It records the later successful manual release, independent Cloudflare state, and post-merge smoke results.
+
+### Exact-source release evidence
+
+- Official manual Preview workflow: [run 44792360116](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44792360116), `workflow_dispatch`, source SHA `78a53457c0de96a376ff73c0dd2e55571efc2b2e`, conclusion **success**.
+- Preview D1 migration command reported `No migrations to apply`; the D1 ledger check for migrations 0004 and 0005 succeeded.
+- Worker upload and Preview binding/admin-configuration checks succeeded. The automatic rollback step was skipped because acceptance passed.
+- Release acceptance evidence from the workflow log:
+  - `/v1/health/live`: HTTP 200.
+  - `/v1/health/ready`: HTTP 200.
+  - `/v1/modules`: HTTP 200; nine modules.
+  - Trusted-origin CORS preflight: HTTP 204.
+  - Assistant endpoint: HTTP 200, `mode=ai_grounded`, **2 source references**, and a non-empty answer (590 characters). The answer text was not logged.
+- Cloudflare independently reports active Preview Worker version **10**, version ID `5c02fb2b-6d7a-4aed-a3ff-2b0cfeb05f9c`, receiving **100%** of Preview traffic. Deployment ID: `1f5cda65-e086-446f-a0af-c03ce07697b5`, created 2026-11-20 18:24:19 UTC.
+- The successful deployment ran from `78a5345`. Current `main` is now `858b66f2f0b2169a8e4949efc225a9b2677282aa`; the only commit after the Preview release is PR #221, a documentation-only change to `docs/RELEASE_STATUS.md`. Therefore no runtime-source code changed after the successful Preview release.
+
+**Version metadata limitation:** Cloudflare's active Preview version-10 metadata does not expose a `workers/commit_sha` or `workers/message` annotation. The source SHA above is verified from the successful GitHub Actions run that checked out and deployed it, not from a Cloudflare version annotation. Retain this distinction until deployment annotations are made consistent.
+
+### Post-merge operational verification
+
+All six workflows on current main `858b66f` completed successfully:
+
+- [Gateway Runtime Smoke](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44792852376)
+- [Preview Runtime Smoke](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44792852492)
+- [Workflow Security Audit](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44792852586)
+- [OpenSSF Scorecard](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44792852454)
+- [Gateway CI](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44792852446)
+- [Quality](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44792852432)
+
+Preview Runtime Smoke passed all seven checks, including support/admin fail-closed behavior and trusted/untrusted CORS. Production Runtime Smoke passed liveness/readiness, read-only public support checks, anonymous administrator-route denial, and trusted/untrusted CORS. Quality passed; its Pages deployment job was **skipped** on the push event.
+
+### Current deployment and data boundaries
+
+- Preview active version: 10 (`5c02fb2b-6d7a-4aed-a3ff-2b0cfeb05f9c`), 100% traffic, released from `78a5345`.
+- Production active version: 14 (`62e8a337-d804-4748-8bb2-d5e0180ee2f8`), 100% traffic, annotated to `1616545a2e204cb378e2c824299412ca20ef598b`. Current main is **81 commits ahead** of this Production source.
+- Production release remains blocked. No Production Worker, D1 migration, application data, traffic, secret, Access policy, or DNS configuration was changed.
+- Both D1 databases still report migrations 0001–0005 and 10 tables. Read-only queries show `support_retention_runs=0` in both and `rows_written=0`, `changed_db=false`. A persisted scheduled-retention audit run is still unverified.
+- No D1 export/restore rehearsal is recorded. Time Travel bookmarks are not tested backups.
+- No GitHub Pages `workflow_dispatch` run has been observed. The latest Quality push skipped the Pages deploy job; public asset versions remain unverified.
+- `main` remains unprotected and repository Rulesets are empty. Owner/admin governance configuration remains outstanding.
+
+No Pages publication or Production release occurred as part of the successful Preview deployment. The next safe operations are Pages publication with an authenticated GitHub session, a separate-target backup/restore rehearsal, and continued observation of the Preview retention audit after its scheduled run.
