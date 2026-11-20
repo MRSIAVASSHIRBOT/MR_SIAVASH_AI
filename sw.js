@@ -1,7 +1,7 @@
 "use strict";
 
 const CACHE_PREFIX = "mr-siavash-ai-shell-";
-const CACHE_NAME = CACHE_PREFIX + "v60";
+const CACHE_NAME = CACHE_PREFIX + "v61";
 const MAX_MODULE_REGISTRY_BYTES = 64 * 1024;
 const SHELL_FILES = ["./", "./index.html", "./styles.css", "./experience.css", "./studio.css", "./experience-next.css", "./atelier.css", "./field-notes.css", "./ui-sounds.js", "./app.js", "./site-search.js", "./search-index.json", "./python.html", "./python-course.css", "./python-course.js", "./academy.html", "./academy.css", "./academy.js", "./academy-progress.mjs", "./academy-backup.mjs", "./academy-guides.mjs", "./academy-assessments.mjs", "./academy-report.mjs", "./academy-assessment-export.mjs", "./academy-portfolio.mjs", "./academy-achievements.mjs", "./academy-tutor.js", "./academy-practice.mjs", "./academy-practice.js", "./academy-runner.html", "./academy-content-studio.html", "./academy-content-studio.js", "./academy-content-studio-core.mjs", "./bounded-json.js", "./support.js", "./support-tickets.mjs", "./support.css", "./privacy.html", "./favicon.svg", "./manifest.webmanifest", "./modules.json", "./studio.html", "./studio-portfolio.css", "./studio-portfolio.js", "./subtitle-studio.html", "./subtitle-studio.css", "./subtitle-studio.js", "./subtitle-studio-core.mjs"];
 
