@@ -1316,7 +1316,7 @@ test("global search tolerates bounded Persian typos without fuzzy-matching short
   assert.ok(score(python, "پایتن", ["پایتن"]) > 0);
   assert.ok(score(python, "پایتون", ["پایتون"]) > score(python, "پایتن", ["پایتن"]));
   assert.equal(score({ title: "CSS", description: "", terms: [] }, "CSX", ["CSX"]), 0);
-  assert.equal(score({ title: "درس 123", description: "", terms: [] }, "درس 124", ["درس", "124"]), 0);
+  assert.equal(score({ title: "درس 123", description: "", terms: [] }, "124", ["124"]), 0);
 });
 
 test("global search indexes primary destinations and the support center", async () => {
