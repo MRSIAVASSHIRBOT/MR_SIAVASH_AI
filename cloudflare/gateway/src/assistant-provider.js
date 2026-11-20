@@ -1,5 +1,5 @@
 const DEFAULT_MODEL = "@cf/zai-org/glm-4.7-flash";
-const MAX_OUTPUT_TOKENS = 1536;
+const MAX_OUTPUT_TOKENS = 512;
 const MAX_MESSAGES = 10;
 
 export class AssistantProviderError extends Error {
@@ -133,7 +133,8 @@ export function createAssistantProvider(env) {
       try {
         result = await binding.run(model, {
           messages,
-          max_tokens: boundedTokens
+          max_tokens: boundedTokens,
+          ...(model === DEFAULT_MODEL ? { chat_template_kwargs: { enable_thinking: false } } : {})
         });
       } catch (error) {
         throw classifyAssistantProviderError(error);

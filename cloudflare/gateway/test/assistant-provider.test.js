@@ -28,9 +28,27 @@ test("normalizes provider text and usage while enforcing output token limits", a
   });
 
   assert.equal(received.model, "@cf/example/model");
-  assert.equal(received.options.max_tokens, 1536);
+  assert.equal(received.options.max_tokens, 512);
+  assert.equal(Object.hasOwn(received.options, "chat_template_kwargs"), false);
   assert.equal(result.text, "پاسخ آزمایشی");
   assert.deepEqual(result.usage, { inputTokens: 10, outputTokens: 20, totalTokens: 30 });
+});
+
+test("disables GLM thinking mode when the default model is selected", async () => {
+  let received;
+  const provider = createAssistantProvider({
+    AI: {
+      async run(model, options) {
+        received = { model, options };
+        return { response: "ok" };
+      }
+    }
+  });
+
+  await provider.generate({ messages: [{ role: "user", content: "test" }] });
+  assert.equal(received.model, "@cf/zai-org/glm-4.7-flash");
+  assert.equal(received.options.max_tokens, 512);
+  assert.deepEqual(received.options.chat_template_kwargs, { enable_thinking: false });
 });
 
 test("falls back to the safe default model for an invalid model name", async () => {
