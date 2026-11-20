@@ -23,6 +23,8 @@ test("provider adapter uses a safe default model and a reasoning-safe bounded to
   assert.equal(provider.provider, "cloudflare-workers-ai");
   assert.equal(provider.model, assistantProviderDefaults.model);
   assert.equal(assistantProviderDefaults.maxOutputTokens, 512);
+  assert.equal(assistantProviderDefaults.requestTimeoutMs, 25_000);
+  assert.equal(assistantProviderDefaults.maxRequestTimeoutMs, 30_000);
   const result = await provider.generate({ messages: [{ role: "user", content: "سلام" }], maxTokens: 4096 });
   assert.equal(call.model, assistantProviderDefaults.model);
   assert.equal(call.input.max_completion_tokens, 512);
@@ -134,7 +136,7 @@ test("provider adapter makes retry and cancellation limits explicit", () => {
   assert.deepEqual(provider.retryPolicy, { maxAttempts: 1, automatic: false });
   assert.deepEqual(provider.capabilities, {
     streaming: false,
-    requestTimeout: false,
+    requestTimeout: true,
     cancellation: false
   });
 });
@@ -161,4 +163,48 @@ test("provider output truncation never splits a UTF-16 surrogate pair", async ()
   });
   assert.equal(exactBoundary.text, "a".repeat(2998) + "😀");
   assert.equal(exactBoundary.text.length, 3000);
+});
+
+
+test("provider adapter bounds stalled inference and reports that it cannot cancel provider work", async () => {
+  let calls = 0;
+  const provider = createAssistantProvider({
+    AI_REQUEST_TIMEOUT_MS: "1000",
+    AI: {
+      run: async () => {
+        calls += 1;
+        return new Promise(() => {});
+      }
+    }
+  });
+
+  assert.equal(provider.requestTimeoutMs, 1000);
+  assert.equal(provider.capabilities.requestTimeout, true);
+  assert.equal(provider.capabilities.cancellation, false);
+  await assert.rejects(
+    provider.generate({ messages: [{ role: "user", content: "hello" }] }),
+    error => error instanceof AssistantProviderError &&
+      error.category === "timeout" &&
+      error.retryable === true
+  );
+  assert.equal(calls, 1);
+});
+
+test("provider adapter clamps configured inference deadlines to its hard minimum and maximum", () => {
+  const minimum = createAssistantProvider({
+    AI_REQUEST_TIMEOUT_MS: "1",
+    AI: { run: async () => "ok" }
+  });
+  const maximum = createAssistantProvider({
+    AI_REQUEST_TIMEOUT_MS: "60000",
+    AI: { run: async () => "ok" }
+  });
+  const defaulted = createAssistantProvider({
+    AI_REQUEST_TIMEOUT_MS: "invalid",
+    AI: { run: async () => "ok" }
+  });
+
+  assert.equal(minimum.requestTimeoutMs, 1000);
+  assert.equal(maximum.requestTimeoutMs, 30_000);
+  assert.equal(defaulted.requestTimeoutMs, 25_000);
 });
