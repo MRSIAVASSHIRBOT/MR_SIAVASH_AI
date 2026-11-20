@@ -267,3 +267,20 @@ This checkpoint updates the source comparison only. It does not represent a new 
 - Production release remains blocked pending a fresh read-only deployment inventory, verification of D1 migration state without application-row access, exact-candidate Preview acceptance, backup/rollback rehearsal, and explicit owner approval.
 
 No Worker deployment, D1 migration or application-row read, route/DNS change, secret, schedule, or Cloudflare setting was changed for this checkpoint.
+
+
+---
+
+## GitHub-only source-drift checkpoint — 2026-11-20 12:45 UTC
+
+This checkpoint updates GitHub source evidence only. It is not a fresh Cloudflare inventory, a D1 migration check, or a release approval.
+
+- Current GitHub `main`: `d444fed420a047ba35b6734b77ce0e045b4624fe`.
+- Compared with the last recorded Production source annotation `1616545a2e204cb378e2c824299412ca20ef598b`, GitHub reports **53 commits ahead and 0 behind**.
+- On this exact `main` SHA, the latest observed push runs completed successfully: Gateway CI (44727884979), Quality checks (44727885094), Workflow Security Audit (44727885016), OpenSSF Scorecard (44727885042), Preview runtime smoke (44727885090), and Gateway runtime smoke (44727885117).
+- The delta includes the Gateway runtime and tests, D1 migrations `0004_support_retention_runs.sql` and `0005_support_ticket_status_history.sql`, Academy/support changes, and the local Subtitle Studio. The exact file list is available in the GitHub compare view.
+- The latest Cloudflare deployment inventory recorded in this document remains historical: Production version 14 and Preview version 6. Cloudflare deployment metadata and Production D1 migration state were **not re-read in this checkpoint**.
+- The isolated SQLite migration suite validates the repository migration chain; it does not prove that migrations 0004/0005 are applied to Production D1.
+- Production release remains blocked pending a fresh read-only Cloudflare deployment inventory, verification of D1 migration state without application-row access, exact-candidate Preview acceptance, backup/rollback rehearsal, and explicit owner approval.
+
+No Worker deployment, D1 migration or application-row read, route/DNS change, secret, schedule, or Cloudflare setting was changed for this checkpoint.
