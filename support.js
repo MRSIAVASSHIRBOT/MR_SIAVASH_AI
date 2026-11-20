@@ -2,7 +2,7 @@
   "use strict";
   const $ = selector => document.querySelector(selector);
   const ASSISTANT_API = "https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev/v1/assistant/chat";
-  const ASSISTANT_REQUEST_TIMEOUT_MS = 50_000;
+  const ASSISTANT_REQUEST_TIMEOUT_MS = 80_000;
   const normalise = value => String(value || "").normalize("NFKC").toLocaleLowerCase("fa")
     .replace(/[يى]/g, "ی").replace(/ك/g, "ک")
     .replace(/[\u064b-\u065f\u0670\u0640]/g, "")
