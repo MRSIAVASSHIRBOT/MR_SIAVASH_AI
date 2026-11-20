@@ -417,7 +417,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 2px solid 
 .github-tool-card small { align-self:start; color:var(--muted); font-size:8px; line-height:1.7; }
 .github-tool-arrow { position:absolute; left:12px; top:12px; color:var(--dim); font-size:11px; }
 .projects-heading { margin-top:43px; }
-.identity-repo-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:11px; }
+.identity-repo-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:11px; }
 .identity-repo-card { display:flex; flex-direction:column; align-items:flex-start; min-height:148px; padding:17px; border:1px solid var(--line); border-radius:12px; background:linear-gradient(150deg,rgba(116,214,154,.055),rgba(255,255,255,.012)); transition:.18s ease; }
 .identity-repo-card > span { color:var(--dim); font-size:8px; letter-spacing:.6px; }
 .identity-repo-card strong { margin:14px 0 5px; color:var(--text); font-size:12px; overflow-wrap:anywhere; }
