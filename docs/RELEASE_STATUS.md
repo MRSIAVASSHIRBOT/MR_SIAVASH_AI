@@ -1,3 +1,18 @@
+# Live Preview smoke-test reconciliation — 2026-11-20 15:30 UTC
+
+This addendum records a failed runtime smoke and the source-level correction. It does not assert a new Preview deployment.
+
+- The Preview runtime smoke on source commit `0e6df446a49bc599b8c16f5b4fa76b5d75894585` failed only at **Check grounded assistant response and fallback**. Liveness, D1 readiness, and the public module catalog passed.
+- Job `136368326327` in workflow run [44759607643](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44759607643) shows `curl` timed out after 45 seconds with zero response bytes while calling `POST /v1/assistant/chat`. The failure is an observed request timeout; it is not evidence that the D1 database or public routes were unavailable.
+- The smoke request previously had a 45-second maximum. The browser support client also used a 50-second timeout. The smoke did not have enough time to cover the longer tail of the non-streaming Workers AI call and fallback path.
+- The Preview runtime smoke is now bounded at 75 seconds with a 10-second connect timeout and a 7-minute job budget. The Preview release acceptance uses a single 75-second assistant request without curl retries, avoiding duplicate model inference requests on an uncertain POST outcome. The browser client timeout is 80 seconds.
+- This does **not** add provider retries or claim model cancellation. The current Workers AI adapter still documents one provider attempt and no request-timeout/cancellation capability. A timed-out provider request may therefore still end as a knowledge fallback or a smoke failure; the next exact workflow result is the acceptance evidence.
+- A repository test now checks the smoke/release timeout contract and ensures the assistant POST has no automatic curl retry. Current GitHub CI and the next Preview smoke must pass before marking this correction verified.
+
+**Release boundary:** no Cloudflare Worker was deployed, no D1 migration or row was changed, no secret/binding/route/Cron/Access policy was modified, and Production remains on its previously recorded version 14. The Preview runtime result after this source correction is pending.
+
+---
+
 # Live Cloudflare and GitHub reconciliation — 2026-11-20 13:10 UTC
 
 This is a fresh operational snapshot after Preview acceptance work and Production D1 migration reconciliation. Earlier snapshots below remain historical records; this section supersedes their live-state statements where they differ.
