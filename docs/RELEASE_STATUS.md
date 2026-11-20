@@ -534,3 +534,38 @@ Both active Workers retain their AI binding and configured `@cf/zai-org/glm-4.7-
 - **Governance:** `main.protected=false` and the repository Rulesets endpoint remains empty. Branch protection is still an owner/admin configuration action.
 
 No Production Worker, Production D1 data or migration, Pages configuration, DNS, Access policy, Secret, Cron schedule, or traffic split was changed in this reconciliation.
+
+
+---
+
+## Direct public Pages asset verification — 2026-11-20 UTC
+
+This is a read-only comparison of public GitHub Pages assets against current source. It supersedes the earlier statement that public asset versions were unverified.
+
+### Public origin result
+
+A browser read of `https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/` confirmed the page loads. These same-origin assets all returned **HTTP 200**: `support.js`, `search-index.json`, `site-search.js`, and `sw.js`.
+
+The public assets are served, but their content is stale relative to the current source checkpoint `44554134d4c55f1861d6037d22f1f49bd71e27cc`:
+
+| Indicator | Public Pages response | Current `main` source |
+| --- | --- | --- |
+| Service-worker shell cache | `mr-siavash-ai-shell-v51` | `mr-siavash-ai-shell-v62` |
+| Online assistant request timeout in `support.js` | `15000` ms | `ASSISTANT_REQUEST_TIMEOUT_MS = 80_000` |
+| `search-index.json` items | 15 | 74 |
+| Dedicated Python course overview | Missing; 12 individual `python-lesson` entries observed | `course-python` course entry present, describing 12 lessons, 12 exercises, and a final project |
+| `site-search.js` | HTTP 200 | Current source blob recorded below |
+
+### Current source blob IDs
+
+- `support.js`: `cdd0b16fc5a41b85b3b20f2373427f65be79e29d`
+- `search-index.json`: `586ad78d1182456906030f021f87b9c1929e942f`
+- `site-search.js`: `16b1d0f11f96a29b441d440b27e61b110b672b85`
+- `sw.js`: `04e41959cc1985f1195232fe0cc7142fb09287a0`
+- Pages workflow: `47dcee6fcc35c4816c653f8944bb10b73edbb5e8`
+
+The deployment workflow explicitly gates its static-site job to `workflow_dispatch` on `refs/heads/main`. The most recent push-triggered Quality run [44796927816](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44796927816) passed its Quality job but skipped `Deploy static site`. No manual Pages dispatch was found in the current Actions inventory.
+
+**Operational conclusion:** this is a confirmed publication lag, not a website outage and not a source/CI failure. Keep Issue #207 open until the official manual Pages workflow is dispatched and all four public assets are re-fetched with cache v62, the 80-second request timeout, the 74-item search index, and the `course-python` overview confirmed.
+
+No Pages setting, workflow trigger, GitHub Pages configuration, or public asset was changed by this verification.
