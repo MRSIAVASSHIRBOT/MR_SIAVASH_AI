@@ -218,3 +218,7 @@ button[data-project-filter][aria-pressed=true]{
 
 .project-state,.section-footnote{color:#4f5967!important}
 #snippetCode{background:#0c1521!important;color:#f2f0e9!important;border-color:#334256!important}
+
+.experience-strip article p,.experience-strip article h3,.journal-list article small{
+ color:#4f5967!important
+}
