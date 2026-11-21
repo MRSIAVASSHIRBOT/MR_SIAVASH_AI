@@ -83,6 +83,20 @@ async function auditPage(page, route) {
   page.on("requestfailed", onRequestFailed);
   page.on("response", onResponse);
 
+  // Keep the browser audit deterministic and offline from the external Gateway.
+  // A non-ready response keeps ticket controls disabled, matching the fail-closed contract.
+  await page.route("https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev/v1/health/ready", route =>
+    route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({
+        status: "degraded",
+        dependencies: { database: "unavailable" },
+        features: { publicSupport: false }
+      })
+    })
+  );
+
   const response = await page.goto("http://127.0.0.1:4174/" + route, { waitUntil: "load", timeout: 20000 });
   if (!response || !response.ok()) throw new Error(route + ": page returned an unsuccessful response");
   // Scroll through reveal-on-view sections so axe measures the settled, fully revealed text rather than an in-progress opacity transition.
