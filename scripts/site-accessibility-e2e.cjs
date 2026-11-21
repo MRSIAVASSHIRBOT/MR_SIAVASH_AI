@@ -238,14 +238,58 @@ async function auditPage(page, route) {
       " > innerWidth " + desktopWidth.viewport);
   }
 
-  const serviceWorkerCache = await page.evaluate(async () => {
+  // Confirm the actual worker activation and Cache Storage contents, not only
+  // the version string in the source file. This runs in an isolated local origin.
+  await page.waitForFunction(async () => {
+    if (!("serviceWorker" in navigator)) return false;
+    const registration = await navigator.serviceWorker.getRegistration();
+    return Boolean(registration?.active);
+  }, null, { timeout: 12000 }).catch(() => {});
+
+  const serviceWorkerState = await page.evaluate(async () => {
     const response = await fetch("./sw.js", { cache: "no-store" });
-    if (!response.ok) return null;
-    const source = await response.text();
-    return source.match(/CACHE_NAME[^"]*"([^"]+)"/)?.[1] || null;
+    const source = response.ok ? await response.text() : "";
+    const declaredCacheVersion = source.match(/CACHE_NAME[^"]*"([^"]+)"/)?.[1] || null;
+    const registration = "serviceWorker" in navigator
+      ? await navigator.serviceWorker.getRegistration()
+      : null;
+    const cacheNames = await caches.keys();
+    const expectedCacheName = declaredCacheVersion
+      ? "mr-siavash-ai-shell-" + declaredCacheVersion
+      : null;
+    const cacheName = cacheNames.find(name => name === expectedCacheName) || null;
+    const cache = cacheName ? await caches.open(cacheName) : null;
+    const cached = async path => cache
+      ? Boolean(await cache.match(new URL("./" + path, new URL(".", location.href)).href))
+      : false;
+    return {
+      declaredCacheVersion,
+      registered: Boolean(registration),
+      active: Boolean(registration?.active),
+      activeScript: registration?.active?.scriptURL || null,
+      cacheName,
+      privacyHtmlCached: await cached("privacy.html"),
+      privacyCssCached: await cached("assets/css/privacy.css"),
+      sharedCssCached: await cached("assets/css/style.css")
+    };
   });
-  if (serviceWorkerCache !== "v69") {
-    findings.push("unexpected service-worker cache version: " + String(serviceWorkerCache));
+  if (serviceWorkerState.declaredCacheVersion !== "v69") {
+    findings.push("unexpected declared service-worker cache version: " +
+      String(serviceWorkerState.declaredCacheVersion));
+  }
+  if (!serviceWorkerState.registered || !serviceWorkerState.active) {
+    findings.push("service worker did not reach the active state: " +
+      JSON.stringify(serviceWorkerState));
+  }
+  if (serviceWorkerState.cacheName !== "mr-siavash-ai-shell-v69") {
+    findings.push("expected active Cache Storage entry mr-siavash-ai-shell-v69: " +
+      JSON.stringify(serviceWorkerState));
+  }
+  if (!serviceWorkerState.privacyHtmlCached ||
+      !serviceWorkerState.privacyCssCached ||
+      !serviceWorkerState.sharedCssCached) {
+    findings.push("service worker shell is missing a required privacy/shared asset: " +
+      JSON.stringify(serviceWorkerState));
   }
 
   const sharedStylesheet = stylesheetResponses.find(item =>
@@ -301,7 +345,7 @@ async function auditPage(page, route) {
     axeWarnings,
     mobile: { viewport: structural.viewportWidth, document: structural.documentWidth },
     desktop: { viewport: desktopWidth.viewport, document: desktopWidth.document },
-    serviceWorkerCache,
+    serviceWorkerState,
     stylesheetResponses,
     consoleErrors,
     failedRequests,
@@ -322,7 +366,7 @@ async function main() {
     browser = await chromium.launch({ headless: true });
     const page = await browser.newPage({
       viewport: { width: 390, height: 844 },
-      serviceWorkers: "block"
+      serviceWorkers: "allow"
     });
     page.setDefaultTimeout(10000);
 
@@ -345,7 +389,7 @@ async function main() {
         ", innerWidth=" + result.mobile.viewport + "\\n");
       process.stdout.write("   Desktop 1440x900: scrollWidth=" + result.desktop.document +
         ", innerWidth=" + result.desktop.viewport + "\\n");
-      process.stdout.write("   Service Worker cache: " + result.serviceWorkerCache + "\\n");
+      process.stdout.write("   Service Worker runtime: " + JSON.stringify(result.serviceWorkerState) + "\\n");
       if (result.stylesheetResponses.length) {
         process.stdout.write("   Stylesheets: " + JSON.stringify(result.stylesheetResponses) + "\\n");
       }
@@ -364,7 +408,7 @@ async function main() {
         }))) + "\\n");
       }
     }
-    process.stdout.write("Checks: WCAG 2.1 A/AA, 390x844 and 1440x900 scroll-width measurements, shared CSS and privacy CSS HTTP 200, Service Worker v69, navigation/content landmarks, console errors, failed same-origin requests, HTTP failures, and uncaught page errors.\\n");
+    process.stdout.write("Checks: WCAG 2.1 A/AA, 390x844 and 1440x900 scroll-width measurements, shared CSS and privacy CSS HTTP 200, active Service Worker v69 and Cache Storage privacy assets, navigation/content landmarks, console errors, failed same-origin requests, HTTP failures, and uncaught page errors.\\n");
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));
