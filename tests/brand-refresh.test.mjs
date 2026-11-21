@@ -6,7 +6,7 @@ const css = await readFile(new URL("../brand-refresh.css", import.meta.url), "ut
 const editorial = await readFile(new URL("../editorial-rebuild.css", import.meta.url), "utf8");
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
-test("unified editorial palette replaces emerald dominance with graphite and blue", () => {
+test("legacy editorial palette remains graphite and blue", () => {
   for (const token of ["--bg:#0b1018", "--surface:#151f2c", "--text:#edf2f8", "--experience-accent:#83b4ff", "--amber:#d8a879"]) {
     assert.ok(css.includes(token), `missing palette token: ${token}`);
   }
