@@ -44,7 +44,6 @@ jobs:
           node --check bounded-json.js
           node --check support.js
           node --check support-tickets.mjs
-          node --check support-admin.js
           node --check python-course.js
           node --check academy.js
           node --check studio-portfolio.js
