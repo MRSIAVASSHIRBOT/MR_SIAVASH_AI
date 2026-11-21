@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const css = await readFile(new URL("../brand-refresh.css", import.meta.url), "utf8");
+const editorial = await readFile(new URL("../editorial-rebuild.css", import.meta.url), "utf8");
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
 test("unified editorial palette replaces emerald dominance with graphite and blue", () => {
@@ -17,7 +18,7 @@ test("shared stylesheet is linked after page-specific CSS on all primary surface
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
     assert.match(html, /<link rel="stylesheet" href="\.\/brand-refresh\.css">/);
     const stylesheets = [...html.matchAll(/<link[^>]+href="[^"]+\.css"[^>]*>/g)].map(match => match[0]);
-    assert.ok(stylesheets.at(-1)?.includes("brand-refresh.css"), `${file}: shared stylesheet must be last`);
+    assert.ok(stylesheets.at(-1)?.includes("editorial-rebuild.css"), `${file}: editorial stylesheet must be last`);
   }
 });
 
@@ -28,19 +29,20 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
   assert.match(css, /@media\(forced-colors:active\)/);
 });
 
-test("offline shell precaches the shared stylesheet and advances to cache v65", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v65"/);
+test("offline shell precaches the shared stylesheet and advances to cache v66", () => {
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v66"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
+  assert.match(sw, /"\.\/editorial-rebuild\.css"/);
 });
 
 
 test("browser and installed-app theme colors match the graphite surface on every main route", async () => {
   const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
-  assert.equal(manifest.theme_color, "#0b1018");
-  assert.equal(manifest.background_color, "#0b1018");
+  assert.equal(manifest.theme_color, "#f2f0e9");
+  assert.equal(manifest.background_color, "#f2f0e9");
   for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
-    assert.match(html, /<meta\s+name="theme-color"\s+content="#0b1018"/i, `${file}: browser chrome must use the shared graphite theme`);
+    assert.match(html, /<meta\s+name="theme-color"\s+content="#f2f0e9"/i, `${file}: browser chrome must use the shared graphite theme`);
   }
 });
 
@@ -59,4 +61,13 @@ test("legacy support, practice and portfolio surfaces use the shared neutral com
   assert.match(css, /\.support-launcher\{[^}]*#29476a/s);
   assert.match(css, /\.admin-status::before\{[^}]*#83b4ff/s);
   assert.equal((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length, "shared stylesheet braces must balance");
+});
+
+test("editorial rebuild uses a warm neutral canvas and restrained blue/coral accents", () => {
+  for (const token of ["--bg:#f2f0e9", "--text:#171d27", "--experience-accent:#315f9a", "--amber:#c45b3c"]) {
+    assert.ok(editorial.includes(token), `missing editorial token: ${token}`);
+  }
+  assert.match(editorial, /@media\(max-width:760px\)/);
+  assert.match(editorial, /@media\(prefers-reduced-motion:reduce\)/);
+  assert.equal((editorial.match(/\\{/g) || []).length, (editorial.match(/\\}/g) || []).length);
 });
