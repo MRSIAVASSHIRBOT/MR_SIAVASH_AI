@@ -1,3 +1,21 @@
+# Current source, Pages and PR checkpoint — 2026-11-21 17:46 UTC
+
+This is a GitHub/Pages evidence checkpoint. It is not a fresh Cloudflare control-plane inventory and must not be read as proof that the current Gateway source is deployed to Production.
+
+- Current GitHub `main`: `78b28cb89cdf4ff70106071740060c7e3f3327a0`.
+- The main-branch Quality / GitHub Pages run [44929243795](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44929243795) completed successfully for that exact commit. Repository tests, OpenAPI validation, isolated D1 migration tests, Academy Chromium E2E, accessibility/responsive audit, Pages deployment, and the post-deploy exact-asset verification all passed.
+- Gateway CI [44929243774](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44929243774), Workflow Security Audit [44929243855](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44929243855), OpenSSF Scorecard [44929243798](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44929243798), Cloudflare Gateway Runtime Smoke [44929243776](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44929243776), and Preview Runtime Smoke [44929243761](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44929243761) completed successfully on the same main SHA. Runtime smoke success is not a Cloudflare version/source readback.
+- PR [#244](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/pull/244) remains open and unmerged. Its latest reviewed head is `a65a883351a0b05deb7846293aa935277875d532`. That branch restores the Dark Emerald theme, adds the privacy page and dedicated stylesheet, and extends Service Worker v69 navigation/offline tests. Exact-head CI passed **369/369 repository tests**, OpenAPI validation, isolated D1 migration validation (**5 migrations, 10 tables, 18 indexes**), Academy Chromium E2E, accessibility/responsive audit, Gateway CI, and Workflow Security Audit. Its Pages deploy job was skipped because it is a pull request.
+- The PR's browser audit covered ten routes at 390×844 and 1440×900 with no horizontal overflow. It verified active Service Worker v69 and cached privacy HTML/CSS; the audit reported no console errors, failed same-origin requests, failed HTTP responses, uncaught page errors, or axe critical/serious violations.
+- PR #244 is not part of the deployed `main` site. Its merge would trigger the main-branch Pages deployment workflow. No merge, Pages deployment from that PR, Cloudflare Worker release, Production D1 mutation, secret change, Access-policy change, DNS change, or traffic change is recorded here.
+- No fresh Cloudflare control-plane inventory was performed in this checkpoint. Treat the dated Production/Preview versions and source annotations recorded in the historical sections below as historical until separately re-read from Cloudflare.
+
+## Release boundary
+
+GitHub Pages source and publication are verified for `78b28cb`. PR #244 is validated but awaiting owner authorization for merge and publication. A green PR check does not authorize a Production Pages release or a Cloudflare Worker deployment.
+
+---
+
 # GitHub source and Pages publication snapshot — 2026-11-21
 
 This addendum records GitHub evidence for the current website source and static-site publication. It is not a fresh Cloudflare deployment inventory.
