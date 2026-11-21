@@ -1955,6 +1955,10 @@ test("privacy page has the same defensive browser policy and discoverability met
 });
 
 test("browser regression audit records the requested viewport metrics and runtime failures", async () => {
+  assert.ok(audit.includes("route.fulfill({"));
+  assert.ok(audit.includes('status: "degraded"'));
+  assert.ok(audit.includes('database: "unavailable"'));
+  assert.ok(audit.includes('publicSupport: false'));
   const audit = await readFile(new URL("../scripts/site-accessibility-e2e.cjs", import.meta.url), "utf8");
   assert.match(audit, /viewport: \{ width: 390, height: 844 \}/);
   assert.match(audit, /setViewportSize\(\{ width: 1440, height: 900 \}\)/);
