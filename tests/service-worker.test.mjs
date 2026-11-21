@@ -155,7 +155,8 @@ test("install precaches the complete shell before activating the worker", async 
   assert.ok(precache.precache.includes("https://example.test/app/studio-portfolio.css"));
   assert.ok(precache.precache.includes("https://example.test/app/studio-portfolio.css"));
   assert.ok(precache.precache.includes("https://example.test/app/studio-portfolio.js"));
-  assert.equal(precache.precache.length, 49);
+  assert.ok(precache.precache.includes("https://example.test/app/editorial-rebuild.css"));
+  assert.equal(precache.precache.length, 50);
   assert.ok(precache.precache.includes("https://example.test/app/academy-assessments.mjs"));
   assert.ok(precache.precache.includes("https://example.test/app/academy-report.mjs"));
   assert.ok(precache.precache.includes("https://example.test/app/academy-assessment-export.mjs"));
