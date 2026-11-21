@@ -57,8 +57,26 @@ function createServer() {
 
 async function auditPage(page, route) {
   const pageErrors = [];
+  const consoleErrors = [];
+  const failedRequests = [];
+  const stylesheetResponses = [];
   const onPageError = error => pageErrors.push(error.message);
+  const onConsole = message => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  };
+  const onRequestFailed = request => failedRequests.push({
+    url: request.url(),
+    failure: request.failure()?.errorText || "unknown"
+  });
+  const onResponse = response => {
+    if (response.url().endsWith(".css")) {
+      stylesheetResponses.push({ url: response.url(), status: response.status() });
+    }
+  };
   page.on("pageerror", onPageError);
+  page.on("console", onConsole);
+  page.on("requestfailed", onRequestFailed);
+  page.on("response", onResponse);
 
   const response = await page.goto("http://127.0.0.1:4174/" + route, { waitUntil: "load", timeout: 20000 });
   if (!response || !response.ok()) throw new Error(route + ": page returned an unsuccessful response");
@@ -171,8 +189,12 @@ async function auditPage(page, route) {
     findings.push("mobile content overflow at " + structural.viewportWidth + "px: " +
       JSON.stringify(structural.contentOverflowElements));
   }
+  if (structural.documentWidth > structural.viewportWidth) {
+    findings.push("mobile document overflow: scrollWidth " + structural.documentWidth +
+      " > innerWidth " + structural.viewportWidth);
+  }
 
-  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.setViewportSize({ width: 1440, height: 900 });
   const desktopWidth = await page.evaluate(() => {
     const contentOverflowElements = [...document.querySelectorAll("body *")]
       .map(element => {
@@ -204,6 +226,26 @@ async function auditPage(page, route) {
     findings.push("desktop content overflow at " + desktopWidth.viewport + "px: " +
       JSON.stringify(desktopWidth.contentOverflowElements));
   }
+  if (desktopWidth.document > desktopWidth.viewport) {
+    findings.push("desktop document overflow: scrollWidth " + desktopWidth.document +
+      " > innerWidth " + desktopWidth.viewport);
+  }
+
+  if (route === "index.html") {
+    const foundationResponse = stylesheetResponses.find(item => item.url.endsWith("/foundation.css"));
+    if (!foundationResponse || foundationResponse.status !== 200) {
+      findings.push("foundation.css did not load successfully: " + JSON.stringify(foundationResponse || null));
+    }
+  }
+  if (route === "privacy.html") {
+    const brandResponse = stylesheetResponses.find(item => item.url.endsWith("/brand-refresh.css"));
+    if (!brandResponse || brandResponse.status !== 200) {
+      findings.push("brand-refresh.css did not load successfully: " + JSON.stringify(brandResponse || null));
+    }
+  }
+  for (const message of consoleErrors) findings.push("console error: " + message);
+  for (const request of failedRequests) findings.push("failed request: " + JSON.stringify(request));
+
   const severeAxeViolations = axeAudit.filter(violation =>
     violation.impact === "critical" || violation.impact === "serious"
   );
@@ -215,8 +257,19 @@ async function auditPage(page, route) {
   }
   if (pageErrors.length) findings.push("uncaught page errors: " + pageErrors.join(" | "));
   page.off("pageerror", onPageError);
+  page.off("console", onConsole);
+  page.off("requestfailed", onRequestFailed);
+  page.off("response", onResponse);
 
-  return { route, findings, title: structural.title, axeWarnings };
+  return {
+    route,
+    findings,
+    title: structural.title,
+    axeWarnings,
+    mobile: { viewport: structural.viewportWidth, document: structural.documentWidth },
+    desktop: { viewport: desktopWidth.viewport, document: desktopWidth.document },
+    stylesheetResponses
+  };
 }
 
 async function main() {
