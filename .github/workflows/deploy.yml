@@ -48,6 +48,7 @@ jobs:
           node --check python-course.js
           node --check academy.js
           node --check studio-portfolio.js
+          node --check assets/js/main.js
           node --check cloudflare/gateway/src/index.js
           node --check scripts/deploy-production-worker.mjs
           node --check scripts/generate-hub-public-status.mjs
