@@ -1943,10 +1943,10 @@ test("privacy page has the same defensive browser policy and discoverability met
   assert.match(source, /name="referrer" content="strict-origin-when-cross-origin"/);
   assert.match(source, /rel="canonical" href="https:\/\/mrsiavasshirbot\.github\.io\/MR_SIAVASH_AI\/privacy\.html"/);
   assert.match(source, /property="og:url"/);
-  assert.match(source, /<meta\\s+name="theme-color"\\s+content="#0b1018"/i);
-  assert.match(source, /<meta\\s+name="color-scheme"\\s+content="dark"/i);
-  assert.match(source, /<link rel="stylesheet" href="\\.\\/brand-refresh\\.css">/);
-  assert.doesNotMatch(source, /editorial-rebuild\\.css/);
+  assert.ok(source.includes('<meta name="theme-color" content="#0b1018">'));
+  assert.ok(source.includes('<meta name="color-scheme" content="dark">'));
+  assert.ok(source.includes('<link rel="stylesheet" href="./brand-refresh.css">'));
+  assert.ok(!source.includes("editorial-rebuild.css"));
   assert.match(source, /<nav class="privacy-nav" aria-label="ناوبری اصلی">/);
   assert.match(source, /aria-current="page"/);
   for (const section of ["support-status", "ticket-data", "retention", "sensitive-data", "local-workspace", "scope"]) {
