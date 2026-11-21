@@ -885,7 +885,7 @@
   }
 
   function initMotionControls() {
-    const visual = $(".hero-visual");
+    const visual = $(".foundation-visual, .hero-visual");
     const scene = visual && $(".hero-scene", visual);
     const button = $("#motionToggle");
     if (!visual || !scene || !button) return;
