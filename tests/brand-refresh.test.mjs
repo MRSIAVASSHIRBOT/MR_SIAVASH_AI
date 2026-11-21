@@ -6,10 +6,10 @@ const css = await readFile(new URL("../brand-refresh.css", import.meta.url), "ut
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
 test("unified editorial palette replaces emerald dominance with graphite and blue", () => {
-  for (const token of ["--bg:#0b1018", "--surface:#151f2c", "--text:#edf2f8", "--experience-accent:#83b4ff", "--amber:#d8a879"]) {
+  for (const token of ["--bg:#f2f0e9", "--surface:#151f2c", "--text:#edf2f8", "--experience-accent:#83b4ff", "--amber:#d8a879"]) {
     assert.ok(css.includes(token), `missing palette token: ${token}`);
   }
-  assert.match(css, /body\{[^}]*background:[^}]*#0b1018/s);
+  assert.match(css, /body\{[^}]*background:[^}]*#f2f0e9/s);
 });
 
 test("shared stylesheet is linked after page-specific CSS on all primary surfaces", async () => {
@@ -17,7 +17,7 @@ test("shared stylesheet is linked after page-specific CSS on all primary surface
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
     assert.match(html, /<link rel="stylesheet" href="\.\/brand-refresh\.css">/);
     const stylesheets = [...html.matchAll(/<link[^>]+href="[^"]+\.css"[^>]*>/g)].map(match => match[0]);
-    assert.ok(stylesheets.at(-1)?.includes("brand-refresh.css"), `${file}: shared stylesheet must be last`);
+    assert.ok(stylesheets.at(-1)?.includes("editorial-rebuild.css"), `${file}: editorial stylesheet must be last`);
   }
 });
 
@@ -31,16 +31,17 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
 test("offline shell precaches the shared stylesheet and advances to cache v65", () => {
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v65"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
+  assert.match(sw, /"\.\/editorial-rebuild\.css"/);
 });
 
 
 test("browser and installed-app theme colors match the graphite surface on every main route", async () => {
   const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
-  assert.equal(manifest.theme_color, "#0b1018");
-  assert.equal(manifest.background_color, "#0b1018");
+  assert.equal(manifest.theme_color, "#f2f0e9");
+  assert.equal(manifest.background_color, "#f2f0e9");
   for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
-    assert.match(html, /<meta\s+name="theme-color"\s+content="#0b1018"/i, `${file}: browser chrome must use the shared graphite theme`);
+    assert.match(html, /<meta\s+name="theme-color"\s+content="#f2f0e9"/i, `${file}: browser chrome must use the shared graphite theme`);
   }
 });
 
