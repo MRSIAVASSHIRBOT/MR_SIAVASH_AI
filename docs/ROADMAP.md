@@ -4,7 +4,9 @@
 >
 > **Pending public-site change:** PR [#244](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/pull/244) remains open and unmerged at head `a65a883351a0b05deb7846293aa935277875d532`. It restores Dark Emerald, introduces the privacy page and its stylesheet, and tests Service Worker v69 offline navigation. Exact-head validation passed 369/369 repository tests, OpenAPI, five isolated D1 migrations (10 tables, 18 indexes), Academy Chromium E2E, accessibility/responsive checks, Gateway CI and Workflow Security Audit. Its Pages deployment job was skipped because the changes are still in a pull request. Merging it will trigger the main-branch Pages workflow; treat publication as an owner-authorized release action.
 >
-> **Cloudflare boundary:** no fresh Cloudflare control-plane version/source readback is included in this checkpoint. Production/Preview version information in the historical sections remains dated evidence, not a current deployment assertion. Production Worker releases and D1 changes remain separate from GitHub Pages publication.The workstreams progress together behind shared release gates. A module is not production-ready merely because its card or UI exists. Shared integration rules are defined in docs/PLATFORM_CONTRACTS.md.
+> **Cloudflare boundary:** no fresh Cloudflare control-plane version/source readback is included in this checkpoint. Production/Preview version information in the historical sections remains dated evidence, not a current deployment assertion. Production Worker releases and D1 changes remain separate from GitHub Pages publication.
+
+The workstreams progress together behind shared release gates. A module is not production-ready merely because its card or UI exists. Shared integration rules are defined in docs/PLATFORM_CONTRACTS.md.
 
 | Workstream | Near-term deliverable | Acceptance gate |
 | --- | --- | --- |
