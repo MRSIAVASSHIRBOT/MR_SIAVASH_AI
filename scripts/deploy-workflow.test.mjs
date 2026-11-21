@@ -32,14 +32,14 @@ const supportClient = await readFile(
   "utf8",
 );
 
-test("GitHub Pages publication is manual-only while quality checks stay on push", () => {
+test("GitHub Pages deploys after successful main pushes and supports manual dispatch", () => {
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /push:\s*\n\s*branches:\s*\n\s*- main/);
   assert.match(
     workflow,
-    /if:\s*github\.ref == 'refs\/heads\/main' && github\.event_name == 'workflow_dispatch'/,
+    /if:\s*github\.ref == 'refs\/heads\/main' && \(github\.event_name == 'push' \|\| github\.event_name == 'workflow_dispatch'\)/,
   );
-  assert.doesNotMatch(workflow, /github\.event_name != 'pull_request'/);
+  assert.match(workflow, /needs:\s*quality/);
 });
 
 test("Preview release accepts the established Cloudflare secret name and legacy alias", () => {
