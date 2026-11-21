@@ -16,17 +16,17 @@ test("unified editorial palette replaces emerald dominance with graphite and blu
 test("shared stylesheet is linked after page-specific CSS on all primary surfaces", async () => {
   for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
-    const stylesheets = [...html.matchAll(/<link[^>]+href="[^"]+\\.css"[^>]*>/g)].map(match => match[0]);
+    const stylesheets = [...html.matchAll(/<link[^>]+href="[^"]+\.css"[^>]*>/g)].map(match => match[0]);
     if (file === "index.html") {
-      assert.match(html, /<link rel="stylesheet" href="\\.\\/foundation\\.css">/);
+      assert.match(html, /<link rel="stylesheet" href="\.\\/foundation\.css">/);
       assert.ok(stylesheets.at(-1)?.includes("foundation.css"), "index.html: foundation layer must be last");
-      assert.doesNotMatch(html, /brand-refresh\\.css|editorial-rebuild\\.css/);
+      assert.doesNotMatch(html, /brand-refresh\.css|editorial-rebuild\.css/);
     } else if (file === "privacy.html") {
-      assert.match(html, /<link rel="stylesheet" href="\\.\\/brand-refresh\\.css">/);
+      assert.match(html, /<link rel="stylesheet" href="\.\\/brand-refresh\.css">/);
       assert.ok(stylesheets.at(-1)?.includes("brand-refresh.css"), "privacy.html: graphite brand layer must be last");
-      assert.doesNotMatch(html, /editorial-rebuild\\.css/);
+      assert.doesNotMatch(html, /editorial-rebuild\.css/);
     } else {
-      assert.match(html, /<link rel="stylesheet" href="\\.\\/brand-refresh\\.css">/);
+      assert.match(html, /<link rel="stylesheet" href="\.\\/brand-refresh\.css">/);
       assert.ok(stylesheets.at(-1)?.includes("editorial-rebuild.css"), `${file}: editorial stylesheet must be last`);
     }
   }
@@ -39,7 +39,7 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
   assert.match(css, /@media\(forced-colors:active\)/);
 });
 
-test("offline shell precaches the shared stylesheet and advances to cache v67", () => {
+test("offline shell precaches the shared stylesheet and advances to cache v68", () => {
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
   assert.match(sw, /"\.\/editorial-rebuild\.css"/);
@@ -52,13 +52,13 @@ test("homepage and privacy share the graphite dark canvas while other editorial 
   assert.equal(manifest.background_color, "#0b1018");
   for (const file of ["index.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
-    assert.match(html, /<meta\\s+name="theme-color"\\s+content="#0b1018"/i);
-    assert.match(html, /<meta\\s+name="color-scheme"\\s+content="dark"/i);
+    assert.match(html, /<meta\s+name="theme-color"\s+content="#0b1018"/i);
+    assert.match(html, /<meta\s+name="color-scheme"\s+content="dark"/i);
   }
   for (const file of ["studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
-    assert.match(html, /<meta\\s+name="theme-color"\\s+content="#f2f0e9"/i);
-    assert.match(html, /<meta\\s+name="color-scheme"\\s+content="light"/i);
+    assert.match(html, /<meta\s+name="theme-color"\s+content="#f2f0e9"/i);
+    assert.match(html, /<meta\s+name="color-scheme"\s+content="light"/i);
   }
 });
 
