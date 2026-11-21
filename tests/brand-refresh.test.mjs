@@ -55,7 +55,7 @@ test("active homepage and privacy route use graphite chrome while legacy editori
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
     if (file === "index.html" || file === "privacy.html") {
       assert.match(html, /<meta\s+name="theme-color"\s+content="#0b1018"/i);
-      assert.match(html, /<meta\s+name="color-scheme"\s+content="dark"/i);
+      assert.match(html, /<meta\s+name="color-scheme"\s+content="dark light"/i);
     } else {
       assert.match(html, /<meta\s+name="theme-color"\s+content="#f2f0e9"/i);
       assert.match(html, /<meta\s+name="color-scheme"\s+content="light"/i);
