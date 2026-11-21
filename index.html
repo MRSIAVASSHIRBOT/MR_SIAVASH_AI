@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f2f0e9">
-  <meta name="color-scheme" content="light">
+  <meta name="theme-color" content="#07110c">
+  <meta name="color-scheme" content="dark">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self' https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev; manifest-src 'self'; worker-src 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="application-name" content="MR_SIAVASH_AI">
@@ -27,18 +27,16 @@
   <link rel="stylesheet" href="./python-course.css">
   <link rel="stylesheet" href="./experience.css">
   <link rel="stylesheet" href="./studio.css">
-  <link rel="stylesheet" href="./experience-next.css">
-  <link rel="stylesheet" href="./atelier.css">
-  <link rel="stylesheet" href="./field-notes.css">
   <script src="./ui-sounds.js" defer></script>
+  <script src="./app-router.js" defer></script>
+  <script src="./app-storage.js" defer></script>
   <script src="./app.js" defer></script>
   <script src="./bounded-json.js" defer></script>
   <script src="./support.js" defer></script>
   <script type="module" src="./support-tickets.mjs"></script>
   <script src="./site-search.js" defer></script>
   <script src="./python-course.js" defer></script>
-  <link rel="stylesheet" href="./brand-refresh.css">
-  <link rel="stylesheet" href="./editorial-rebuild.css">
+  <link rel="stylesheet" href="./foundation.css">
 </head>
 <body>
   <a class="skip-link" href="#main-content">رفتن به محتوای اصلی</a>
@@ -87,43 +85,30 @@
         <button class="button button-outline" id="retryRegistryButton" type="button">تلاش دوباره</button>
       </div>
       <section class="view is-active" id="view-home" aria-labelledby="hero-title">
-        <div class="hero-grid">
-          <div class="hero-copy" data-reveal="up">
-            <div class="eyebrow"><span class="eyebrow-line"></span> فراتر از یک ابزار؛ یک اکوسیستم</div>
-            <h1 id="hero-title">ایده‌ها را به<br><span>مسیرهای واقعی</span> تبدیل کن.</h1>
-            <p class="hero-description">خانه‌ای برای یادگیری، مهندسی و ساختن؛ جایی که ابزارها، دانش و پروژه‌ها در یک تجربه منسجم کنار هم قرار می‌گیرند و هر قابلیت، وضعیت واقعی خودش را شفاف نشان می‌دهد.</p>
-            <div class="hero-actions">
-              <button class="button button-primary" type="button" data-view="modules">کاوش ماژول‌ها <span aria-hidden="true">←</span></button>
-              <a class="button button-quiet" href="./python.html">شروع آموزش پایتون <span aria-hidden="true">↗</span></a>
-              <a class="button button-quiet" href="./academy.html">آکادمی ۶ دوره‌ای <span aria-hidden="true">↗</span></a>
-              <a class="button button-quiet" href="#knowledge-library">دانش‌نامه کاربردی <span aria-hidden="true">↗</span></a>
-              <button class="button button-quiet" type="button" data-view="about">معماری پروژه <span aria-hidden="true">↗</span></button>
-              <a class="button button-quiet" href="./studio.html">رزومه و پروژه‌ها <span aria-hidden="true">↗</span></a>
-              <a class="button button-quiet" href="./subtitle-studio.html">استودیوی زیرنویس <span aria-hidden="true">↗</span></a>
-            </div>
-            <div class="hero-footnote"><span class="tiny-check">✓</span> ماژولار از ابتدا <span class="footnote-separator">/</span> فارسی و راست‌چین <span class="footnote-separator">/</span> توسعه‌پذیر</div>
-            <div class="hero-proof-row" aria-label="ویژگی‌های تجربه محصول"><span><i>01</i> تجربه یکپارچه</span><span><i>02</i> کنترل دست کاربر</span><span><i>03</i> طراحی واکنش‌گرا</span></div>
-          </div>
-
-          <div class="hero-visual atelier-hero" data-reveal="up" role="group" aria-label="هویت بصری MR SIAVASH AI" data-motion-paused="false" data-experience="atelier-v1">
-            <div class="visual-topline"><span>MR_SIAVASH_AI / DIGITAL ATELIER</span><span class="visual-index">EST. 2026</span></div>
-            <button class="motion-toggle" id="motionToggle" type="button" aria-label="توقف حرکت‌های تزئینی" aria-pressed="false">توقف حرکت</button>
-            <div class="hero-scene atelier-scene" aria-hidden="true">
-              <div class="atelier-paper">
-                <div class="atelier-paper-kicker"><span>INDEPENDENT BY NATURE</span><span>NO. 001</span></div>
-                <div class="atelier-monogram">M<span>/</span></div>
-                <div class="atelier-paper-title">IDEAS<br>INTO<br><em>REALITY.</em></div>
-                <div class="atelier-paper-footer"><span>THINK / BUILD / LEARN</span><span>MR_SIAVASH_AI</span></div>
-              </div>
-              <div class="atelier-orbit-label atelier-label-one"><i>01</i><span>هوش مصنوعی</span></div>
-              <div class="atelier-orbit-label atelier-label-two"><i>02</i><span>مهندسی نرم‌افزار</span></div>
-              <div class="atelier-orbit-label atelier-label-three"><i>03</i><span>یادگیری و پژوهش</span></div>
-              <div class="atelier-stamp">BUILT<br>WITH<br>INTENT</div>
-            </div>
-            <div class="hero-readout"><span class="readout-pulse"></span><div><small>THE WORKSPACE</small><strong>یک نقطه شروع؛ مسیرهای بی‌شمار</strong></div><span class="readout-code">01 / 09</span></div>
-          </div>
-        </div>
-
+        <div class="hero-grid foundation-hero">
+  <div class="hero-copy foundation-copy" data-reveal="up">
+    <div class="eyebrow"><span class="eyebrow-line"></span> PERSONAL DIGITAL ECOSYSTEM</div>
+    <h1 id="hero-title">از ایده تا<br><span>ساخت واقعی.</span></h1>
+    <p class="hero-description">یک فضای متمرکز برای مهندسی نرم‌افزار، هوش مصنوعی، یادگیری و تجربه‌کردن ایده‌ها؛ با ابزارهایی که وضعیت و کاربردشان روشن است.</p>
+    <div class="hero-actions">
+      <button class="button button-primary" type="button" data-view="modules">کاوش ابزارها <span aria-hidden="true">↗</span></button>
+      <a class="button button-quiet" href="./python.html">یادگیری Python <span aria-hidden="true">↗</span></a>
+    </div>
+    <div class="hero-proof-row foundation-proof"><span><i>01</i> یادگیری</span><span><i>02</i> ساخت</span><span><i>03</i> آزمایش</span></div>
+  </div>
+  <div class="hero-visual foundation-visual" data-reveal="up" role="group" aria-label="نمای انتزاعی اکوسیستم" data-motion-paused="false">
+    <div class="foundation-visual-header"><span>MR / LAB</span><span>CORE 01</span></div>
+    <button class="motion-toggle" id="motionToggle" type="button" aria-label="توقف حرکت‌های تزئینی" aria-pressed="false">توقف حرکت</button>
+    <div class="hero-scene foundation-scene" aria-hidden="true">
+      <div class="foundation-orbit orbit-a"></div><div class="foundation-orbit orbit-b"></div>
+      <div class="foundation-core"><span>M/</span><small>BUILD<br>INTELLIGENCE</small></div>
+      <div class="foundation-node node-ai">AI <small>01</small></div>
+      <div class="foundation-node node-dev">DEV <small>02</small></div>
+      <div class="foundation-node node-learn">LEARN <small>03</small></div>
+    </div>
+    <div class="foundation-visual-footer"><span>THINK · BUILD · IMPROVE</span><span>01—∞</span></div>
+  </div>
+</div>
         <section class="atelier-manifesto" aria-label="رویکرد محصول" data-reveal="up"><span class="atelier-manifesto-index">A QUIETER KIND OF TECHNOLOGY / 01</span><p>فناوری باید راه را روشن‌تر کند؛ نه اینکه خودش به مانع تبدیل شود.</p><span class="atelier-manifesto-mark">M/</span></section>
         <div class="metrics-row" data-reveal="up">
           <div class="metric"><strong>۰۹</strong><span>ماژول مستقل در نقشه راه</span></div>

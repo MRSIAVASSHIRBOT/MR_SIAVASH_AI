@@ -8,23 +8,25 @@ const python = await readFile(new URL("../python.html", import.meta.url), "utf8"
 const academy = await readFile(new URL("../academy.html", import.meta.url), "utf8");
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
-test("Digital Atelier replaces the previous orbit hero with an editorial composition", () => {
-  assert.match(index, /data-experience="atelier-v1"/);
-  assert.match(index, /class="atelier-paper"/);
-  assert.match(index, /class="atelier-manifesto"/);
-  assert.doesNotMatch(index, /class="signature-rail"/);
-  assert.doesNotMatch(index, /class="orbit orbit-outer"/);
+test("foundation homepage replaces the previous layered hero with the focused ecosystem composition", () => {
+  assert.match(index, /class="hero-grid foundation-hero"/);
+  assert.match(index, /class="hero-visual foundation-visual"/);
+  assert.match(index, /class="foundation-core"/);
   assert.match(index, /id="motionToggle"/);
-  assert.match(index, /class="hero-scene atelier-scene"/);
+  assert.doesNotMatch(index, /class="atelier-paper"/);
+  assert.doesNotMatch(index, /class="orbit orbit-outer"/);
 });
 
-test("all public pages load the new design layer after the stable component styles", () => {
-  for (const html of [index, python, academy]) {
+test("homepage and subpages load their intended design layers after component styles", () => {
+  assert.match(index, /href="\.\/foundation\.css"/);
+  assert.ok(index.indexOf("foundation.css") > index.indexOf("studio.css"));
+  assert.doesNotMatch(index, /href="\.\/atelier\.css"/);
+  for (const html of [python, academy]) {
     assert.match(html, /href="\.\/atelier\.css"/);
     assert.ok(html.indexOf("atelier.css") > html.indexOf("experience-next.css"));
     assert.doesNotMatch(html, /href="\.\/experience-signature\.css"/);
   }
-  assert.match(index, /name="theme-color" content="#f2f0e9"/);
+  assert.match(index, /name="theme-color" content="#07110c"/);
 });
 
 test("editorial material contrast, original typography and local-only assets are present", () => {
@@ -45,7 +47,7 @@ test("atelier respects mobile, touch, keyboard, reduced motion and forced colors
   assert.match(atelier, /:focus-visible/);
 });
 
-test("offline shell caches the atelier stylesheet with cache version 63", () => {
+test("offline shell retains subpage atelier styles with cache version 67", () => {
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
   assert.match(sw, /"\.\/atelier\.css"/);
   assert.doesNotMatch(sw, /"\.\/experience-signature\.css"/);

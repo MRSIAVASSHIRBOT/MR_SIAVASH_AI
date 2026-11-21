@@ -16,9 +16,15 @@ test("unified editorial palette replaces emerald dominance with graphite and blu
 test("shared stylesheet is linked after page-specific CSS on all primary surfaces", async () => {
   for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
-    assert.match(html, /<link rel="stylesheet" href="\.\/brand-refresh\.css">/);
     const stylesheets = [...html.matchAll(/<link[^>]+href="[^"]+\.css"[^>]*>/g)].map(match => match[0]);
-    assert.ok(stylesheets.at(-1)?.includes("editorial-rebuild.css"), `${file}: editorial stylesheet must be last`);
+    if (file === "index.html") {
+      assert.match(html, /<link rel="stylesheet" href="\.\/foundation\.css">/);
+      assert.ok(stylesheets.at(-1)?.includes("foundation.css"), "index.html: foundation layer must be last");
+      assert.doesNotMatch(html, /brand-refresh\.css|editorial-rebuild\.css/);
+    } else {
+      assert.match(html, /<link rel="stylesheet" href="\.\/brand-refresh\.css">/);
+      assert.ok(stylesheets.at(-1)?.includes("editorial-rebuild.css"), `${file}: editorial stylesheet must be last`);
+    }
   }
 });
 
@@ -36,14 +42,19 @@ test("offline shell precaches the shared stylesheet and advances to cache v67", 
 });
 
 
-test("browser and installed-app theme metadata match the light editorial canvas on every main route", async () => {
+test("homepage uses the dark foundation canvas while editorial subpages retain their light chrome", async () => {
   const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
-  assert.equal(manifest.theme_color, "#f2f0e9");
-  assert.equal(manifest.background_color, "#f2f0e9");
+  assert.equal(manifest.theme_color, "#07110c");
+  assert.equal(manifest.background_color, "#07110c");
   for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
-    assert.match(html, /<meta\s+name="theme-color"\s+content="#f2f0e9"/i, `${file}: browser chrome must use the shared graphite theme`);
-    assert.match(html, /<meta\s+name="color-scheme"\s+content="light"/i, `${file}: browser UI must use the light editorial scheme`);
+    if (file === "index.html") {
+      assert.match(html, /<meta\s+name="theme-color"\s+content="#07110c"/i);
+      assert.match(html, /<meta\s+name="color-scheme"\s+content="dark"/i);
+    } else {
+      assert.match(html, /<meta\s+name="theme-color"\s+content="#f2f0e9"/i);
+      assert.match(html, /<meta\s+name="color-scheme"\s+content="light"/i);
+    }
   }
 });
 
