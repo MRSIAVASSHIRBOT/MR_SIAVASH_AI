@@ -188,3 +188,13 @@ footer,.site-footer{border-color:var(--line)!important;color:#687281!important}
 .course-level,.course-card-foot span,#visibleCount,.footer-brand,footer>span{
  color:#4f5967!important
 }
+
+/* Legacy status labels and dark-surface controls on the learning routes. */
+.module-status,.card-category,.card-details,.section-label>span,
+.profile-facts small,.profile-facts strong,
+.course-card .course-symbol,footer a{
+ color:#31506f!important
+}
+#academyPracticeReset{
+ background:#172536!important;color:#fff!important;border-color:#172536!important
+}
