@@ -7,6 +7,7 @@
   --line:rgba(205,218,235,.14);--line-strong:rgba(205,218,235,.23);
   --text:#edf2f8;--muted:#aeb9c8;--dim:#7e8b9c;
   --accent:#83b4ff;--accent-strong:#b6d4ff;--accent-dark:#355b84;
+  --green:var(--accent);--green-bright:var(--accent-strong);--green-dark:var(--accent-dark);
   --amber:#d8a879;--focus-ring:#a9caff;--radius:18px;
   --shadow:0 22px 70px rgba(0,0,0,.36);
   font-family:Vazirmatn,IRANSans,Tahoma,"Segoe UI",sans-serif;
