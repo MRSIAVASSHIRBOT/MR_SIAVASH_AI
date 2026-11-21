@@ -1961,7 +1961,7 @@ test("all local assets referenced by public HTML pages exist and core routes are
         const resolved = new URL(raw, "https://site.test/" + page);
         if (resolved.origin !== "https://site.test") continue;
         let path = decodeURIComponent(resolved.pathname.replace(/^\//, ""));
-        if (!path || path.endsWith("/")) path += "legacy-app.html";
+        if (!path || path.endsWith("/")) path += "index.html";
         await access(new URL("../" + path, import.meta.url));
         localAssets.add(path);
       }
