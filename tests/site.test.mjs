@@ -833,7 +833,7 @@ test("cross-tab synchronization remains active when workspace recovery is not bl
     } }
   };
   const handleStorageChange = vm.runInNewContext("(" + app.slice(start, end).trim() + ")", context);
-  handleStorageChange({ key: "workspace-test-key", newValue: "{}" });
+  handleStorageChange({ storageArea: context.localStorage, key: "workspace-test-key", newValue: "{}" });
   assert.equal(context.tasks, nextTasks);
   assert.equal(taskRenders, 1);
   handleStorageChange({ storageArea: context.localStorage, key: null, newValue: null });
