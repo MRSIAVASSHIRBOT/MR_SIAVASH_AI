@@ -73,17 +73,17 @@ test("progress, theme, search, keyboard and reduced motion remain implemented", 
   assert.match(knowledge, /<details class="article"/);
 });
 
-test("active public design tokens and responsive controls use graphite and slate blue", () => {
+test("active public design tokens and responsive controls use the Dark Emerald identity", () => {
   for (const token of [
-    "--bg:#0b1018",
-    "--surface:#151f2c",
-    "--surface-2:#1c2938",
-    "--border:#304055",
-    "--text:#edf2f8",
-    "--muted:#aeb9c8",
-    "--accent:#83b4ff",
-    "--accent-strong:#b6d4ff",
-    "--warning:#d8a879",
+    "--bg:#07110c",
+    "--surface:#0e1b14",
+    "--surface-2:#13261b",
+    "--border:#1f3a2b",
+    "--text:#e8f1ec",
+    "--muted:#9db3a6",
+    "--accent:#34d399",
+    "--accent-strong:#10b981",
+    "--warning:#fbbf24",
   ]) assert.ok(css.includes(token), token);
   assert.match(css, /:focus-visible/);
   assert.match(css, /@media\(max-width:700px\)/);
@@ -134,8 +134,8 @@ test("PWA manifest opens the active homepage with Persian RTL metadata", () => {
   assert.equal(manifest.start_url, "./");
   assert.equal(manifest.lang, "fa");
   assert.equal(manifest.dir, "rtl");
-  assert.equal(manifest.theme_color, "#0b1018");
-  assert.equal(manifest.background_color, "#0b1018");
+  assert.equal(manifest.theme_color, "#07110c");
+  assert.equal(manifest.background_color, "#07110c");
 });
 
 test("learning paths link to practical courses and use inline SVG icons", () => {
