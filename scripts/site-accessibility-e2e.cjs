@@ -303,6 +303,9 @@ async function main() {
     for (const result of results) {
       process.stdout.write(" - " + result.route + ": " + result.title +
         (result.axeWarnings.length ? " (" + result.axeWarnings.length + " moderate/minor axe warning(s))" : "") + "\\n");
+      process.stdout.write("   Mobile 390px: scrollWidth=" + result.mobile.document +
+        ", innerWidth=" + result.mobile.viewport + "; Desktop 1440px: scrollWidth=" +
+        result.desktop.document + ", innerWidth=" + result.desktop.viewport + "\\n");
       if (result.axeWarnings.length) {
         process.stdout.write("   Axe non-blocking warnings: " + JSON.stringify(result.axeWarnings.map(item => ({
           id: item.id, impact: item.impact, help: item.help, nodes: item.nodes
