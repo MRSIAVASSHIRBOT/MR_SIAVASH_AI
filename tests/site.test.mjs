@@ -1927,7 +1927,7 @@ test("public pages keep install metadata and browser chrome colors consistent", 
     assert.match(source, /<link\s+rel="manifest"\s+href="\.\/manifest\.webmanifest"/i, page + " must expose the install manifest");
     const theme = source.match(/<meta\s+name="theme-color"\s+content="([^"]+)"/i);
     assert.ok(theme, page + " must declare a browser theme color");
-    if (page === "index.html" || page === "404.html" || page === "privacy.html") assert.equal(theme[1], manifest.theme_color, page + " must use the active graphite browser chrome");
+    if (page === "index.html" || page === "404.html" || page === "privacy.html") assert.equal(theme[1], manifest.theme_color, page + " must use the active Dark Emerald browser chrome");
     else assert.equal(theme[1], "#f2f0e9", page + " retains the light editorial subpage chrome");
   }
   assert.equal(manifest.background_color, manifest.theme_color, "installed app launch canvas must match its primary homepage");
