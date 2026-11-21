@@ -32,6 +32,7 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
 test("offline shell precaches shared and homepage stylesheets and advances to cache v66", () => {
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v66"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
+  assert.match(sw, /"\.\/home-v2\.css"/);
 });
 
 
