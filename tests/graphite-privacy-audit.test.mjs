@@ -9,11 +9,11 @@ test("active site stylesheet defines the Dark Emerald system for dark and light 
   const css = await read("assets/css/style.css");
   assert.match(css, /--bg:#07110c/);
   assert.match(css, /--surface:#0e1b14/);
-  assert.match(css, /--text:#edf2f8/);
+  assert.match(css, /--text:#e8f1ec/);
   assert.match(css, /--accent:#34d399/);
   assert.match(css, /--accent-strong:#10b981/);
-  assert.match(css, /--bg:#f3f5f8/);
-  assert.match(css, /--accent:#315f9a/);
+  assert.match(css, /--bg:#f4f8f5/);
+  assert.match(css, /--accent:#087f53/);
   assert.match(css, /:focus-visible/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /forced-colors:active/);
@@ -72,7 +72,7 @@ test("privacy CSP remains restrictive and all page styling is self-hosted", asyn
   assert.doesNotMatch(privacy, /<style\b|\sstyle=/i);
 });
 
-test("PWA metadata, active theme controller, and offline shell use the graphite v69 release", async () => {
+test("PWA metadata, active theme controller, and offline shell use the Dark Emerald v69 release", async () => {
   const manifest = JSON.parse(await read("manifest.webmanifest"));
   const index = await read("index.html");
   const privacy = await read("privacy.html");
@@ -82,7 +82,7 @@ test("PWA metadata, active theme controller, and offline shell use the graphite 
   assert.equal(manifest.background_color, "#07110c");
   assert.match(index, /name="theme-color" content="#07110c"/);
   assert.match(privacy, /name="theme-color" content="#07110c"/);
-  assert.match(mainJs, /light\?"#f3f5f8":"#07110c"/);
+  assert.match(mainJs, /light\?"#f4f8f5":"#07110c"/);
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
   for (const asset of ["./privacy.html", "./404.html", "./favicon.svg", "./assets/css/style.css", "./assets/css/privacy.css", "./assets/js/main.js"]) {
     assert.ok(sw.includes('"' + asset + '"'), "offline shell must include " + asset);
