@@ -10,7 +10,7 @@ test("unified editorial palette replaces emerald dominance with graphite and blu
   for (const token of ["--bg:#0b1018", "--surface:#151f2c", "--text:#edf2f8", "--experience-accent:#83b4ff", "--amber:#d8a879"]) {
     assert.ok(css.includes(token), `missing palette token: ${token}`);
   }
-  assert.match(css, /body\{[^}]*background:[^}]*#f2f0e9/s);
+  assert.match(css, /body\{[^}]*background:[^}]*#0b1018/s);
 });
 
 test("shared stylesheet is linked after page-specific CSS on all primary surfaces", async () => {
@@ -29,8 +29,8 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
   assert.match(css, /@media\(forced-colors:active\)/);
 });
 
-test("offline shell precaches the shared stylesheet and advances to cache v65", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v65"/);
+test("offline shell precaches the shared stylesheet and advances to cache v66", () => {
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v66"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
   assert.match(sw, /"\.\/editorial-rebuild\.css"/);
 });
