@@ -215,3 +215,6 @@ button[data-project-filter][aria-pressed=true]{
 .footer-version,.project-tags span,.project-card-foot a,.project-card-foot button{
  color:#31506f!important
 }
+
+.project-state,.section-footnote{color:#4f5967!important}
+#snippetCode{background:#0c1521!important;color:#f2f0e9!important;border-color:#334256!important}
