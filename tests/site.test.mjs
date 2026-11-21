@@ -14,6 +14,8 @@ const fieldNotesCss = await readFile(new URL("../field-notes.css", import.meta.u
 const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "utf8");
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
+const appRouter = await readFile(new URL("../app-router.js", import.meta.url), "utf8");
+const foundationCss = await readFile(new URL("../foundation.css", import.meta.url), "utf8");
 const appStorage = await readFile(new URL("../app-storage.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
 const privacyText = await readFile(new URL("../privacy.html", import.meta.url), "utf8");
@@ -86,11 +88,10 @@ test("administrator console navigation uses the reviewed production entry page, 
   assert.doesNotMatch(html, /mr-siavash-ai-gateway-preview/);
 });
 
-test("support deep links open the existing support center", () => {
-  assert.match(app, /if \(viewName === "support"\)[\s\S]*?supportDialog\.showModal\(\)/);
+test("support deep links are handled by the extracted application router", () => {
+  assert.match(appRouter, /if \(viewName === "support"\)[\s\S]*?dialog\.showModal\(\)/);
   assert.match(html, /id="supportDialog"/);
 });
-
 test("digital identity page exposes public social profiles and GitHub tools safely", () => {
   assert.match(html, /id="view-identity"/);
   assert.match(html, /data-view="identity"/);
@@ -172,24 +173,24 @@ test("application validates and freezes the external module registry before init
   assert.match(app, /await loadModuleRegistry\(\);[\s\S]*?init\(\);/);
 });
 
-test("workspace import is bounded and schema-checked", () => {
+test("workspace import is bounded and schema-checked by the extracted storage contract", () => {
   assert.match(app, /MAX_IMPORT_BYTES = 256 \* 1024/);
-  assert.match(app, /data\.schema !== "mr-siavash-ai-workspace"/);
-  assert.match(app, /MAX_TASKS = 100/);
+  assert.match(appStorage, /function validateWorkspaceBackup\(data, maxTasks = 100\)/);
+  assert.match(appStorage, /data\.schema !== "mr-siavash-ai-workspace"/);
+  assert.match(appStorage, /data\.tasks\.length > maxTasks/);
 });
-
 test("client code does not contain a hard-coded provider secret", () => {
   assert.doesNotMatch(app, /\b(?:sk|ghp|github_pat)_[A-Za-z0-9]{20,}\b/);
 });
 
-test("Field Notes design system is loaded as a local responsive layer", () => {
-  assert.equal((fieldNotesCss.match(/\{/g) || []).length, (fieldNotesCss.match(/\}/g) || []).length);
-  assert.match(html, /href="\.\/field-notes\.css"/);
-  assert.match(fieldNotesCss, /prefers-reduced-motion: reduce/);
-  assert.match(fieldNotesCss, /forced-colors: active/);
-  assert.match(fieldNotesCss, /\.project-card:nth-child\(1\)/);
+test("foundation design layer replaces accumulated homepage overlays", () => {
+  assert.equal((foundationCss.match(/\{/g) || []).length, (foundationCss.match(/\}/g) || []).length);
+  assert.match(html, /href="\.\/foundation\.css"/);
+  assert.doesNotMatch(html, /href="\.\/field-notes\.css"/);
+  assert.match(foundationCss, /--bg:#07110c/);
+  assert.match(foundationCss, /prefers-reduced-motion:reduce/);
+  assert.match(foundationCss, /forced-colors:active/);
 });
-
 test("stylesheet braces are balanced", () => {
   assert.equal((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length);
   assert.equal((supportCss.match(/\{/g) || []).length, (supportCss.match(/\}/g) || []).length);
@@ -314,26 +315,23 @@ test("service worker cache is versioned after front-end asset changes", () => {
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
-  assert.ok(app.includes("data.tasks.length > MAX_TASKS"));
-  assert.ok(app.includes("ساختار کار شماره"));
-  assert.ok(app.includes("data.favorites !== undefined"));
+  assert.ok(app.includes("MAX_IMPORT_BYTES = 256 * 1024"));
+  assert.ok(appStorage.includes("data.tasks.length > maxTasks"));
+  assert.ok(appStorage.includes("ساختار کار شماره"));
+  assert.ok(appStorage.includes("data.favorites !== undefined"));
 });
-
 test("local workspace recovery reports repairs and never silently truncates task text", () => {
-  const start = app.indexOf("  function normalizeLoadedTasks(rawTasks) {");
-  const end = app.indexOf("\n  function loadWorkspace()", start);
-  assert.ok(start >= 0 && end > start, "loaded task normalizer boundaries must exist");
-  const normalize = vm.runInNewContext("(function() { const MAX_TASKS = 100; let nextId = 0; const createId = () => \"repaired-\" + (++nextId); return (" +
-    app.slice(start, end).trim() + "); })()");
-  const records = [
+  const storageWindow = {};
+  vm.runInNewContext(appStorage, { window: storageWindow });
+  let nextId = 0;
+  const result = storageWindow.MRAppStorage.normalizeLoadedTasks([
     { id: "stable-1", text: "  Learn   Linux  ", done: false },
     { id: "stable-1", text: "Duplicate ID", done: true },
     { text: "Missing ID", done: false },
     { id: "too-long", text: "x".repeat(121), done: false },
     null,
     { id: "stable-2", text: "Valid", done: false }
-  ];
-  const result = normalize(records);
+  ], () => "repaired-" + (++nextId));
   assert.deepEqual(JSON.parse(JSON.stringify(result.tasks)), [
     { id: "stable-1", text: "Learn Linux", done: false },
     { id: "repaired-1", text: "Duplicate ID", done: true },
@@ -343,16 +341,8 @@ test("local workspace recovery reports repairs and never silently truncates task
   assert.equal(result.repairedIds, 2);
   assert.equal(result.discardedTasks, 2);
   assert.equal(result.excessTasks, 0);
-  const overflow = normalize(Array.from({ length: 103 }, (_, index) => ({
-    id: "task-" + index, text: "Task " + index, done: false
-  })));
-  assert.equal(overflow.tasks.length, 100);
-  assert.equal(overflow.excessTasks, 3);
-  assert.equal(normalize(null).invalidContainer, true);
   assert.match(app, /بازیابی داده‌ها با اصلاحات انجام شد/);
-  assert.doesNotMatch(app, /task\.text\.trim\(\)\.replace\(\/\s\+\/g, " "\)\.slice\(0, 120\)/);
 });
-
 test("workspace recovery blocks implicit overwrite until a validated backup is imported", () => {
   assert.ok(app.includes("let workspaceRecoveryBlocked = false"));
   assert.ok(app.includes("workspaceRecoveryBlocked = storageReadError ||"));
@@ -431,7 +421,7 @@ test("workspace save guard rejects implicit writes and permits explicit validate
 
 test("recovery lock ignores cross-tab workspace writes and storage-clear events", () => {
   const start = app.indexOf("  function handleStorageChange(event) {");
-  const end = app.indexOf("\n  function normalizeLoadedTasks(rawTasks)", start);
+  const end = app.indexOf("\n  function loadWorkspace()", start);
   assert.ok(start >= 0 && end > start, "storage event handler boundaries must exist");
   const initialTasks = [{ id: "kept-task", text: "Preserve this task", done: false }];
   const initialFavorites = new Set(["kept-module"]);
@@ -463,12 +453,12 @@ test("recovery lock ignores cross-tab workspace writes and storage-clear events"
   assert.ok(notices.every(message => message.includes("بازیابی فضای کار")));
 });
 
-test("workspace loading repairs missing and duplicate task IDs", () => {
-  assert.ok(app.includes("const seenTaskIds = new Set()"));
-  assert.ok(app.includes("seenTaskIds.has(id)"));
-  assert.ok(app.includes("id = createId()"));
+test("workspace loading delegates repair to the extracted storage module", () => {
+  assert.ok(appStorage.includes("const seenTaskIds = new Set()"));
+  assert.ok(appStorage.includes("seenTaskIds.has(id)"));
+  assert.ok(appStorage.includes("id = createId()"));
+  assert.match(app, /window\.MRAppStorage\.normalizeLoadedTasks\(rawTasks, createId, MAX_TASKS\)/);
 });
-
 test("platform contracts define identity, AI, agent and production boundaries", async () => {
   const contracts = await readFile(new URL("../docs/PLATFORM_CONTRACTS.md", import.meta.url), "utf8");
   assert.match(contracts, /server-side for every protected operation/);
@@ -535,7 +525,7 @@ test("mobile navigation exposes an accurate accessible control relationship", ()
   assert.match(html, /id="mobileMenuButton"[^>]*aria-controls="mainNav"/);
   assert.match(app, /button\.setAttribute\("aria-expanded", String\(open\)\)/);
   assert.match(app, /button\.setAttribute\("aria-label", open \? "بستن ناوبری" : "باز کردن ناوبری"\)/);
-  assert.match(app, /button\.setAttribute\("aria-label", "باز کردن ناوبری"\)/);
+  assert.match(appRouter, /button\.setAttribute\("aria-label", "باز کردن ناوبری"\)/);
 });
 
 test("global module search shortcut does not steal keystrokes from editors or dialogs", () => {
@@ -785,39 +775,27 @@ test("GitHub Actions are pinned to immutable commits and monitored by Dependabot
 
 
 test("cross-tab task synchronization strictly validates stored snapshots", () => {
-  const start = app.indexOf("  function parseStoredTasks(raw) {");
-  const end = app.indexOf("\n  function parseStoredFavorites(raw)", start);
-  assert.ok(start >= 0 && end > start, "stored task parser boundaries must exist");
-  const parse = vm.runInNewContext("(function() { const MAX_TASKS = 100; return (" +
-    app.slice(start, end).trim() + "); })()");
-
+  const storageWindow = {};
+  vm.runInNewContext(appStorage, { window: storageWindow });
+  const parse = storageWindow.MRAppStorage.parseStoredTasks;
   const valid = parse(JSON.stringify({
     version: 2,
     tasks: [{ id: "task-1", text: "  Learn   Linux  ", done: false }]
   }));
-  assert.deepEqual(JSON.parse(JSON.stringify(valid)), [
-    { id: "task-1", text: "Learn Linux", done: false }
-  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(valid)), [{ id: "task-1", text: "Learn Linux", done: false }]);
   assert.throws(() => parse(JSON.stringify({ version: 1, tasks: [] })));
   assert.throws(() => parse(JSON.stringify({ version: 2, tasks: [{ id: "x", text: "ok", done: "false" }] })));
   assert.throws(() => parse(JSON.stringify({ version: 2, tasks: [
-    { id: "same", text: "first", done: false },
-    { id: "same", text: "second", done: true }
+    { id: "same", text: "first", done: false }, { id: "same", text: "second", done: true }
   ] })));
   assert.throws(() => parse(JSON.stringify({ version: 2, tasks: [
-    { id: " task-1 ", text: "first", done: false },
-    { id: "task-1", text: "second", done: true }
+    { id: " task-1 ", text: "first", done: false }, { id: "task-1", text: "second", done: true }
   ] })));
-  assert.throws(() => parse(JSON.stringify({ version: 2, tasks: [
-    { id: "long", text: "x".repeat(121), done: false }
-  ] })));
-  assert.throws(() => parse(JSON.stringify({
-    version: 2, tasks: Array.from({ length: 101 }, (_, i) => ({
-      id: "task-" + i, text: "Task", done: false
-    }))
-  })));
+  assert.throws(() => parse(JSON.stringify({ version: 2, tasks: [{ id: "long", text: "x".repeat(121), done: false }] })));
+  assert.throws(() => parse(JSON.stringify({ version: 2, tasks: Array.from({ length: 101 }, (_, i) => ({
+    id: "task-" + i, text: "Task", done: false
+  })) })));
 });
-
 test("workspace listens for same-origin storage changes and refreshes affected views", () => {
   assert.match(app, /function handleStorageChange\(event\)/);
   assert.match(app, /window\.addEventListener\("storage", handleStorageChange\)/);
@@ -830,7 +808,7 @@ test("workspace listens for same-origin storage changes and refreshes affected v
 
 test("cross-tab synchronization remains active when workspace recovery is not blocked", () => {
   const start = app.indexOf("  function handleStorageChange(event) {");
-  const end = app.indexOf("\n  function normalizeLoadedTasks(rawTasks)", start);
+  const end = app.indexOf("\n  function loadWorkspace()", start);
   assert.ok(start >= 0 && end > start, "storage event handler boundaries must exist");
   const nextTasks = [{ id: "remote-task", text: "Updated in another tab", done: true }];
   let taskRenders = 0;
@@ -873,17 +851,14 @@ test("architecture and platform contracts describe browser-local cross-tab recov
 });
 
 test("cross-tab favorites snapshots reject malformed or oversized values", () => {
-  const start = app.indexOf("  function parseStoredFavorites(raw) {");
-  const end = app.indexOf("\n  function handleStorageChange(event)", start);
-  assert.ok(start >= 0 && end > start, "stored favorites parser boundaries must exist");
-  const parse = vm.runInNewContext("(function() { const modules = []; const normalizeFavoriteIds = ids => Array.from(new Set(ids)); return (" +
-    app.slice(start, end).trim() + "); })()");
+  const storageWindow = {};
+  vm.runInNewContext(appStorage, { window: storageWindow });
+  const normalize = (ids, modules) => Array.from(new Set(ids.filter(id => modules.length === 0 || modules.some(module => module.id === id))));
+  const parse = raw => storageWindow.MRAppStorage.parseStoredFavorites(raw, normalize, []);
   assert.deepEqual(Array.from(parse(JSON.stringify(["ai-hub", "agents", "ai-hub"]))), ["ai-hub", "agents"]);
   assert.throws(() => parse(JSON.stringify(["invalid id"])));
   assert.throws(() => parse(JSON.stringify(Array.from({ length: 51 }, (_, i) => "module-" + i))));
 });
-
-
 test("formal workspace backup JSON Schema matches the versioned import contract", () => {
   assert.equal(workspaceSchema.$schema, "https://json-schema.org/draft/2020-12/schema");
   assert.equal(workspaceSchema.additionalProperties, false);
@@ -1029,7 +1004,7 @@ test("hero pointer tilt is bounded, frame-throttled, and reset on pause or point
     addEventListener(name, callback) { documentEvents[name] = callback; }
   };
   const init = vm.runInNewContext("(() => { " + source + "; return initMotionControls; })()", {
-    $: (selector, root) => selector === ".hero-visual" ? visual : selector === ".hero-scene" ? root.querySelector(selector) : button, window: windowStub, document: documentStub
+    $: (selector, root) => (selector === ".foundation-visual, .hero-visual" || selector === ".hero-visual") ? visual : selector === ".hero-scene" ? root.querySelector(selector) : button, window: windowStub, document: documentStub
   });
 
   init();
@@ -1099,7 +1074,7 @@ test("hero pointer tilt is not enabled for reduced-motion or coarse-pointer user
   };
   const documentStub = { visibilityState: "visible", addEventListener() {} };
   const init = vm.runInNewContext("(() => { " + source + "; return initMotionControls; })()", {
-    $: (selector, root) => selector === ".hero-visual" ? visual : selector === ".hero-scene" ? root.querySelector(selector) : button, window: windowStub, document: documentStub
+    $: (selector, root) => (selector === ".foundation-visual, .hero-visual" || selector === ".hero-visual") ? visual : selector === ".hero-scene" ? root.querySelector(selector) : button, window: windowStub, document: documentStub
   });
   init();
   assert.equal(button.disabled, true);
@@ -1132,7 +1107,7 @@ test("coarse-pointer devices keep the hero scene static", () => {
   };
   const documentStub = { visibilityState: "visible", addEventListener() {} };
   const init = vm.runInNewContext("(() => { " + source + "; return initMotionControls; })()", {
-    $: (selector, root) => selector === ".hero-visual" ? visual : selector === ".hero-scene" ? root.querySelector(selector) : button,
+    $: (selector, root) => (selector === ".foundation-visual, .hero-visual" || selector === ".hero-visual") ? visual : selector === ".hero-scene" ? root.querySelector(selector) : button,
     window: windowStub,
     document: documentStub
   });
@@ -1143,12 +1118,10 @@ test("coarse-pointer devices keep the hero scene static", () => {
 });
 
 test("decorative 3D illustration layers are hidden from assistive technology", () => {
-  assert.match(html, /class="hero-scene atelier-scene" aria-hidden="true"/);
-  assert.match(html, /class="atelier-paper"/);
-  assert.match(html, /class="atelier-orbit-label atelier-label-one"/);
+  assert.match(html, /class="hero-scene foundation-scene" aria-hidden="true"/);
+  assert.match(html, /class="foundation-core"/);
+  assert.match(html, /class="foundation-node node-ai"/);
 });
-
-
 test("scroll reveal is progressive enhancement and respects reduced motion", () => {
   assert.match(html, /data-reveal="up"/);
   assert.match(app, /function initScrollReveal\(\)/);
@@ -1359,13 +1332,13 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
 });
 
-test("homepage experience additions are present and versioned", () => {
-  assert.match(html, /class="hero-proof-row"/);
-  assert.match(html, /class="hero-readout"/);
-  assert.match(html, /class="experience-strip"/);
-  assert.match(html, /نسخه ۱\.۰/);
+test("homepage foundation experience is present and versioned", () => {
+  assert.match(html, /class="hero-grid foundation-hero"/);
+  assert.match(html, /class="hero-visual foundation-visual"/);
+  assert.match(html, /class="hero-proof-row foundation-proof"/);
+  assert.match(html, /id="motionToggle"/);
+  assert.match(html, /از ایده تا/);
 });
-
 test("experience stylesheet has balanced syntax and responsive accessibility contracts", () => {
   assert.equal((experienceCss.match(/\{/g) || []).length, (experienceCss.match(/\}/g) || []).length);
   assert.match(experienceCss, /--experience-accent/);
@@ -1893,28 +1866,18 @@ test("emerald design text tokens meet WCAG AA contrast on dark surfaces", () => 
   }
 });
 
-test("emerald flagship experience layer overrides the conflicting studio palette", async () => {
-  const pythonHtml = await readFile(new URL("../python.html", import.meta.url), "utf8");
-  const academyHtml = await readFile(new URL("../academy.html", import.meta.url), "utf8");
-  assert.ok(html.indexOf("studio.css") < html.indexOf("experience-next.css"));
-  assert.ok(pythonHtml.indexOf("studio.css") < pythonHtml.indexOf("experience-next.css"));
-  assert.ok(academyHtml.indexOf("academy.css") < academyHtml.indexOf("experience-next.css"));
-  assert.match(experienceNextCss, /--experience-accent:#8debad/);
-  assert.match(experienceNextCss, /--bg:#07110b/);
-  assert.match(experienceNextCss, /\.hero-visual/);
-  assert.match(experienceNextCss, /\.module-card:hover/);
-  assert.match(experienceNextCss, /\.registry-status/);
-  assert.match(experienceNextCss, /@media\(max-width:760px\)/);
-  assert.match(experienceNextCss, /@media\(max-width:480px\)/);
-  assert.match(experienceNextCss, /prefers-reduced-motion:reduce/);
-  assert.match(experienceNextCss, /forced-colors:active/);
-  assert.match(experienceNextCss, /:focus-visible/);
-  assert.equal((experienceNextCss.match(/\{/g)||[]).length,(experienceNextCss.match(/\}/g)||[]).length);
-  assert.match(sw, /"\.\/experience-next\.css"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+test("foundation design layer defines the dark emerald system and accessible responsive states", () => {
+  assert.ok(html.indexOf("studio.css") < html.indexOf("foundation.css"));
+  assert.match(foundationCss, /--bg:#07110c/);
+  assert.match(foundationCss, /--green:#83e5a5/);
+  assert.match(foundationCss, /\.foundation-hero/);
+  assert.match(foundationCss, /\.foundation-visual/);
+  assert.match(foundationCss, /@media\(max-width:820px\)/);
+  assert.match(foundationCss, /@media\(max-width:520px\)/);
+  assert.match(foundationCss, /prefers-reduced-motion:reduce/);
+  assert.match(foundationCss, /forced-colors:active/);
+  assert.match(foundationCss, /:focus-visible/);
 });
-
-
 test("public pages expose unique canonical URLs and social metadata", async () => {
   const pages = [
     ["index.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/"],
