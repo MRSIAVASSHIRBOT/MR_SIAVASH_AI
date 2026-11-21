@@ -3,10 +3,11 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
 const css = await readFile(new URL("../brand-refresh.css", import.meta.url), "utf8");
+const editorial = await readFile(new URL("../editorial-rebuild.css", import.meta.url), "utf8");
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
 test("unified editorial palette replaces emerald dominance with graphite and blue", () => {
-  for (const token of ["--bg:#f2f0e9", "--surface:#151f2c", "--text:#edf2f8", "--experience-accent:#83b4ff", "--amber:#d8a879"]) {
+  for (const token of ["--bg:#0b1018", "--surface:#151f2c", "--text:#edf2f8", "--experience-accent:#83b4ff", "--amber:#d8a879"]) {
     assert.ok(css.includes(token), `missing palette token: ${token}`);
   }
   assert.match(css, /body\{[^}]*background:[^}]*#f2f0e9/s);
@@ -60,4 +61,13 @@ test("legacy support, practice and portfolio surfaces use the shared neutral com
   assert.match(css, /\.support-launcher\{[^}]*#29476a/s);
   assert.match(css, /\.admin-status::before\{[^}]*#83b4ff/s);
   assert.equal((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length, "shared stylesheet braces must balance");
+});
+
+test("editorial rebuild uses a warm neutral canvas and restrained blue/coral accents", () => {
+  for (const token of ["--bg:#f2f0e9", "--text:#171d27", "--experience-accent:#315f9a", "--amber:#c45b3c"]) {
+    assert.ok(editorial.includes(token), `missing editorial token: ${token}`);
+  }
+  assert.match(editorial, /@media\(max-width:760px\)/);
+  assert.match(editorial, /@media\(prefers-reduced-motion:reduce\)/);
+  assert.equal((editorial.match(/\\{/g) || []).length, (editorial.match(/\\}/g) || []).length);
 });
