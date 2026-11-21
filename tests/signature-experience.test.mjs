@@ -25,6 +25,7 @@ test("homepage and subpages load their intended design layers after component st
   assert.doesNotMatch(index, /href="\.\/atelier\.css"/);
   for (const html of [python, academy]) {
     assert.match(html, /href="\.\/atelier\.css"/);
+    assert.ok(html.indexOf("studio.css") < html.indexOf("experience-next.css"));
     assert.ok(html.indexOf("atelier.css") > html.indexOf("experience-next.css"));
     assert.doesNotMatch(html, /href="\.\/experience-signature\.css"/);
   }
