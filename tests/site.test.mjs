@@ -271,17 +271,17 @@ test("security and roadmap docs define current publication and production gates"
   assert.match(threat, /cross-user isolation tests/);
   assert.match(threat, /secrets and tool permissions remain server-side/i);
   assert.match(roadmap, /^# Product roadmap — parallel workstreams/m);
-  assert.doesNotMatch(roadmap, /^#\\s*$/m);
-  assert.doesNotMatch(roadmap, /source\\.Product roadmap/);
+  assert.doesNotMatch(roadmap, /^#\s*$/m);
+  assert.doesNotMatch(roadmap, /source\.Product roadmap/);
   assert.match(roadmap, /parallel workstreams/);
-  assert.match(roadmap, /Current GitHub\\/Pages checkpoint — 2026-11-21/);
-  assert.match(roadmap, /main` is `bd065af14f756d5bac1c2ef84adf6e931d566d72/);
+  assert.ok(roadmap.includes("Current GitHub/Pages checkpoint — 2026-11-21"));
+  assert.ok(roadmap.includes("bd065af14f756d5bac1c2ef84adf6e931d566d72"));
   assert.ok(roadmap.includes("Main Quality / Pages run [44933407104]"));
-  assert.match(roadmap, /369\\/369 repository tests/);
-  assert.match(roadmap, /five isolated D1 migrations \\(10 tables, 18 indexes\\)/);
+  assert.ok(roadmap.includes("369/369 repository tests"));
+  assert.ok(roadmap.includes("five isolated D1 migrations (10 tables, 18 indexes)"));
   assert.ok(roadmap.includes("Preview Worker Runtime Smoke checks"));
-  assert.match(roadmap, /no fresh Cloudflare control-plane version\\/source readback/i);
-  assert.match(roadmap, /Production Worker releases and D1 changes remain independently gated/);
+  assert.ok(roadmap.includes("no fresh Cloudflare control-plane version/source readback"));
+  assert.ok(roadmap.includes("Production Worker releases and D1 changes remain independently gated"));
 });
 
 test("workspace task controls are wired to accessible UI elements", () => {
