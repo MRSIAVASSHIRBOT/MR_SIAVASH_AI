@@ -211,3 +211,7 @@ button[data-project-filter]{
 button[data-project-filter][aria-pressed=true]{
  background:#172536!important;color:#fff!important;border-color:#172536!important
 }
+
+.footer-version,.project-tags span,.project-card-foot a,.project-card-foot button{
+ color:#31506f!important
+}
