@@ -198,3 +198,16 @@ footer,.site-footer{border-color:var(--line)!important;color:#687281!important}
 #academyPracticeReset{
  background:#172536!important;color:#fff!important;border-color:#172536!important
 }
+
+/* Knowledge disclosures and portfolio filter states. */
+.knowledge-card summary,.knowledge-card summary strong,
+#knowledge-library summary,#knowledge-library summary strong{
+ color:#172536!important
+}
+.knowledge-kind{color:#a33e26!important}
+button[data-project-filter]{
+ background:#e7ebef!important;color:#263548!important;border:1px solid #c4cbd2!important
+}
+button[data-project-filter][aria-pressed=true]{
+ background:#172536!important;color:#fff!important;border-color:#172536!important
+}
