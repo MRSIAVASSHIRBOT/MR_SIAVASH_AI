@@ -2,9 +2,9 @@
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0b1018">
-  <meta name="color-scheme" content="dark">
+  <meta name="color-scheme" content="dark light">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="description" content="اطلاعیهٔ حریم خصوصی MR_SIAVASH_AI؛ شفافیت دربارهٔ داده‌های مرورگر، دستیار آنلاین و پشتیبانی.">
@@ -18,70 +18,117 @@
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
   <link rel="manifest" href="./manifest.webmanifest">
   <title>حریم خصوصی | MR_SIAVASH_AI</title>
-  <link rel="stylesheet" href="./styles.css">
-  <link rel="stylesheet" href="./support.css">
-  <link rel="stylesheet" href="./brand-refresh.css">
+  <link rel="stylesheet" href="./assets/css/style.css">
+  <script src="./assets/js/main.js" defer></script>
 </head>
-<body class="privacy-document">
-  <a class="privacy-skip-link" href="#main-content">رفتن به محتوای اصلی</a>
-  <header class="privacy-header">
-    <div class="privacy-header-inner">
-      <a class="privacy-brand" href="./index.html" aria-label="بازگشت به MR_SIAVASH_AI">
-        <span class="privacy-brand-mark" aria-hidden="true">M<span>/</span></span>
-        <span class="privacy-brand-copy"><strong>MR_SIAVASH_AI</strong><small>INTELLIGENCE ECOSYSTEM</small></span>
+<body class="privacy-document" data-page="privacy">
+  <a class="skip-link" href="#main">رفتن به محتوای اصلی</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="./index.html" aria-label="MR_SIAVASH_AI، خانه">
+        <span class="brand-mark" aria-hidden="true">م</span>
+        <span class="brand-copy">
+          <span class="brand-name">MR_SIAVASH_AI</span>
+          <span class="brand-caption">یادگیری، ساختن، تجربه‌کردن</span>
+        </span>
       </a>
-      <nav class="privacy-nav" aria-label="ناوبری اصلی">
-        <a href="./index.html">خانه</a>
-        <a href="./python.html">آموزش پایتون</a>
-        <a href="./academy.html">آکادمی</a>
-        <a href="./studio.html">استودیو</a>
-        <a href="./privacy.html" aria-current="page">حریم خصوصی</a>
+      <nav class="main-nav" id="mainNav" aria-label="ناوبری اصلی">
+        <a class="nav-link" href="./index.html">خانه</a>
+        <a class="nav-link" href="./learn.html">آموزش</a>
+        <a class="nav-link" href="./projects.html">پروژه‌ها</a>
+        <a class="nav-link" href="./knowledge.html">دانش‌نامه</a>
+        <a class="nav-link" href="./contact.html">ارتباط</a>
+        <a class="nav-link" href="./privacy.html" aria-current="page">حریم خصوصی</a>
       </nav>
-      <a class="privacy-home-link" href="./index.html">بازگشت به سایت <span aria-hidden="true">↗</span></a>
+      <div class="header-actions">
+        <button class="icon-button" id="themeToggle" type="button" aria-label="فعال‌کردن تم روشن">
+          <span data-theme-icon aria-hidden="true">☼</span>
+        </button>
+        <button class="menu-toggle" id="menuToggle" type="button" aria-label="بازکردن منو" aria-controls="mainNav" aria-expanded="false">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
     </div>
   </header>
-  <main class="privacy-main" id="main-content">
+
+  <main id="main" class="container privacy-main">
     <section class="privacy-hero" aria-labelledby="privacy-title">
-      <p class="privacy-kicker"><span></span> PRIVACY &amp; DATA BOUNDARIES</p>
+      <span class="privacy-kicker">PRIVACY &amp; DATA BOUNDARIES</span>
       <h1 id="privacy-title">حریم خصوصی،<br><span>شفاف و قابل‌فهم</span></h1>
       <p class="privacy-lead">این صفحه توضیح می‌دهد بخش‌های فعلی سایت چه داده‌هایی را در مرورگر نگه می‌دارند و راهنمای محلی، دستیار آنلاین و تیکت پشتیبانی چگونه داده را پردازش می‌کنند.</p>
-      <div class="privacy-hero-meta"><span>MR_SIAVASH_AI</span><span>اطلاعیه فنی محصول</span><span>فارسی · RTL</span></div>
+      <div class="privacy-hero-meta">
+        <span>MR_SIAVASH_AI</span><span>اطلاعیه فنی محصول</span><span>فارسی · RTL</span>
+      </div>
     </section>
+
     <section class="privacy-principles" aria-label="خلاصه مرزهای داده">
-      <article class="privacy-principle"><span class="privacy-index-number">01 / LOCAL</span><h2>پردازش محلی</h2><p>راهنمای محلی، پرسش را در مرورگر با فهرست عمومی سایت تطبیق می‌دهد و متن آن را ارسال نمی‌کند.</p></article>
-      <article class="privacy-principle"><span class="privacy-index-number">02 / CONSENT</span><h2>ارسال اختیاری</h2><p>دستیار آنلاین جداگانه فعال می‌شود و برای ارسال هر سؤال، تأیید صریح لازم است.</p></article>
-      <article class="privacy-principle"><span class="privacy-index-number">03 / RETENTION</span><h2>نگهداری محدود</h2><p>تیکت‌های پشتیبانی در Production تا ۹۰ روز پس از آخرین به‌روزرسانی نگهداری می‌شوند.</p></article>
+      <article class="privacy-principle">
+        <span class="privacy-index-number">01 / LOCAL</span>
+        <h2>پردازش محلی</h2>
+        <p>راهنمای محلی، پرسش را در مرورگر با فهرست عمومی سایت تطبیق می‌دهد و متن آن را ارسال نمی‌کند.</p>
+      </article>
+      <article class="privacy-principle">
+        <span class="privacy-index-number">02 / CONSENT</span>
+        <h2>ارسال اختیاری</h2>
+        <p>دستیار آنلاین جداگانه فعال می‌شود و برای ارسال هر سؤال، تأیید صریح لازم است.</p>
+      </article>
+      <article class="privacy-principle">
+        <span class="privacy-index-number">03 / RETENTION</span>
+        <h2>نگهداری محدود</h2>
+        <p>تیکت‌های پشتیبانی در Production تا ۹۰ روز پس از آخرین به‌روزرسانی نگهداری می‌شوند.</p>
+      </article>
     </section>
+
     <div class="privacy-layout">
       <aside class="privacy-index" aria-label="فهرست این صفحه">
         <span class="privacy-index-title">ON THIS PAGE</span>
         <nav class="privacy-index-nav">
-          <a href="#support-status">وضعیت پشتیبانی</a><a href="#ticket-data">داده‌های تیکت</a><a href="#retention">مدت نگهداری</a><a href="#sensitive-data">اطلاعات حساس</a><a href="#local-workspace">فضای کار محلی</a><a href="#scope">محدوده اطلاعیه</a>
+          <a href="#support-status">وضعیت پشتیبانی</a>
+          <a href="#ticket-data">داده‌های تیکت</a>
+          <a href="#retention">مدت نگهداری</a>
+          <a href="#sensitive-data">اطلاعات حساس</a>
+          <a href="#local-workspace">فضای کار محلی</a>
+          <a href="#scope">محدوده اطلاعیه</a>
         </nav>
         <p class="privacy-index-note">این صفحه صرفاً اطلاع‌رسانی می‌کند و هیچ فرم یا درخواست پشتیبانی را ارسال نمی‌کند.</p>
       </aside>
+
       <div class="privacy-sections">
         <section class="privacy-card privacy-card-wide" id="support-status">
           <div class="privacy-card-heading"><span>01</span><div><p>SUPPORT MODES</p><h2>وضعیت فعلی پشتیبانی</h2></div></div>
           <p>راهنمای محلی پشتیبانی، پرسش را در مرورگر با فهرست عمومی سایت تطبیق می‌دهد و متن آن را ارسال نمی‌کند. حالت «دستیار هوشمند آنلاین» جداگانه و به‌صورت اختیاری فعال می‌شود؛ برای هر سؤال، تأیید صریح لازم است. در این حالت فقط متن سؤال جاری به Gateway ارسال می‌شود و برای تولید پاسخِ محدود به دانش تأییدشدهٔ سایت، در صورت فعال‌بودن سرویس، به Workers AI می‌رسد. تاریخچهٔ گفتگو همراه درخواست ارسال نمی‌شود و متن سؤال در جدول تیکت‌ها ذخیره نمی‌شود. برای کنترل نرخ درخواست، شمارنده‌ای با شناسهٔ مشتق‌شده از IP و به‌صورت هش در پایگاه داده نگهداری می‌شود. ثبت تیکت نیز پس از آماده‌بودن D1 و سیاست نگهداری فعال است؛ پیام و ایمیل اختیاری تیکت در D1 ذخیره می‌شوند.</p>
         </section>
+
         <section class="privacy-card" id="ticket-data">
           <div class="privacy-card-heading"><span>02</span><div><p>TICKET DATA</p><h2>اطلاعاتی که هنگام فعال‌سازی تیکت دریافت می‌شود</h2></div></div>
-          <ul><li>موضوع، دسته‌بندی و متن درخواستی که خودت وارد می‌کنی.</li><li>ایمیل تماس، فقط اگر داوطلبانه واردش کنی.</li><li>کد پیگیری و یک کلید خصوصی یک‌بارنمایش؛ کلید خصوصی به‌صورت هش‌شده ذخیره می‌شود و برای مشاهدهٔ گفتگو در سربرگ Authorization فرستاده می‌شود، نه در نشانی صفحه.</li></ul>
+          <ul>
+            <li>موضوع، دسته‌بندی و متن درخواستی که خودت وارد می‌کنی.</li>
+            <li>ایمیل تماس، فقط اگر داوطلبانه واردش کنی.</li>
+            <li>کد پیگیری و یک کلید خصوصی یک‌بارنمایش؛ کلید خصوصی به‌صورت هش‌شده ذخیره می‌شود و برای مشاهدهٔ گفتگو در سربرگ Authorization فرستاده می‌شود، نه در نشانی صفحه.</li>
+          </ul>
         </section>
+
         <section class="privacy-card" id="retention">
           <div class="privacy-card-heading"><span>03</span><div><p>RETENTION POLICY</p><h2>مدت نگهداری</h2></div></div>
           <p>مدت نگهداری فعال تیکت‌های پشتیبانی در محیط Production برابر ۹۰ روز از آخرین به‌روزرسانی است. تیکت‌هایی که در این مدت به‌روزرسانی نشوند، همراه پیام‌های وابسته در پاک‌سازی زمان‌بندی‌شده حذف می‌شوند. این سیاست به معنی ذخیره‌سازی متن پرسش‌های دستیار آنلاین به‌عنوان تیکت نیست؛ دستیار آنلاین فقط درخواست را برای پردازش به Gateway و Workers AI می‌فرستد.</p>
         </section>
+
         <section class="privacy-card" id="sensitive-data">
           <div class="privacy-card-heading"><span>04</span><div><p>SENSITIVE INFORMATION</p><h2>اطلاعاتی که نباید ارسال کنی</h2></div></div>
           <p>رمز عبور، کلید API، کلید خصوصی، کد ورود یک‌بارمصرف، اطلاعات کارت یا حساب بانکی و هر دادهٔ حساس دیگری را در پیام پشتیبانی ننویس.</p>
-          <div class="privacy-warning"><span aria-hidden="true">!</span><p>برای دریافت راهنمایی فنی، نمونهٔ خطا را بدون رمز، توکن یا اطلاعات شناسایی‌کننده ارسال کن.</p></div>
+          <div class="privacy-warning">
+            <span aria-hidden="true">!</span>
+            <p>برای دریافت راهنمایی فنی، نمونهٔ خطا را بدون رمز، توکن یا اطلاعات شناسایی‌کننده ارسال کن.</p>
+          </div>
         </section>
+
         <section class="privacy-card" id="local-workspace">
           <div class="privacy-card-heading"><span>05</span><div><p>LOCAL WORKSPACE</p><h2>فضای کار محلی</h2></div></div>
           <p>وظایف، علاقه‌مندی ماژول‌ها و پیشرفت آموزشی در حال حاضر در فضای ذخیره‌سازی مرورگر همان دستگاه نگهداری می‌شوند و با حساب ابری همگام‌سازی نمی‌شوند.</p>
         </section>
+
         <section class="privacy-card privacy-card-wide" id="scope">
           <div class="privacy-card-heading"><span>06</span><div><p>SCOPE &amp; LIMITATIONS</p><h2>محدوده این اطلاعیه</h2></div></div>
           <p>این اطلاعیه توضیح فنی وضعیت فعلی محصول است و ادعای تأیید یا انطباق حقوقی در حوزه‌های مختلف محسوب نمی‌شود.</p>
@@ -89,8 +136,19 @@
       </div>
     </div>
   </main>
-  <footer class="privacy-footer">
-    <div class="privacy-footer-inner"><div><strong>MR_SIAVASH_AI</strong><span>مرز داده‌ها باید روشن، محدود و قابل‌فهم باشد.</span></div><a href="./index.html">بازگشت به صفحه اصلی <span aria-hidden="true">↗</span></a></div>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <nav class="footer-nav" aria-label="پیوندهای پایین صفحه">
+        <a href="./index.html">خانه</a>
+        <a href="./learn.html">آموزش</a>
+        <a href="./projects.html">پروژه‌ها</a>
+        <a href="./knowledge.html">دانش‌نامه</a>
+        <a href="./contact.html">ارتباط</a>
+        <a href="./privacy.html" aria-current="page">حریم خصوصی</a>
+      </nav>
+      <p class="footer-note">© <span id="currentYear">۱۴۰۵</span> MR_SIAVASH_AI · <span class="privacy-footer-note">مرز داده‌ها باید روشن، محدود و قابل‌فهم باشد.</span></p>
+    </div>
   </footer>
 </body>
 </html>

@@ -7,7 +7,7 @@ const { chromium } = require("playwright");
 const AXE_PATH = require.resolve("axe-core");
 
 const ROOT = path.resolve(__dirname, "..");
-const ROUTES = ["index.html", "studio.html", "academy.html", "python.html", "privacy.html"];
+const ROUTES = ["index.html", "learn.html", "projects.html", "knowledge.html", "contact.html", "404.html", "studio.html", "academy.html", "python.html", "privacy.html"];
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",
@@ -62,6 +62,7 @@ async function auditPage(page, route) {
   const failedRequests = [];
   const failedResponses = [];
   const stylesheetResponses = [];
+  const localOrigin = "http://127.0.0.1:4174/";
   const onPageError = error => pageErrors.push(error.message);
   const onConsole = message => {
     if (message.type() === "error") consoleErrors.push(message.text());
@@ -71,33 +72,29 @@ async function auditPage(page, route) {
     failure: request.failure()?.errorText || "unknown"
   });
   const onResponse = response => {
-    if (response.status() >= 400) {
-      failedResponses.push({ url: response.url(), status: response.status() });
-    }
-    if (response.url().endsWith(".css")) {
-      stylesheetResponses.push({ url: response.url(), status: response.status() });
-    }
+    if (response.status() >= 400) failedResponses.push({ url: response.url(), status: response.status() });
+    if (response.url().endsWith(".css")) stylesheetResponses.push({ url: response.url(), status: response.status() });
   };
   page.on("pageerror", onPageError);
   page.on("console", onConsole);
   page.on("requestfailed", onRequestFailed);
   page.on("response", onResponse);
 
-  // Keep the browser audit deterministic and offline from the external Gateway.
-  // A non-ready response keeps ticket controls disabled, matching the fail-closed contract.
-  await page.route("https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev/v1/health/ready", route =>
-    route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      body: JSON.stringify({
-        status: "degraded",
-        dependencies: { database: "unavailable" },
-        features: { publicSupport: false }
-      })
-    })
-  );
-
-  const response = await page.goto("http://127.0.0.1:4174/" + route, { waitUntil: "load", timeout: 20000 });
+  let response;
+  if (route === "privacy.html") {
+    const home = await page.goto(localOrigin + "index.html", { waitUntil: "load", timeout: 20000 });
+    if (!home || !home.ok()) throw new Error("index.html: unsuccessful response before privacy navigation");
+    const privacyLink = page.locator('a[href="./privacy.html"]').first();
+    if (await privacyLink.count() === 0) throw new Error("homepage has no privacy navigation link");
+    const navigationResponse = page.waitForResponse(item =>
+      item.url().endsWith("/privacy.html") && item.request().isNavigationRequest()
+    );
+    await privacyLink.click();
+    response = await navigationResponse;
+    await page.waitForLoadState("load");
+  } else {
+    response = await page.goto(localOrigin + route, { waitUntil: "load", timeout: 20000 });
+  }
   if (!response || !response.ok()) throw new Error(route + ": page returned an unsuccessful response");
   // Scroll through reveal-on-view sections so axe measures the settled, fully revealed text rather than an in-progress opacity transition.
   await page.evaluate(async () => {
@@ -172,6 +169,8 @@ async function auditPage(page, route) {
     const visibleH1 = [...document.querySelectorAll("h1")].filter(visible);
     return {
       title: document.title.trim(),
+      backgroundToken: getComputedStyle(document.documentElement).getPropertyValue("--bg").trim(),
+      accentToken: getComputedStyle(document.documentElement).getPropertyValue("--accent").trim(),
       lang: document.documentElement.lang,
       dir: document.documentElement.dir,
       mainCount: mainLandmarks.length,
@@ -249,23 +248,20 @@ async function auditPage(page, route) {
     findings.push("desktop document overflow: scrollWidth " + desktopWidth.document +
       " > innerWidth " + desktopWidth.viewport);
   }
-
-  if (route === "index.html") {
-    const foundationResponse = stylesheetResponses.find(item => item.url.endsWith("/foundation.css"));
-    if (!foundationResponse || foundationResponse.status !== 200) {
-      findings.push("foundation.css did not load successfully: " + JSON.stringify(foundationResponse || null));
+  if (route === "index.html" || route === "privacy.html") {
+    const sharedCss = stylesheetResponses.find(item => item.url.endsWith("/assets/css/style.css"));
+    if (!sharedCss || sharedCss.status !== 200) {
+      findings.push("shared stylesheet failed: " + JSON.stringify(sharedCss || null));
     }
-  }
-  if (route === "privacy.html") {
-    const brandResponse = stylesheetResponses.find(item => item.url.endsWith("/brand-refresh.css"));
-    if (!brandResponse || brandResponse.status !== 200) {
-      findings.push("brand-refresh.css did not load successfully: " + JSON.stringify(brandResponse || null));
+    if (structural.backgroundToken !== "#0b1018" || structural.accentToken !== "#83b4ff") {
+      findings.push("unexpected shared theme tokens: " + JSON.stringify({
+        background: structural.backgroundToken, accent: structural.accentToken
+      }));
     }
   }
   for (const message of consoleErrors) findings.push("console error: " + message);
   for (const request of failedRequests) findings.push("failed request: " + JSON.stringify(request));
-  for (const response of failedResponses) findings.push("HTTP error response: " + JSON.stringify(response));
-
+  for (const failed of failedResponses) findings.push("HTTP error response: " + JSON.stringify(failed));
   const severeAxeViolations = axeAudit.filter(violation =>
     violation.impact === "critical" || violation.impact === "serious"
   );
@@ -282,14 +278,11 @@ async function auditPage(page, route) {
   page.off("response", onResponse);
 
   return {
-    route,
-    findings,
-    title: structural.title,
-    axeWarnings,
+    route, findings, title: structural.title, axeWarnings,
     mobile: { viewport: structural.viewportWidth, document: structural.documentWidth },
     desktop: { viewport: desktopWidth.viewport, document: desktopWidth.document },
-    stylesheetResponses,
-    failedResponses
+    backgroundToken: structural.backgroundToken, accentToken: structural.accentToken,
+    stylesheetResponses
   };
 }
 
@@ -324,9 +317,10 @@ async function main() {
     for (const result of results) {
       process.stdout.write(" - " + result.route + ": " + result.title +
         (result.axeWarnings.length ? " (" + result.axeWarnings.length + " moderate/minor axe warning(s))" : "") + "\\n");
-      process.stdout.write("   Mobile 390px: scrollWidth=" + result.mobile.document +
-        ", innerWidth=" + result.mobile.viewport + "; Desktop 1440px: scrollWidth=" +
-        result.desktop.document + ", innerWidth=" + result.desktop.viewport + "\\n");
+      process.stdout.write("   390px: scrollWidth=" + result.mobile.document + ", innerWidth=" + result.mobile.viewport +
+        "; 1440px: scrollWidth=" + result.desktop.document + ", innerWidth=" + result.desktop.viewport + "\\n");
+      process.stdout.write("   Theme: " + result.backgroundToken + " / " + result.accentToken +
+        "; stylesheets: " + JSON.stringify(result.stylesheetResponses) + "\\n");
       if (result.axeWarnings.length) {
         process.stdout.write("   Axe non-blocking warnings: " + JSON.stringify(result.axeWarnings.map(item => ({
           id: item.id, impact: item.impact, help: item.help, nodes: item.nodes

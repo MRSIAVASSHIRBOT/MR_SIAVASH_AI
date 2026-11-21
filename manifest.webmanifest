@@ -1,10 +1,10 @@
 {
-  "name": "MR_SIAVASH_AI — Intelligence Ecosystem",
+  "name": "MR_SIAVASH_AI | آموزش پروژه‌محور",
   "short_name": "MR_SIAVASH_AI",
-  "description": "اکوسیستم ماژولار هوش مصنوعی، توسعه نرم‌افزار، شبکه، امنیت دفاعی و یادگیری",
+  "description": "مسیرهای فارسی برای یادگیری برنامه‌نویسی، هوش مصنوعی و امنیت دفاعی با تمرین و پروژه.",
   "lang": "fa",
   "dir": "rtl",
-  "start_url": "./#home",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#0b1018",
