@@ -264,7 +264,7 @@ test("D1 migrations persist verified identity mappings and enforce owner foreign
   assert.match(decision, /does not authenticate requests/);
 });
 
-test("security and roadmap docs define production gates", async () => {
+test("security and roadmap docs define current publication and production gates", async () => {
   const threat = await readFile(new URL("../docs/THREAT_MODEL.md", import.meta.url), "utf8");
   const roadmap = await readFile(new URL("../docs/ROADMAP.md", import.meta.url), "utf8");
   assert.match(threat, /STRIDE review/);
@@ -274,24 +274,14 @@ test("security and roadmap docs define production gates", async () => {
   assert.doesNotMatch(roadmap, /^#\s*$/m);
   assert.doesNotMatch(roadmap, /source\.Product roadmap/);
   assert.match(roadmap, /parallel workstreams/);
-  assert.match(roadmap, /Latest public-site release verified 2026-11-11/);
-  assert.match(roadmap, /main commit `c19db5fec591e6bcd5be2d0a46828395854a4f3a`/);
-  assert.ok(roadmap.includes("Pages workflow run [43054525410]"));
-  assert.match(roadmap, /264\/264 Node tests/);
-  assert.match(roadmap, /five-route axe-core accessibility audit/);
-  assert.ok(roadmap.includes("Production Gateway smoke run [43054525494]"));
-  assert.ok(roadmap.includes("Preview Gateway smoke run [43054525426]"));
-  assert.match(roadmap, /Last full Cloudflare control-plane readback: 2026-11-10/);
-
-  assert.match(roadmap, /main commit `971a5e702876a0bc78b19c55b8b0daf358471c5b`/);
-  assert.match(roadmap, /Production release workflow run `42801780384` completed successfully/);
-  assert.match(roadmap, /Worker version `146709f7-8158-40c8-aa80-b8b0772787f1` receiving 100% of traffic/);
-  assert.match(roadmap, /58\/58 Node tests/);
-  assert.match(roadmap, /real Workers AI request that returned `mode: ai_grounded` with non-empty sources/);
-  assert.match(roadmap, /daily `0 3 \* \* \*` cleanup schedule/);
-  assert.match(roadmap, /does not by itself prove that a cleanup execution has occurred/);
-  assert.match(roadmap, /end-to-end administrator ticket workflow acceptance and Preview sign-in remain separate checks/);
-  assert.doesNotMatch(roadmap, /Preview traffic remains rolled back to v3/);
+  assert.ok(roadmap.includes("Current GitHub/Pages checkpoint — 2026-11-21"));
+  assert.ok(roadmap.includes("bd065af14f756d5bac1c2ef84adf6e931d566d72"));
+  assert.ok(roadmap.includes("Main Quality / Pages run [44933407104]"));
+  assert.ok(roadmap.includes("369/369 repository tests"));
+  assert.ok(roadmap.includes("five isolated D1 migrations (10 tables, 18 indexes)"));
+  assert.ok(roadmap.includes("Preview Worker Runtime Smoke checks"));
+  assert.ok(roadmap.includes("no fresh Cloudflare control-plane version/source readback"));
+  assert.ok(roadmap.includes("Production Worker releases and D1 changes remain independently gated"));
 });
 
 test("workspace task controls are wired to accessible UI elements", () => {

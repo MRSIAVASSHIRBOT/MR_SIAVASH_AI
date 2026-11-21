@@ -1,3 +1,21 @@
+# Current source and Pages publication checkpoint — 2026-11-21 18:04 UTC
+
+This checkpoint records the GitHub source and Pages deployment after PR #244 merged. It is not a fresh Cloudflare control-plane inventory.
+
+- Current GitHub `main`: `bd065af14f756d5bac1c2ef84adf6e931d566d72`.
+- PR [#244](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/pull/244) merged at 2026-11-21 18:03:29 UTC as commit `bd065af14f756d5bac1c2ef84adf6e931d566d72`. It brings the Dark Emerald palette, privacy page and dedicated stylesheet, six-destination public navigation, Service Worker v69 offline navigation for `privacy.html`, and their regression/browser checks onto `main`.
+- Main-branch Quality / GitHub Pages run [44933407104](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44933407104) succeeded on this exact SHA: **369/369 repository tests**, OpenAPI validation, isolated D1 validation (**5 migrations, 10 tables, 18 indexes**), Academy Chromium E2E, and accessibility/responsive audit all passed. The Pages deployment, upload, and `Verify published static assets match this commit` step also passed.
+- The exact-main browser audit verified ten routes at 390×844 and 1440×900, with no horizontal overflow; Service Worker v69 became active and the privacy HTML/CSS plus shared stylesheet were present in Cache Storage. No console errors, failed same-origin requests, HTTP error responses, uncaught page errors, or axe critical/serious violations were reported.
+- Gateway CI [44933407110](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44933407110), Workflow Security Audit [44933407118](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44933407118), OpenSSF Scorecard [44933407156](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44933407156), Cloudflare Gateway Runtime Smoke [44933407121](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44933407121), and Preview Runtime Smoke [44933407159](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44933407159) succeeded on the same SHA. Runtime smoke success does not establish the currently active Worker source annotation or deployment version.
+- The Pages publication is verified for `bd065af`. The earlier PR #244 head `a65a883` is now merged; its PR-only deployment skip was superseded by the successful main-branch deployment above.
+- No fresh Cloudflare control-plane inventory was performed here. Do not infer that current-main Gateway code is deployed to Production from GitHub CI or runtime smoke alone. No Worker release, Production D1 migration/data change, secret change, Access-policy change, DNS change, or traffic change is recorded in this checkpoint.
+
+## Release boundary
+
+The Dark Emerald and privacy changes are merged and published on GitHub Pages for `bd065af`. Cloudflare Worker release and Production data operations remain separate, independently gated actions.
+
+---
+
 # GitHub source and Pages publication snapshot — 2026-11-21
 
 This addendum records GitHub evidence for the current website source and static-site publication. It is not a fresh Cloudflare deployment inventory.
