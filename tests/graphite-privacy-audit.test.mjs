@@ -107,3 +107,11 @@ test("responsive browser audit measures both required viewports and captures run
   assert.match(audit, /Mobile 390x844/);
   assert.match(audit, /Desktop 1440x900/);
 });
+
+test("Pages publication verification checks privacy HTML and its dedicated stylesheet", async () => {
+  const verifier = await read("scripts/verify-pages-publication.mjs");
+  assert.match(verifier, /"privacy\.html"/);
+  assert.match(verifier, /"assets\/css\/privacy\.css"/);
+  assert.match(verifier, /"assets\/css\/style\.css"/);
+});
+
