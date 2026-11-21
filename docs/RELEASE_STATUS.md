@@ -1,3 +1,23 @@
+# GitHub source and Pages publication snapshot — 2026-11-21
+
+This addendum records GitHub evidence for the current website source and static-site publication. It is not a fresh Cloudflare deployment inventory.
+
+- Current GitHub `main`: `f5f98497de5811cb1601a1fc4058d0d8739af9ab`.
+- Compared with the last recorded Production Worker source annotation `1616545a2e204cb378e2c824299412ca20ef598b`, GitHub reports **94 commits ahead and 0 behind**. This is a source comparison only.
+- The current-main checks succeeded:
+  - Gateway CI [44898889484](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44898889484).
+  - Production Gateway runtime smoke [44898889412](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44898889412).
+  - Preview Gateway runtime smoke [44898889504](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44898889504).
+  - Quality checks / Pages [44898889442](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44898889442): syntax, OpenAPI, repository tests, isolated SQLite D1 migration tests, Academy Chromium acceptance, and accessibility/responsive smoke all passed.
+  - The same Quality run's **Deploy static site** job succeeded, including upload, publication, and verification that published static assets match this commit.
+  - Workflow Security Audit [44898889435](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44898889435) and OpenSSF Scorecard [44898889475](https://github.com/MRSIAVASSHIRBOT/MR_SIAVASH_AI/actions/runs/44898889475) succeeded.
+- The latest source includes the editorial homepage refresh, shared light color-scheme metadata, and service-worker cache version 67. PR #235 was merged as `f5f98497de5811cb1601a1fc4058d0d8739af9ab`.
+- **GitHub Pages publication is verified for this commit. Cloudflare Worker deployment is not.** The Production and Preview runtime smoke jobs exercised their configured endpoints; they do not prove that the current 94-commit source delta was deployed to either Worker.
+- Cloudflare was not re-read during this run. The last recorded inventory in the 2026-11-20 section below lists Production Worker version 14 and Preview version 8; those are historical observations until a fresh Cloudflare inventory confirms them.
+- No Worker, D1 database, migration ledger, route, DNS record, secret, Access policy, or traffic split was changed in this run. Do not infer a Worker release or Production approval from green GitHub checks or successful Pages publication.
+
+---
+
 # Live Preview smoke-test reconciliation — 2026-11-20 15:30 UTC
 
 This addendum records a failed runtime smoke and the source-level correction. It does not assert a new Preview deployment.
