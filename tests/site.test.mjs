@@ -814,6 +814,7 @@ test("cross-tab synchronization remains active when workspace recovery is not bl
   let favoriteRenders = 0;
   const context = {
     workspaceRecoveryBlocked: false,
+    MAX_TASKS: 100,
     STORAGE_KEY: "workspace-test-key",
     FAVORITES_KEY: "favorites-test-key",
     localStorage: {},
