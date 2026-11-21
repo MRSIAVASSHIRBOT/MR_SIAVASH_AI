@@ -182,3 +182,9 @@ footer,.site-footer{border-color:var(--line)!important;color:#687281!important}
 }
 .hero-proof-row i,.academy-stats b{color:#315f9a!important}
 .python-mark small{color:#f4f1e8!important}
+
+/* Final contrast normalization for inherited per-component text colors. */
+.metric span,.experience-index,.journey-card b,.journey-card p,
+.course-level,.course-card-foot span,#visibleCount,.footer-brand,footer>span{
+ color:#4f5967!important
+}
