@@ -11,4 +11,5 @@ test("service worker caches new public pages and assets",()=>{assert.match(sw,/C
 test("public pages do not expose internal admin controls or placeholders",()=>{for(const html of [index,learn,projects,knowledge,contact,notFound])assert.doesNotMatch(html,/admin-support|پنل مدیریت|نسخه توسعه|در حال بررسی اتصال|فهرست ماژول‌ها در دسترس نیست/)});
 
 test("published-content verification covers every new public route and shared asset",()=>{for(const path of ["index.html","learn.html","projects.html","knowledge.html","contact.html","404.html","favicon.svg","manifest.webmanifest","assets/css/style.css","assets/js/main.js"])assert.ok(publication.includes(`"${path}"`),path)});
+test("PWA manifest opens the redesigned homepage",()=>{const pwa=JSON.parse(manifest);assert.equal(pwa.start_url,"./");assert.equal(pwa.lang,"fa");assert.equal(pwa.dir,"rtl")});
 test("learning paths link to the existing practical courses and icons are inline SVG",()=>{assert.match(learn,/href="\.\/python\.html"/);assert.match(learn,/href="\.\/academy\.html"/);assert.match(index,/<svg width="24" height="24"/);assert.match(contact,/<svg width="24" height="24"/)});
