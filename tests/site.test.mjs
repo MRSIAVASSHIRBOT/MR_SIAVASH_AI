@@ -1958,6 +1958,9 @@ test("browser regression audit records the requested viewport metrics and runtim
   const audit = await readFile(new URL("../scripts/site-accessibility-e2e.cjs", import.meta.url), "utf8");
   assert.match(audit, /viewport: \{ width: 390, height: 844 \}/);
   assert.match(audit, /setViewportSize\(\{ width: 1440, height: 900 \}\)/);
+  assert.ok(audit.indexOf("await page.setViewportSize({ width: 390, height: 844 });") <
+    audit.indexOf("const response = await page.goto"), "each route must reset to the mobile viewport");
+  assert.ok(audit.includes("HTTP error response: "));
   assert.match(audit, /documentWidth > structural\.viewportWidth/);
   assert.match(audit, /desktopWidth\.document > desktopWidth\.viewport/);
   assert.ok(audit.includes("Mobile 390px: scrollWidth="));
