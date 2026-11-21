@@ -230,7 +230,7 @@ test("manual Pages deployment verifies every public asset against the checked-ou
   assert.match(verifyStep, /PAGES_URL:\s*\$\{\{\s*steps\.deployment\.outputs\.page_url\s*\}\}/);
   assert.match(verifyStep, /PAGES_SOURCE_SHA:\s*\$\{\{\s*github\.sha\s*\}\}/);
   assert.match(verifyStep, /node scripts\/verify-pages-publication\.mjs/);
-  assert.deepEqual(PAGES_PUBLIC_ASSETS, ["support.js", "search-index.json", "site-search.js", "sw.js"]);
+  assert.deepEqual(PAGES_PUBLIC_ASSETS, ["support.js", "search-index.json", "site-search.js", "sw.js", "index.html", "learn.html", "projects.html", "knowledge.html", "contact.html", "404.html", "assets/css/style.css", "assets/js/main.js"]);
 });
 
 test("Pages URL normalization requires HTTPS and preserves a project subpath", () => {
@@ -254,13 +254,13 @@ test("Pages publication verification checks no-store responses against exact sou
     attempts: 1,
     fetchImpl: async (input, options) => {
       const url = new URL(input);
-      const asset = url.pathname.split("/").at(-1);
+      const asset = url.pathname.split("/MR_SIAVASH_AI/").at(-1);
       requests.push({ asset, cache: options.cache, verify: url.searchParams.get("verify") });
       return new Response(await readFile(join(sourceDir, asset)), { status: 200 });
     },
   });
 
-  assert.equal(results.length, 4);
+  assert.equal(results.length, 12);
   assert.ok(results.every(result => result.status === 200 && /^[a-f0-9]{64}$/.test(result.sha256)));
   assert.deepEqual(requests.map(request => request.asset).sort(), [...PAGES_PUBLIC_ASSETS].sort());
   assert.ok(requests.every(request => request.cache === "no-store" && request.verify === expectedSha));
