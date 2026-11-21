@@ -217,7 +217,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -310,7 +310,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -471,7 +471,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
 });
 
 
@@ -1330,7 +1330,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
 });
 
 test("homepage foundation experience is present and versioned", () => {
@@ -1391,7 +1391,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyCss, /#a8e2b7/);
   assert.doesNotMatch(academyCss, /#9c8cff|#68dff5|#b7aaff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
 });
 
 
@@ -1452,7 +1452,7 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(supportTickets, /consent: \$\("#supportConsent"\)\.checked/);
   assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
   assert.match(sw, /"\.\/support-tickets\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
 });
 
 test("local support guide retries loading its index after an initial offline failure", async () => {
@@ -1921,13 +1921,13 @@ test("crawler directives and sitemap only advertise public site routes", async (
 
 test("public pages keep install metadata and browser chrome colors consistent", async () => {
   const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
-  const pages = ["legacy-app.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html"];
+  const pages = ["index.html", "404.html", "privacy.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html"];
   for (const page of pages) {
     const source = await readFile(new URL("../" + page, import.meta.url), "utf8");
     assert.match(source, /<link\s+rel="manifest"\s+href="\.\/manifest\.webmanifest"/i, page + " must expose the install manifest");
     const theme = source.match(/<meta\s+name="theme-color"\s+content="([^"]+)"/i);
     assert.ok(theme, page + " must declare a browser theme color");
-    if (page === "legacy-app.html") assert.equal(theme[1], manifest.theme_color, "homepage and installed app use the foundation canvas");
+    if (page === "index.html" || page === "404.html" || page === "privacy.html") assert.equal(theme[1], manifest.theme_color, page + " must use the active Dark Emerald browser chrome");
     else assert.equal(theme[1], "#f2f0e9", page + " retains the light editorial subpage chrome");
   }
   assert.equal(manifest.background_color, manifest.theme_color, "installed app launch canvas must match its primary homepage");
@@ -1976,7 +1976,7 @@ test("all local assets referenced by public HTML pages exist and core routes are
     if (["legacy-app.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "privacy.html"].includes(asset)) continue;
     assert.ok(shell.has(asset), asset + " is referenced by a public page but missing from the offline shell");
   }
-  assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
+  assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
 });
 
 
@@ -1993,7 +1993,7 @@ test("curated knowledge library is searchable and included in the offline shell"
     assert.equal(item.type, "page");
     assert.ok(item.href.startsWith("./legacy-app.html#"));
   }
-  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v68"'));
+  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v69"'));
 });
 
 test("Hub integration is documented as separate until the security gates pass", async () => {

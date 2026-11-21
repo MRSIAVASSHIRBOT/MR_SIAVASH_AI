@@ -6,6 +6,7 @@ const atelier = await readFile(new URL("../atelier.css", import.meta.url), "utf8
 const studio = await readFile(new URL("../studio.css", import.meta.url), "utf8");
 const experienceNext = await readFile(new URL("../experience-next.css", import.meta.url), "utf8");
 const index = await readFile(new URL("../legacy-app.html", import.meta.url), "utf8");
+const home = await readFile(new URL("../index.html", import.meta.url), "utf8");
 const python = await readFile(new URL("../python.html", import.meta.url), "utf8");
 const academy = await readFile(new URL("../academy.html", import.meta.url), "utf8");
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
@@ -19,17 +20,19 @@ test("foundation homepage replaces the previous layered hero with the focused ec
   assert.doesNotMatch(index, /class="orbit orbit-outer"/);
 });
 
-test("homepage and subpages load their intended design layers after component styles", () => {
+test("active homepage uses the Dark Emerald design system while legacy and course routes retain their own layers", () => {
+  assert.match(home, /href="\.\/assets\/css\/style\.css"/);
+  assert.doesNotMatch(home, /href="\.\/foundation\.css"|href="\.\/brand-refresh\.css"/);
+  assert.match(home, /name="theme-color" content="#07110c"/);
   assert.match(index, /href="\.\/foundation\.css"/);
   assert.ok(index.indexOf("foundation.css") > index.indexOf("studio.css"));
-  assert.doesNotMatch(index, /href="\.\/atelier\.css"/);
+  assert.match(index, /name="theme-color" content="#07110c"/);
   for (const html of [python, academy]) {
     assert.match(html, /href="\.\/atelier\.css"/);
     assert.ok(html.indexOf("studio.css") < html.indexOf("experience-next.css"));
     assert.ok(html.indexOf("atelier.css") > html.indexOf("experience-next.css"));
     assert.doesNotMatch(html, /href="\.\/experience-signature\.css"/);
   }
-  assert.match(index, /name="theme-color" content="#07110c"/);
 });
 
 test("editorial material contrast, original typography and local-only assets are present", () => {
@@ -51,7 +54,7 @@ test("atelier respects mobile, touch, keyboard, reduced motion and forced colors
 });
 
 test("offline shell retains subpage atelier styles with cache version 67", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
   assert.match(sw, /"\.\/atelier\.css"/);
   assert.doesNotMatch(sw, /"\.\/experience-signature\.css"/);
 });

@@ -1,9 +1,9 @@
 "use strict";
 
 const CACHE_PREFIX = "mr-siavash-ai-shell-";
-const CACHE_NAME = CACHE_PREFIX + "v68";
+const CACHE_NAME = CACHE_PREFIX + "v69";
 const MAX_MODULE_REGISTRY_BYTES = 64 * 1024;
-const SHELL_FILES = ["./legacy-app.html","./learn.html","./projects.html","./knowledge.html","./contact.html","./404.html","./assets/css/style.css","./assets/js/main.js","./", "./index.html", "./styles.css", "./experience.css", "./studio.css", "./foundation.css", "./experience-next.css", "./atelier.css", "./field-notes.css", "./brand-refresh.css", "./editorial-rebuild.css", "./ui-sounds.js", "./app-router.js",
+const SHELL_FILES = ["./legacy-app.html","./learn.html","./projects.html","./knowledge.html","./contact.html","./404.html","./assets/css/style.css","./assets/css/privacy.css","./assets/js/main.js","./", "./index.html", "./styles.css", "./experience.css", "./studio.css", "./foundation.css", "./experience-next.css", "./atelier.css", "./field-notes.css", "./brand-refresh.css", "./editorial-rebuild.css", "./ui-sounds.js", "./app-router.js",
   "./app-storage.js", "./app.js", "./site-search.js", "./search-index.json", "./python.html", "./python-course.css", "./python-course.js", "./academy.html", "./academy.css", "./academy.js", "./academy-progress.mjs", "./academy-backup.mjs", "./academy-guides.mjs", "./academy-assessments.mjs", "./academy-report.mjs", "./academy-assessment-export.mjs", "./academy-portfolio.mjs", "./academy-achievements.mjs", "./academy-tutor.js", "./academy-practice.mjs", "./academy-practice.js", "./academy-runner.html", "./academy-content-studio.html", "./academy-content-studio.js", "./academy-content-studio-core.mjs", "./bounded-json.js", "./support.js", "./support-tickets.mjs", "./support.css", "./privacy.html", "./favicon.svg", "./manifest.webmanifest", "./modules.json", "./studio.html", "./studio-portfolio.css", "./studio-portfolio.js", "./subtitle-studio.html", "./subtitle-studio.css", "./subtitle-studio.js", "./subtitle-studio-core.mjs"];
 
 self.addEventListener("install", event => {
@@ -100,6 +100,7 @@ self.addEventListener("fetch", event => {
       { requestUrl: new URL("./projects.html", scopeUrl).href, cacheUrl: new URL("./projects.html", scopeUrl).href },
       { requestUrl: new URL("./knowledge.html", scopeUrl).href, cacheUrl: new URL("./knowledge.html", scopeUrl).href },
       { requestUrl: new URL("./contact.html", scopeUrl).href, cacheUrl: new URL("./contact.html", scopeUrl).href },
+      { requestUrl: new URL("./privacy.html", scopeUrl).href, cacheUrl: new URL("./privacy.html", scopeUrl).href },
       { requestUrl: new URL("./404.html", scopeUrl).href, cacheUrl: new URL("./404.html", scopeUrl).href },
       { requestUrl: new URL("./", scopeUrl).href, cacheUrl: indexUrl },
       { requestUrl: indexUrl, cacheUrl: indexUrl },

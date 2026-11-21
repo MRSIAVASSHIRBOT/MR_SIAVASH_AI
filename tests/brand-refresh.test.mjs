@@ -6,7 +6,7 @@ const css = await readFile(new URL("../brand-refresh.css", import.meta.url), "ut
 const editorial = await readFile(new URL("../editorial-rebuild.css", import.meta.url), "utf8");
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
-test("unified editorial palette replaces emerald dominance with graphite and blue", () => {
+test("legacy editorial palette remains graphite and blue", () => {
   for (const token of ["--bg:#0b1018", "--surface:#151f2c", "--text:#edf2f8", "--experience-accent:#83b4ff", "--amber:#d8a879"]) {
     assert.ok(css.includes(token), `missing palette token: ${token}`);
   }
@@ -20,6 +20,11 @@ test("shared stylesheet is linked after page-specific CSS on all primary surface
     if (file === "legacy-app.html") {
       assert.match(html, /<link rel="stylesheet" href="\.\/foundation\.css">/);
       assert.ok(stylesheets.at(-1)?.includes("foundation.css"), "legacy-app.html: foundation layer must be last");
+      assert.doesNotMatch(html, /brand-refresh\.css|editorial-rebuild\.css/);
+    } else if (file === "privacy.html") {
+      assert.match(html, /<link rel="stylesheet" href="\.\/assets\/css\/style\.css">/);
+      assert.match(html, /<link rel="stylesheet" href="\.\/assets\/css\/privacy\.css">/);
+      assert.ok(stylesheets.at(-1)?.includes("privacy.css"), "privacy.html: page layer must follow the shared system");
       assert.doesNotMatch(html, /brand-refresh\.css|editorial-rebuild\.css/);
     } else {
       assert.match(html, /<link rel="stylesheet" href="\.\/brand-refresh\.css">/);
@@ -35,22 +40,31 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
   assert.match(css, /@media\(forced-colors:active\)/);
 });
 
-test("offline shell precaches the shared stylesheet and advances to cache v67", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
+test("offline shell precaches the shared stylesheet and advances to cache v69", () => {
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
   assert.match(sw, /"\.\/editorial-rebuild\.css"/);
 });
 
 
-test("homepage uses the dark foundation canvas while editorial subpages retain their light chrome", async () => {
+test("global favicon and 404 route use the active Dark Emerald identity", async () => {
+  const favicon = await readFile(new URL("../favicon.svg", import.meta.url), "utf8");
+  const notFound = await readFile(new URL("../404.html", import.meta.url), "utf8");
+  assert.match(favicon, /fill="#34d399"/);
+  assert.match(favicon, /fill="#07110c"/);
+  assert.match(notFound, /name="theme-color" content="#07110c"/);
+  assert.match(notFound, /href="\.\/privacy\.html">حریم خصوصی<\/a>/);
+});
+
+test("active homepage and privacy route use Dark Emerald chrome while legacy editorial routes retain their own theme", async () => {
   const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
   assert.equal(manifest.theme_color, "#07110c");
   assert.equal(manifest.background_color, "#07110c");
-  for (const file of ["legacy-app.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
+  for (const file of ["index.html", "privacy.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
-    if (file === "legacy-app.html") {
+    if (file === "index.html" || file === "privacy.html") {
       assert.match(html, /<meta\s+name="theme-color"\s+content="#07110c"/i);
-      assert.match(html, /<meta\s+name="color-scheme"\s+content="dark"/i);
+      assert.match(html, /<meta\s+name="color-scheme"\s+content="dark light"/i);
     } else {
       assert.match(html, /<meta\s+name="theme-color"\s+content="#f2f0e9"/i);
       assert.match(html, /<meta\s+name="color-scheme"\s+content="light"/i);

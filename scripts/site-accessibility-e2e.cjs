@@ -56,9 +56,34 @@ function createServer() {
 }
 
 async function auditPage(page, route) {
+  // Every route starts from the same mobile viewport; previous pages leave the
+  // shared Playwright Page at desktop width after their own measurements.
+  await page.setViewportSize({ width: 390, height: 844 });
   const pageErrors = [];
+  const consoleErrors = [];
+  const failedRequests = [];
+  const failedResponses = [];
+  const stylesheetResponses = [];
   const onPageError = error => pageErrors.push(error.message);
+  const onConsole = message => {
+    if (message.type() === "error") consoleErrors.push(message.text());
+  };
+  const onRequestFailed = request => failedRequests.push({
+    url: request.url(),
+    failure: request.failure()?.errorText || "unknown"
+  });
+  const onResponse = response => {
+    if (response.status() >= 400) {
+      failedResponses.push({ url: response.url(), status: response.status() });
+    }
+    if (response.url().endsWith(".css")) {
+      stylesheetResponses.push({ url: response.url(), status: response.status() });
+    }
+  };
   page.on("pageerror", onPageError);
+  page.on("console", onConsole);
+  page.on("requestfailed", onRequestFailed);
+  page.on("response", onResponse);
 
   const response = await page.goto("http://127.0.0.1:4174/" + route, { waitUntil: "load", timeout: 20000 });
   if (!response || !response.ok()) throw new Error(route + ": page returned an unsuccessful response");
@@ -171,8 +196,12 @@ async function auditPage(page, route) {
     findings.push("mobile content overflow at " + structural.viewportWidth + "px: " +
       JSON.stringify(structural.contentOverflowElements));
   }
+  if (structural.documentWidth > structural.viewportWidth) {
+    findings.push("mobile document overflow: scrollWidth " + structural.documentWidth +
+      " > innerWidth " + structural.viewportWidth);
+  }
 
-  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.setViewportSize({ width: 1440, height: 900 });
   const desktopWidth = await page.evaluate(() => {
     const contentOverflowElements = [...document.querySelectorAll("body *")]
       .map(element => {
@@ -204,6 +233,96 @@ async function auditPage(page, route) {
     findings.push("desktop content overflow at " + desktopWidth.viewport + "px: " +
       JSON.stringify(desktopWidth.contentOverflowElements));
   }
+  if (desktopWidth.document > desktopWidth.viewport) {
+    findings.push("desktop document overflow: scrollWidth " + desktopWidth.document +
+      " > innerWidth " + desktopWidth.viewport);
+  }
+
+  // Confirm the actual worker activation and Cache Storage contents, not only
+  // the version string in the source file. This runs in an isolated local origin.
+  await page.waitForFunction(async () => {
+    if (!("serviceWorker" in navigator)) return false;
+    const registration = await navigator.serviceWorker.getRegistration();
+    return Boolean(registration?.active);
+  }, null, { timeout: 12000 }).catch(() => {});
+
+  const serviceWorkerState = await page.evaluate(async () => {
+    const response = await fetch("./sw.js", { cache: "no-store" });
+    const source = response.ok ? await response.text() : "";
+    const declaredCacheVersion = source.match(/CACHE_NAME[^"]*"([^"]+)"/)?.[1] || null;
+    const registration = "serviceWorker" in navigator
+      ? await navigator.serviceWorker.getRegistration()
+      : null;
+    const cacheNames = await caches.keys();
+    const expectedCacheName = declaredCacheVersion
+      ? "mr-siavash-ai-shell-" + declaredCacheVersion
+      : null;
+    const cacheName = cacheNames.find(name => name === expectedCacheName) || null;
+    const cache = cacheName ? await caches.open(cacheName) : null;
+    const cached = async path => cache
+      ? Boolean(await cache.match(new URL("./" + path, new URL(".", location.href)).href))
+      : false;
+    return {
+      declaredCacheVersion,
+      registered: Boolean(registration),
+      active: Boolean(registration?.active),
+      activeScript: registration?.active?.scriptURL || null,
+      cacheName,
+      privacyHtmlCached: await cached("privacy.html"),
+      privacyCssCached: await cached("assets/css/privacy.css"),
+      sharedCssCached: await cached("assets/css/style.css")
+    };
+  });
+  if (serviceWorkerState.declaredCacheVersion !== "v69") {
+    findings.push("unexpected declared service-worker cache version: " +
+      String(serviceWorkerState.declaredCacheVersion));
+  }
+  if (!serviceWorkerState.registered || !serviceWorkerState.active) {
+    findings.push("service worker did not reach the active state: " +
+      JSON.stringify(serviceWorkerState));
+  }
+  if (serviceWorkerState.cacheName !== "mr-siavash-ai-shell-v69") {
+    findings.push("expected active Cache Storage entry mr-siavash-ai-shell-v69: " +
+      JSON.stringify(serviceWorkerState));
+  }
+  if (!serviceWorkerState.privacyHtmlCached ||
+      !serviceWorkerState.privacyCssCached ||
+      !serviceWorkerState.sharedCssCached) {
+    findings.push("service worker shell is missing a required privacy/shared asset: " +
+      JSON.stringify(serviceWorkerState));
+  }
+
+  const sharedStylesheet = stylesheetResponses.find(item =>
+    item.url.endsWith("/assets/css/style.css")
+  );
+  if (["index.html", "learn.html", "projects.html", "knowledge.html", "contact.html", "privacy.html"].includes(route) &&
+      (!sharedStylesheet || sharedStylesheet.status !== 200)) {
+    findings.push("shared assets/css/style.css did not load with HTTP 200: " +
+      JSON.stringify(sharedStylesheet || null));
+  }
+  if (route === "privacy.html") {
+    const privacyStylesheet = stylesheetResponses.find(item =>
+      item.url.endsWith("/assets/css/privacy.css")
+    );
+    if (!privacyStylesheet || privacyStylesheet.status !== 200) {
+      findings.push("privacy.css did not load with HTTP 200: " +
+        JSON.stringify(privacyStylesheet || null));
+    }
+  }
+  for (const item of failedResponses) {
+    if (item.url.startsWith("http://127.0.0.1:4174/")) {
+      findings.push("HTTP error response: " + JSON.stringify(item));
+    }
+  }
+  for (const item of failedRequests) {
+    if (item.url.startsWith("http://127.0.0.1:4174/")) {
+      findings.push("same-origin failed request: " + JSON.stringify(item));
+    }
+  }
+  for (const message of consoleErrors) {
+    findings.push("console error: " + message);
+  }
+
   const severeAxeViolations = axeAudit.filter(violation =>
     violation.impact === "critical" || violation.impact === "serious"
   );
@@ -215,8 +334,24 @@ async function auditPage(page, route) {
   }
   if (pageErrors.length) findings.push("uncaught page errors: " + pageErrors.join(" | "));
   page.off("pageerror", onPageError);
+  page.off("console", onConsole);
+  page.off("requestfailed", onRequestFailed);
+  page.off("response", onResponse);
 
-  return { route, findings, title: structural.title, axeWarnings };
+  return {
+    route,
+    findings,
+    title: structural.title,
+    axeWarnings,
+    mobile: { viewport: structural.viewportWidth, document: structural.documentWidth },
+    desktop: { viewport: desktopWidth.viewport, document: desktopWidth.document },
+    serviceWorkerState,
+    stylesheetResponses,
+    consoleErrors,
+    failedRequests,
+    failedResponses,
+    pageErrors
+  };
 }
 
 async function main() {
@@ -231,7 +366,7 @@ async function main() {
     browser = await chromium.launch({ headless: true });
     const page = await browser.newPage({
       viewport: { width: 390, height: 844 },
-      serviceWorkers: "block"
+      serviceWorkers: "allow"
     });
     page.setDefaultTimeout(10000);
 
@@ -250,13 +385,30 @@ async function main() {
     for (const result of results) {
       process.stdout.write(" - " + result.route + ": " + result.title +
         (result.axeWarnings.length ? " (" + result.axeWarnings.length + " moderate/minor axe warning(s))" : "") + "\\n");
+      process.stdout.write("   Mobile 390x844: scrollWidth=" + result.mobile.document +
+        ", innerWidth=" + result.mobile.viewport + "\\n");
+      process.stdout.write("   Desktop 1440x900: scrollWidth=" + result.desktop.document +
+        ", innerWidth=" + result.desktop.viewport + "\\n");
+      process.stdout.write("   Service Worker runtime: " + JSON.stringify(result.serviceWorkerState) + "\\n");
+      if (result.stylesheetResponses.length) {
+        process.stdout.write("   Stylesheets: " + JSON.stringify(result.stylesheetResponses) + "\\n");
+      }
+      if (result.consoleErrors.length || result.failedRequests.length ||
+          result.failedResponses.length || result.pageErrors.length) {
+        process.stdout.write("   Runtime diagnostics: " + JSON.stringify({
+          consoleErrors: result.consoleErrors,
+          failedRequests: result.failedRequests,
+          failedResponses: result.failedResponses,
+          pageErrors: result.pageErrors
+        }) + "\\n");
+      }
       if (result.axeWarnings.length) {
         process.stdout.write("   Axe non-blocking warnings: " + JSON.stringify(result.axeWarnings.map(item => ({
           id: item.id, impact: item.impact, help: item.help, nodes: item.nodes
         }))) + "\\n");
       }
     }
-    process.stdout.write("Checks: WCAG 2.1 A/AA and axe best-practice rules (critical/serious block CI), language/direction, title, main landmark, visible h1, unique IDs, labelled controls, named links/buttons, image alt, iframe title, safe external links, mobile/desktop content overflow, uncaught page errors.\\n");
+    process.stdout.write("Checks: WCAG 2.1 A/AA, 390x844 and 1440x900 scroll-width measurements, shared CSS and privacy CSS HTTP 200, active Service Worker v69 and Cache Storage privacy assets, navigation/content landmarks, console errors, failed same-origin requests, HTTP failures, and uncaught page errors.\\n");
   } finally {
     if (browser) await browser.close();
     await new Promise(resolve => server.close(resolve));
