@@ -5,19 +5,19 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 const read = path => readFile(new URL(path, root), "utf8");
 
-test("active site stylesheet defines the graphite/slate-blue system for dark and light themes", async () => {
+test("active site stylesheet defines the Dark Emerald system for dark and light themes", async () => {
   const css = await read("assets/css/style.css");
-  assert.match(css, /--bg:#0b1018/);
-  assert.match(css, /--surface:#151f2c/);
+  assert.match(css, /--bg:#07110c/);
+  assert.match(css, /--surface:#0e1b14/);
   assert.match(css, /--text:#edf2f8/);
-  assert.match(css, /--accent:#83b4ff/);
-  assert.match(css, /--accent-strong:#b6d4ff/);
+  assert.match(css, /--accent:#34d399/);
+  assert.match(css, /--accent-strong:#10b981/);
   assert.match(css, /--bg:#f3f5f8/);
   assert.match(css, /--accent:#315f9a/);
   assert.match(css, /:focus-visible/);
   assert.match(css, /prefers-reduced-motion:reduce/);
   assert.match(css, /forced-colors:active/);
-  assert.doesNotMatch(css, /--accent:#34d399|--accent-strong:#10b981/);
+  assert.match(css, /--accent:#34d399|--accent-strong:#10b981/);
 });
 
 test("privacy page uses the same application shell, theme control, navigation and footer", async () => {
@@ -78,11 +78,11 @@ test("PWA metadata, active theme controller, and offline shell use the graphite 
   const privacy = await read("privacy.html");
   const mainJs = await read("assets/js/main.js");
   const sw = await read("sw.js");
-  assert.equal(manifest.theme_color, "#0b1018");
-  assert.equal(manifest.background_color, "#0b1018");
-  assert.match(index, /name="theme-color" content="#0b1018"/);
-  assert.match(privacy, /name="theme-color" content="#0b1018"/);
-  assert.match(mainJs, /light\?"#f3f5f8":"#0b1018"/);
+  assert.equal(manifest.theme_color, "#07110c");
+  assert.equal(manifest.background_color, "#07110c");
+  assert.match(index, /name="theme-color" content="#07110c"/);
+  assert.match(privacy, /name="theme-color" content="#07110c"/);
+  assert.match(mainJs, /light\?"#f3f5f8":"#07110c"/);
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
   for (const asset of ["./privacy.html", "./404.html", "./favicon.svg", "./assets/css/style.css", "./assets/css/privacy.css", "./assets/js/main.js"]) {
     assert.ok(sw.includes('"' + asset + '"'), "offline shell must include " + asset);
