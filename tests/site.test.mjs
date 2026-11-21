@@ -187,7 +187,7 @@ test("foundation design layer replaces accumulated homepage overlays", () => {
   assert.equal((foundationCss.match(/\{/g) || []).length, (foundationCss.match(/\}/g) || []).length);
   assert.match(html, /href="\.\/foundation\.css"/);
   assert.doesNotMatch(html, /href="\.\/field-notes\.css"/);
-  assert.match(foundationCss, /--bg:#07110c/);
+  assert.match(foundationCss, /--bg:#0b1018/);
   assert.match(foundationCss, /prefers-reduced-motion:reduce/);
   assert.match(foundationCss, /forced-colors:active/);
 });
@@ -1868,10 +1868,10 @@ test("emerald design text tokens meet WCAG AA contrast on dark surfaces", () => 
   }
 });
 
-test("foundation design layer defines the dark emerald system and accessible responsive states", () => {
+test("foundation design layer defines the graphite and slate-blue system with accessible responsive states", () => {
   assert.ok(html.indexOf("studio.css") < html.indexOf("foundation.css"));
-  assert.match(foundationCss, /--bg:#07110c/);
-  assert.match(foundationCss, /--green:#83e5a5/);
+  assert.match(foundationCss, /--bg:#0b1018/);
+  assert.match(foundationCss, /--accent:#83b4ff/);
   assert.match(foundationCss, /\.foundation-hero/);
   assert.match(foundationCss, /\.foundation-visual/);
   assert.match(foundationCss, /@media\(max-width:820px\)/);
@@ -1943,6 +1943,15 @@ test("privacy page has the same defensive browser policy and discoverability met
   assert.match(source, /name="referrer" content="strict-origin-when-cross-origin"/);
   assert.match(source, /rel="canonical" href="https:\/\/mrsiavasshirbot\.github\.io\/MR_SIAVASH_AI\/privacy\.html"/);
   assert.match(source, /property="og:url"/);
+  assert.match(source, /<meta\\s+name="theme-color"\\s+content="#0b1018"/i);
+  assert.match(source, /<meta\\s+name="color-scheme"\\s+content="dark"/i);
+  assert.match(source, /<link rel="stylesheet" href="\\.\\/brand-refresh\\.css">/);
+  assert.doesNotMatch(source, /editorial-rebuild\\.css/);
+  assert.match(source, /<nav class="privacy-nav" aria-label="ناوبری اصلی">/);
+  assert.match(source, /aria-current="page"/);
+  for (const section of ["support-status", "ticket-data", "retention", "sensitive-data", "local-workspace", "scope"]) {
+    assert.ok(source.includes('id="' + section + '"'), "missing privacy section " + section);
+  }
 });
 
 test("all local assets referenced by public HTML pages exist and core routes are offline-cached", async () => {
