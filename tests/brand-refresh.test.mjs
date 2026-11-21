@@ -16,7 +16,8 @@ test("shared stylesheet is linked after page-specific CSS on all primary surface
   for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
     assert.match(html, /<link rel="stylesheet" href="\.\/brand-refresh\.css">/);
-    assert.ok(html.indexOf("brand-refresh.css") > html.lastIndexOf(".css"), `${file}: shared stylesheet must be last`);
+    const stylesheets = [...html.matchAll(/<link[^>]+href="[^"]+\\.css"[^>]*>/g)].map(match => match[0]);
+    assert.ok(stylesheets.at(-1)?.includes("brand-refresh.css"), `${file}: shared stylesheet must be last`);
   }
 });
 
