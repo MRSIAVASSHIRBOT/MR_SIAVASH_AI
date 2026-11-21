@@ -7,7 +7,7 @@ const source = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 const validRegistry = JSON.stringify({ schema: "mr-siavash-ai-module-registry", version: 1, modules: [{}] });
 
 test("service worker cache version advances when subtitle modules change", () => {
-  assert.match(source, /const CACHE_NAME = CACHE_PREFIX \+ "v63"/);
+  assert.match(source, /const CACHE_NAME = CACHE_PREFIX \+ "v64"/);
 });
 
 function createHarness(fetchImpl = async () => new Response("asset", {
@@ -155,7 +155,7 @@ test("install precaches the complete shell before activating the worker", async 
   assert.ok(precache.precache.includes("https://example.test/app/studio-portfolio.css"));
   assert.ok(precache.precache.includes("https://example.test/app/studio-portfolio.css"));
   assert.ok(precache.precache.includes("https://example.test/app/studio-portfolio.js"));
-  assert.equal(precache.precache.length, 48);
+  assert.equal(precache.precache.length, 49);
   assert.ok(precache.precache.includes("https://example.test/app/academy-assessments.mjs"));
   assert.ok(precache.precache.includes("https://example.test/app/academy-report.mjs"));
   assert.ok(precache.precache.includes("https://example.test/app/academy-assessment-export.mjs"));

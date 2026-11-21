@@ -50,5 +50,5 @@ test("content studio renders previews with text nodes and exposes accessible val
 test("content studio page and preview module are available in the offline shell", () => {
   assert.match(sw, /academy-content-studio-core\.mjs/);
   assert.match(sw, /new URL\("\.\/academy-content-studio\.html", scopeUrl\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v63"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v64"/);
 });
