@@ -192,28 +192,7 @@
   }
 
   function showView(viewName, options = {}) {
-    const target = $("#view-" + viewName);
-    if (!target) return;
-    const currentView = $(".view.is-active");
-    if (currentView && currentView !== target && window.MRSound) window.MRSound.play("navigate");
-    $$(".view").forEach(view => {
-      const active = view === target;
-      view.classList.toggle("is-active", active);
-      view.hidden = !active;
-    });
-    $$(".main-nav [data-view]").forEach(button => {
-      const active = button.dataset.view === viewName;
-      button.classList.toggle("is-active", active);
-      if (active) button.setAttribute("aria-current", "page");
-      else button.removeAttribute("aria-current");
-    });
-    if (options.updateHistory !== false) {
-      const nextHash = "#" + viewName;
-      if (window.location.hash !== nextHash) window.history.pushState({ view: viewName }, "", nextHash);
-    }
-    if (options.scroll !== false) $("#main-content").scrollIntoView({ behavior: "smooth", block: "start" });
-    closeMobileMenu();
-    if (viewName === "modules") renderCatalog();
+    return window.MRAppRouter.showView(viewName, options);
   }
 
   function closeMobileMenu() {
@@ -227,26 +206,7 @@
   }
 
   function parseRoute() {
-    const hash = window.location.hash || "#home";
-    const moduleMatch = hash.match(/^#module=([a-z0-9-]+)$/i);
-    if (moduleMatch) {
-      showView("modules", { updateHistory: false, scroll: false });
-      openModule(moduleMatch[1], { updateHistory: false });
-      return;
-    }
-    const viewName = hash.slice(1);
-    if (viewName === "support") {
-      showView("home", { updateHistory: false, scroll: false });
-      const supportDialog = $("#supportDialog");
-      if (supportDialog && !supportDialog.open) supportDialog.showModal();
-      return;
-    }
-    if (["home", "modules", "workspace", "identity", "about"].includes(viewName)) {
-      if ($("#moduleDialog").open) $("#moduleDialog").close();
-      showView(viewName, { updateHistory: false, scroll: false });
-    } else {
-      showView("home", { updateHistory: false, scroll: false });
-    }
+    return window.MRAppRouter.parseRoute();
   }
 
   function makeCard(module) {
@@ -1060,6 +1020,9 @@
     if (window.location.hash) parseRoute();
     else showView("home", { updateHistory: false, scroll: false });
   }
+
+  window.MRAppRenderCatalog = renderCatalog;
+  window.MRAppOpenModule = openModule;
 
   async function start() {
     let registryReady = false;
