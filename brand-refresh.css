@@ -223,3 +223,174 @@ input[type=number],textarea{background:#0e1825!important;color:var(--text)!impor
  body{background:white!important;color:black!important}
  .topbar,.studio-topbar,.ambient,.motion-toggle,.support-launcher{display:none!important}
 }
+
+
+/* Editorial coherence pass: finish the graphite/blue system on legacy tools. */
+.search-dialog,.support-dialog{
+ border-color:var(--experience-border-strong)!important;
+ background:linear-gradient(150deg,#172536,#0e1825)!important;
+ color:var(--text)!important
+}
+.search-input-wrap,.search-result{
+ border-color:var(--line-strong)!important;
+ background:#101a28!important;
+ color:var(--text)!important
+}
+.search-result:hover{
+ border-color:var(--experience-border-strong)!important;
+ background:rgba(131,180,255,.1)!important
+}
+.search-dialog h2,.support-head h2,.support-form label{color:var(--text)!important}
+.search-empty,.search-result small,.search-result span{color:var(--muted)!important}
+.support-launcher{
+ border:1px solid rgba(131,180,255,.5)!important;
+ background:linear-gradient(135deg,#29476a,#17283d)!important;
+ color:#eff5ff!important;
+ box-shadow:0 12px 35px rgba(0,0,0,.35),0 0 22px rgba(105,161,255,.1)!important
+}
+.support-launcher:hover{
+ border-color:rgba(169,204,255,.72)!important;
+ background:linear-gradient(135deg,#355b84,#1b3049)!important
+}
+.support-tabs button[aria-selected=true],
+.assistant-mode-switch button[aria-pressed=true]{
+ border-color:var(--experience-border-strong)!important;
+ background:rgba(131,180,255,.13)!important;
+ color:#c6dcff!important
+}
+.assistant-intro,.assistant-bubble,.assistant-messages,
+.support-ticket-message,.support-ticket-history{
+ border-color:var(--line)!important;
+ background:#111c2a!important;
+ color:var(--text)!important
+}
+.assistant-avatar{
+ background:linear-gradient(145deg,#29476a,#17283d)!important;
+ color:#d7e7ff!important
+}
+.assistant-bubble.user{
+ border-color:rgba(131,180,255,.25)!important;
+ background:rgba(131,180,255,.13)!important;
+ color:#e5efff!important
+}
+.ticket-secret,.support-privacy-note{
+ border-color:var(--line-strong)!important;
+ background:rgba(131,180,255,.07)!important;
+ color:#d5dfeb!important
+}
+.ticket-secret strong,.support-ticket-message strong,
+.support-ticket-history>strong{color:#b6d4ff!important}
+.admin-status{
+ border-color:rgba(131,180,255,.35)!important;
+ background:rgba(131,180,255,.09)!important;
+ color:#c8dcf6!important
+}
+.admin-status::before{
+ background:#83b4ff!important;
+ box-shadow:0 0 12px rgba(131,180,255,.55)
+}
+
+/* Python practice surfaces keep the editor calm and code-focused. */
+.python-page .practice-lab,
+.python-page .practice-columns>div,
+.python-page .practice-example{
+ border-color:var(--line-strong)!important;
+ background:linear-gradient(145deg,#172536,#101a28)!important;
+ color:var(--text)!important
+}
+.python-page .practice-columns h4,
+.python-page .practice-example{color:#c6dcff!important}
+.python-page .practice-example{border-inline-start-color:#83b4ff!important}
+.python-page .code-panel{
+ border-color:var(--line)!important;
+ background:#0d1622!important
+}
+.python-page .code-head{
+ border-color:var(--line)!important;
+ background:#152235!important;
+ color:#c6dcff!important
+}
+
+/* Academy practice and tutor modules share the same neutral component tokens. */
+.academy-practice,.academy-tutor,.academy-assessment,.academy-capstone,
+.academy-content-form,.academy-content-list{
+ border-color:var(--line)!important;
+ background:linear-gradient(150deg,#172536,#101a28)!important;
+ color:var(--text)!important
+}
+.academy-practice-choice,.academy-practice-workspace,
+.academy-question,.academy-answer-option{
+ border-color:var(--line-strong)!important;
+ background:#111d2b!important;
+ color:var(--text)!important
+}
+.academy-practice-choice[aria-pressed=true],
+.academy-answer-option[aria-pressed=true]{
+ border-color:var(--experience-border-strong)!important;
+ background:rgba(131,180,255,.14)!important;
+ color:#d7e7ff!important
+}
+#academyPracticeCode,.academy-practice-output-wrap pre{
+ border-color:var(--line-strong)!important;
+ background:#0a1420!important;
+ color:#dceaff!important
+}
+.academy-answer-review{
+ border-inline-start-color:#83b4ff!important;
+ background:rgba(131,180,255,.08)!important;
+ color:var(--muted)!important
+}
+
+/* Secondary portfolio surfaces no longer fall back to forest-green panels. */
+.resource-card,.snippet-panel,.saved-projects,.studio-support,
+.status-callout,.hub-public-status{
+ border-color:var(--line)!important;
+ background:linear-gradient(150deg,#172536,#101a28)!important;
+ color:var(--text)!important
+}
+.resource-card:hover,.status-links a:hover,
+.hub-status-actions button:hover,.hub-status-actions a:hover{
+ border-color:var(--experience-border-strong)!important;
+ background:rgba(131,180,255,.09)!important
+}
+.resource-card small,.resource-card b,.resource-card strong,
+.snippet-head h3,.status-links a,.studio-support h2{
+ color:#dce8f8!important
+}
+.resource-card span,.snippet-panel>p,.status-callout p,
+.studio-support p,.saved-projects p{color:var(--muted)!important}
+.snippet-head,.snippet-panel pre,.status-links a,
+.saved-item,.saved-item strong,.saved-item button{
+ border-color:var(--line)!important;
+ color:var(--text)!important
+}
+.snippet-panel pre{background:#0c1521!important}
+.hub-status-grid>div{
+ border-color:var(--line)!important;
+ background:rgba(10,20,32,.72)!important
+}
+.hub-status-source{
+ border-color:var(--line-strong)!important;
+ color:#c6dcff!important
+}
+.hub-status-boundary{
+ border-inline-start-color:#83b4ff!important;
+ background:rgba(131,180,255,.07)!important;
+ color:var(--muted)!important
+}
+
+/* Subtitle workspace utility surfaces. */
+.subtitle-page .privacy-note,.privacy-note{
+ border-color:var(--line-strong)!important;
+ background:rgba(131,180,255,.07)!important;
+ color:#d5e3f4!important
+}
+.batch-retiming{
+ border-color:var(--line)!important;
+ background:linear-gradient(145deg,#172536,#101a28)!important
+}
+.batch-retiming input{
+ border-color:var(--line-strong)!important;
+ background:#0e1825!important;
+ color:var(--text)!important
+}

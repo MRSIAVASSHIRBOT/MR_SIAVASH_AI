@@ -29,6 +29,34 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
 });
 
 test("offline shell precaches the shared stylesheet and advances to cache v64", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v64"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v65"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
+});
+
+
+test("browser and installed-app theme colors match the graphite surface on every main route", async () => {
+  const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
+  assert.equal(manifest.theme_color, "#0b1018");
+  assert.equal(manifest.background_color, "#0b1018");
+  for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html"]) {
+    const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
+    assert.match(html, /<meta\s+name="theme-color"\s+content="#0b1018"/i, `${file}: browser chrome must use the shared graphite theme`);
+  }
+});
+
+test("legacy support, practice and portfolio surfaces use the shared neutral component system", () => {
+  for (const selector of [
+    ".support-launcher{",
+    ".search-dialog,.support-dialog{",
+    ".python-page .practice-lab,",
+    ".admin-status{",
+    ".academy-practice,.academy-tutor",
+    ".resource-card,.snippet-panel",
+    ".hub-status-grid>div{"
+  ]) {
+    assert.ok(css.includes(selector), `missing shared UI override: ${selector}`);
+  }
+  assert.match(css, /\.support-launcher\{[^}]*#29476a/s);
+  assert.match(css, /\.admin-status\{[^}]*#83b4ff/s);
+  assert.equal((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length, "shared stylesheet braces must balance");
 });
