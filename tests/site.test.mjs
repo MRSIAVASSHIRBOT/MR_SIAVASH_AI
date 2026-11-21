@@ -1954,6 +1954,18 @@ test("privacy page has the same defensive browser policy and discoverability met
   }
 });
 
+test("browser regression audit records the requested viewport metrics and runtime failures", async () => {
+  const audit = await readFile(new URL("../scripts/site-accessibility-e2e.cjs", import.meta.url), "utf8");
+  assert.match(audit, /viewport: \{ width: 390, height: 844 \}/);
+  assert.match(audit, /setViewportSize\(\{ width: 1440, height: 900 \}\)/);
+  assert.match(audit, /documentWidth > structural\.viewportWidth/);
+  assert.match(audit, /desktopWidth\.document > desktopWidth\.viewport/);
+  assert.ok(audit.includes("Mobile 390px: scrollWidth="));
+  assert.ok(audit.includes("brand-refresh.css did not load successfully"));
+  assert.ok(audit.includes("console error: "));
+  assert.ok(audit.includes("failed request: "));
+});
+
 test("all local assets referenced by public HTML pages exist and core routes are offline-cached", async () => {
   const pages = ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "privacy.html"];
   const localAssets = new Set();
