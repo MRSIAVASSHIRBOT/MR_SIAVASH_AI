@@ -222,3 +222,6 @@ button[data-project-filter][aria-pressed=true]{
 .experience-strip article p,.experience-strip article h3,.journal-list article small{
  color:#4f5967!important
 }
+
+/* Light-surface article copy must not inherit legacy low-contrast green text. */
+article p,article h3,article small{color:#4f5967!important}
