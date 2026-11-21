@@ -40,8 +40,8 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
   assert.match(css, /@media\(forced-colors:active\)/);
 });
 
-test("offline shell precaches the shared stylesheet and advances to cache v67", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
+test("offline shell precaches the shared stylesheet and advances to cache v69", () => {
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
   assert.match(sw, /"\.\/editorial-rebuild\.css"/);
 });
