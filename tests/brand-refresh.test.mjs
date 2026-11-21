@@ -16,9 +16,15 @@ test("unified editorial palette replaces emerald dominance with graphite and blu
 test("shared stylesheet is linked after page-specific CSS on all primary surfaces", async () => {
   for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
-    assert.match(html, /<link rel="stylesheet" href="\.\/brand-refresh\.css">/);
     const stylesheets = [...html.matchAll(/<link[^>]+href="[^"]+\.css"[^>]*>/g)].map(match => match[0]);
-    assert.ok(stylesheets.at(-1)?.includes("editorial-rebuild.css"), `${file}: editorial stylesheet must be last`);
+    if (file === "index.html") {
+      assert.match(html, /<link rel="stylesheet" href="\.\/foundation\.css">/);
+      assert.ok(stylesheets.at(-1)?.includes("foundation.css"), "index.html: foundation layer must be last");
+      assert.doesNotMatch(html, /brand-refresh\.css|editorial-rebuild\.css/);
+    } else {
+      assert.match(html, /<link rel="stylesheet" href="\.\/brand-refresh\.css">/);
+      assert.ok(stylesheets.at(-1)?.includes("editorial-rebuild.css"), `${file}: editorial stylesheet must be last`);
+    }
   }
 });
 
