@@ -56,9 +56,11 @@ function createServer() {
 }
 
 async function auditPage(page, route) {
+  await page.setViewportSize({ width: 390, height: 844 });
   const pageErrors = [];
   const consoleErrors = [];
   const failedRequests = [];
+  const failedResponses = [];
   const stylesheetResponses = [];
   const onPageError = error => pageErrors.push(error.message);
   const onConsole = message => {
@@ -69,6 +71,9 @@ async function auditPage(page, route) {
     failure: request.failure()?.errorText || "unknown"
   });
   const onResponse = response => {
+    if (response.status() >= 400) {
+      failedResponses.push({ url: response.url(), status: response.status() });
+    }
     if (response.url().endsWith(".css")) {
       stylesheetResponses.push({ url: response.url(), status: response.status() });
     }
@@ -245,6 +250,7 @@ async function auditPage(page, route) {
   }
   for (const message of consoleErrors) findings.push("console error: " + message);
   for (const request of failedRequests) findings.push("failed request: " + JSON.stringify(request));
+  for (const response of failedResponses) findings.push("HTTP error response: " + JSON.stringify(response));
 
   const severeAxeViolations = axeAudit.filter(violation =>
     violation.impact === "critical" || violation.impact === "serious"
@@ -268,7 +274,8 @@ async function auditPage(page, route) {
     axeWarnings,
     mobile: { viewport: structural.viewportWidth, document: structural.documentWidth },
     desktop: { viewport: desktopWidth.viewport, document: desktopWidth.document },
-    stylesheetResponses
+    stylesheetResponses,
+    failedResponses
   };
 }
 
