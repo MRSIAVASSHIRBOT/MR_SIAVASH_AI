@@ -5,7 +5,7 @@ import { readFile } from "node:fs/promises";
 const atelier = await readFile(new URL("../atelier.css", import.meta.url), "utf8");
 const studio = await readFile(new URL("../studio.css", import.meta.url), "utf8");
 const experienceNext = await readFile(new URL("../experience-next.css", import.meta.url), "utf8");
-const index = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const index = await readFile(new URL("../legacy-app.html", import.meta.url), "utf8");
 const python = await readFile(new URL("../python.html", import.meta.url), "utf8");
 const academy = await readFile(new URL("../academy.html", import.meta.url), "utf8");
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
@@ -51,7 +51,7 @@ test("atelier respects mobile, touch, keyboard, reduced motion and forced colors
 });
 
 test("offline shell retains subpage atelier styles with cache version 67", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
   assert.match(sw, /"\.\/atelier\.css"/);
   assert.doesNotMatch(sw, /"\.\/experience-signature\.css"/);
 });
