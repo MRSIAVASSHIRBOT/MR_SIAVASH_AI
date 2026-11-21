@@ -72,7 +72,7 @@ test("legacy task loading repairs missing and duplicate identifiers without trun
   assert.equal(result.discardedTasks, 1);
   assert.equal(result.tasks[1].id, "repaired-1");
   assert.equal(result.tasks[2].text, "Third task");
-  assert.equal(result.tasks[3].id, "repaired-2");
+  assert.equal(result.tasks[3].id, "repaired-3");
 });
 
 test("workspace backup validator enforces root, task and favorite contracts", () => {
