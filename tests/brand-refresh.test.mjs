@@ -18,15 +18,15 @@ test("shared stylesheet is linked after page-specific CSS on all primary surface
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
     const stylesheets = [...html.matchAll(/<link[^>]+href="[^"]+\.css"[^>]*>/g)].map(match => match[0]);
     if (file === "index.html") {
-      assert.match(html, /<link rel="stylesheet" href="\.\\/foundation\.css">/);
+      assert.ok(html.includes('<link rel="stylesheet" href="./foundation.css">'));
       assert.ok(stylesheets.at(-1)?.includes("foundation.css"), "index.html: foundation layer must be last");
       assert.doesNotMatch(html, /brand-refresh\.css|editorial-rebuild\.css/);
     } else if (file === "privacy.html") {
-      assert.match(html, /<link rel="stylesheet" href="\.\\/brand-refresh\.css">/);
+      assert.ok(html.includes('<link rel="stylesheet" href="./brand-refresh.css">'));
       assert.ok(stylesheets.at(-1)?.includes("brand-refresh.css"), "privacy.html: graphite brand layer must be last");
       assert.doesNotMatch(html, /editorial-rebuild\.css/);
     } else {
-      assert.match(html, /<link rel="stylesheet" href="\.\\/brand-refresh\.css">/);
+      assert.ok(html.includes('<link rel="stylesheet" href="./brand-refresh.css">'));
       assert.ok(stylesheets.at(-1)?.includes("editorial-rebuild.css"), `${file}: editorial stylesheet must be last`);
     }
   }
