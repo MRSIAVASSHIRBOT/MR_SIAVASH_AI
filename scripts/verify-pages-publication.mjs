@@ -8,6 +8,14 @@ export const PAGES_PUBLIC_ASSETS = Object.freeze([
   "search-index.json",
   "site-search.js",
   "sw.js",
+  "index.html",
+  "learn.html",
+  "projects.html",
+  "knowledge.html",
+  "contact.html",
+  "404.html",
+  "assets/css/style.css",
+  "assets/js/main.js",
 ]);
 
 const FULL_GIT_SHA = /^[a-f0-9]{40}$/i;
