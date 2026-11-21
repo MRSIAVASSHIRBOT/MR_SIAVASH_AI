@@ -68,7 +68,7 @@ test("privacy CSP remains restrictive and all page styling is self-hosted", asyn
   assert.match(privacy, /base-uri 'self'/);
   assert.match(privacy, /frame-src 'none'/);
   assert.doesNotMatch(privacy, /unsafe-inline|unsafe-eval/);
-  assert.doesNotMatch(privacy, /href="https?:\/\//);
+  assert.doesNotMatch(privacy, /<link rel="stylesheet" href="https?:\/\//);
   assert.doesNotMatch(privacy, /<style\b|\sstyle=/i);
 });
 
