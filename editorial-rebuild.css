@@ -225,3 +225,5 @@ button[data-project-filter][aria-pressed=true]{
 
 /* Light-surface article copy must not inherit legacy low-contrast green text. */
 article p,article h3,article small{color:#4f5967!important}
+
+.code-output small{color:#d5dfeb!important}
