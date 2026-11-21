@@ -10,7 +10,7 @@ const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
 test("foundation homepage replaces the previous layered hero with the focused ecosystem composition", () => {
   assert.match(index, /class="hero-grid foundation-hero"/);
-  assert.match(index, /class="foundation-visual"/);
+  assert.match(index, /class="hero-visual foundation-visual"/);
   assert.match(index, /class="foundation-core"/);
   assert.match(index, /id="motionToggle"/);
   assert.doesNotMatch(index, /class="atelier-paper"/);
