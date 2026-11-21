@@ -13,7 +13,7 @@ test("unified editorial palette replaces emerald dominance with graphite and blu
 });
 
 test("shared stylesheet is linked after page-specific CSS on all primary surfaces", async () => {
-  for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html"]) {
+  for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
     assert.match(html, /<link rel="stylesheet" href="\.\/brand-refresh\.css">/);
     const stylesheets = [...html.matchAll(/<link[^>]+href="[^"]+\.css"[^>]*>/g)].map(match => match[0]);
@@ -38,7 +38,7 @@ test("browser and installed-app theme colors match the graphite surface on every
   const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
   assert.equal(manifest.theme_color, "#0b1018");
   assert.equal(manifest.background_color, "#0b1018");
-  for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html"]) {
+  for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
     assert.match(html, /<meta\s+name="theme-color"\s+content="#0b1018"/i, `${file}: browser chrome must use the shared graphite theme`);
   }
