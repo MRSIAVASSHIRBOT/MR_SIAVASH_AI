@@ -47,6 +47,15 @@ test("offline shell precaches the shared stylesheet and advances to cache v69", 
 });
 
 
+test("global favicon and 404 route use the active graphite identity", async () => {
+  const favicon = await readFile(new URL("../favicon.svg", import.meta.url), "utf8");
+  const notFound = await readFile(new URL("../404.html", import.meta.url), "utf8");
+  assert.match(favicon, /fill="#83b4ff"/);
+  assert.match(favicon, /fill="#0b1018"/);
+  assert.match(notFound, /name="theme-color" content="#0b1018"/);
+  assert.match(notFound, /href="\.\/privacy\.html">حریم خصوصی<\/a>/);
+});
+
 test("active homepage and privacy route use graphite chrome while legacy editorial routes retain their own theme", async () => {
   const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
   assert.equal(manifest.theme_color, "#0b1018");
