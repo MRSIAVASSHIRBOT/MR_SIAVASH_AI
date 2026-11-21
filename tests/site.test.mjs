@@ -964,9 +964,9 @@ test("static document enforces a restrictive self-hosted Content Security Policy
 });
 
 
-test("GitHub Pages deployment requires explicit manual workflow dispatch on main", () => {
+test("GitHub Pages deployment follows successful main pushes and supports manual dispatch", () => {
   assert.match(workflowText, /workflow_dispatch:/);
-  assert.match(workflowText, /if: github\.ref == 'refs\/heads\/main' && github\.event_name == 'workflow_dispatch'/);
+  assert.match(workflowText, /if: github\.ref == 'refs\/heads\/main' && \(github\.event_name == 'push' \|\| github\.event_name == 'workflow_dispatch'\)/);
   assert.match(workflowText, /needs: quality/);
   assert.match(workflowText, /timeout-minutes: 10/);
   assert.match(workflowText, /pages: write/);

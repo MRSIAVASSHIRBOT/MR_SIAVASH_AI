@@ -28,7 +28,7 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
   assert.match(css, /@media\(forced-colors:active\)/);
 });
 
-test("offline shell precaches the shared stylesheet and advances to cache v64", () => {
+test("offline shell precaches the shared stylesheet and advances to cache v65", () => {
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v65"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
 });
@@ -57,6 +57,6 @@ test("legacy support, practice and portfolio surfaces use the shared neutral com
     assert.ok(css.includes(selector), `missing shared UI override: ${selector}`);
   }
   assert.match(css, /\.support-launcher\{[^}]*#29476a/s);
-  assert.match(css, /\.admin-status\{[^}]*#83b4ff/s);
+  assert.match(css, /\.admin-status::before\{[^}]*#83b4ff/s);
   assert.equal((css.match(/\{/g) || []).length, (css.match(/\}/g) || []).length, "shared stylesheet braces must balance");
 });
