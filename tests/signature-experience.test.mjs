@@ -20,10 +20,10 @@ test("foundation homepage replaces the previous layered hero with the focused ec
   assert.doesNotMatch(index, /class="orbit orbit-outer"/);
 });
 
-test("active homepage uses the graphite design system while legacy and course routes retain their own layers", () => {
+test("active homepage uses the Dark Emerald design system while legacy and course routes retain their own layers", () => {
   assert.match(home, /href="\.\/assets\/css\/style\.css"/);
   assert.doesNotMatch(home, /href="\.\/foundation\.css"|href="\.\/brand-refresh\.css"/);
-  assert.match(home, /name="theme-color" content="#0b1018"/);
+  assert.match(home, /name="theme-color" content="#07110c"/);
   assert.match(index, /href="\.\/foundation\.css"/);
   assert.ok(index.indexOf("foundation.css") > index.indexOf("studio.css"));
   assert.match(index, /name="theme-color" content="#07110c"/);
