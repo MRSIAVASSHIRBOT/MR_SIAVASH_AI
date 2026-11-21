@@ -230,7 +230,7 @@ test("manual Pages deployment verifies every public asset against the checked-ou
   assert.match(verifyStep, /PAGES_URL:\s*\$\{\{\s*steps\.deployment\.outputs\.page_url\s*\}\}/);
   assert.match(verifyStep, /PAGES_SOURCE_SHA:\s*\$\{\{\s*github\.sha\s*\}\}/);
   assert.match(verifyStep, /node scripts\/verify-pages-publication\.mjs/);
-  assert.deepEqual(PAGES_PUBLIC_ASSETS, ["support.js", "search-index.json", "site-search.js", "sw.js", "index.html", "learn.html", "projects.html", "knowledge.html", "contact.html", "404.html", "favicon.svg", "manifest.webmanifest", "assets/css/style.css", "assets/js/main.js"]);
+  assert.deepEqual(PAGES_PUBLIC_ASSETS, ["support.js", "search-index.json", "site-search.js", "sw.js", "index.html", "learn.html", "projects.html", "knowledge.html", "contact.html", "404.html", "favicon.svg", "manifest.webmanifest", "privacy.html", "assets/css/style.css", "assets/css/privacy.css", "assets/js/main.js"]);
 });
 
 test("Pages URL normalization requires HTTPS and preserves a project subpath", () => {
@@ -260,7 +260,7 @@ test("Pages publication verification checks no-store responses against exact sou
     },
   });
 
-  assert.equal(results.length, 14);
+  assert.equal(results.length, 16);
   assert.ok(results.every(result => result.status === 200 && /^[a-f0-9]{64}$/.test(result.sha256)));
   assert.deepEqual(requests.map(request => request.asset).sort(), [...PAGES_PUBLIC_ASSETS].sort());
   assert.ok(requests.every(request => request.cache === "no-store" && request.verify === expectedSha));
@@ -289,7 +289,7 @@ test("Pages publication verification retries stale CDN content and accepts the m
   });
 
   assert.equal(waits, 1);
-  assert.equal(results.length, 14);
+  assert.equal(results.length, 16);
 });
 
 test("Pages publication verification fails closed when a public asset remains stale", async () => {
