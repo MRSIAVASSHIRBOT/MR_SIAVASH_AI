@@ -375,12 +375,8 @@ test("workspace loading blocks malformed and unsupported storage envelopes", () 
       workspaceRecoveryBlocked: false,
       modules: [],
       messages: [],
-      normalizeLoadedTasks(rawTasks) {
-        if (!Array.isArray(rawTasks)) {
-          return { tasks: [], invalidContainer: true, repairedIds: 0, discardedTasks: 0, excessTasks: 0 };
-        }
-        return { tasks: rawTasks, repairedIds: 0, discardedTasks: 0, excessTasks: 0 };
-      },
+      window: (() => { const value = {}; vm.runInNewContext(appStorage, { window: value }); return value; })(),
+      createId: (() => { let id = 0; return () => "generated-" + (++id); })(),
       normalizeFavoriteIds(ids) { return Array.isArray(ids) ? ids : []; },
       updateStorageNote() {},
       showToast(message) { context.messages.push(message); }
@@ -440,8 +436,10 @@ test("recovery lock ignores cross-tab workspace writes and storage-clear events"
     renderCatalog() { throw new Error("blocked clear events must not render changed favorites"); },
     updateStorageNote() {},
     openModule() {},
-    parseStoredTasks() { throw new Error("blocked workspace payload must not be parsed"); },
-    parseStoredFavorites() { throw new Error("blocked favorite payload must not be parsed"); }
+    window: { MRAppStorage: {
+      parseStoredTasks() { throw new Error("blocked workspace payload must not be parsed"); },
+      parseStoredFavorites() { throw new Error("blocked favorite payload must not be parsed"); }
+    } }
   };
   const handleStorageChange = vm.runInNewContext("(" + app.slice(start, end).trim() + ")", context);
   handleStorageChange({ storageArea: context.localStorage, key: "workspace-test-key", newValue: "{\"version\":2,\"tasks\":[]}" });
@@ -827,8 +825,10 @@ test("cross-tab synchronization remains active when workspace recovery is not bl
     renderCatalog() { favoriteRenders += 1; },
     updateStorageNote() {},
     openModule() {},
-    parseStoredTasks() { return nextTasks; },
-    parseStoredFavorites() { return []; }
+    window: { MRAppStorage: {
+      parseStoredTasks() { return nextTasks; },
+      parseStoredFavorites() { return []; }
+    } }
   };
   const handleStorageChange = vm.runInNewContext("(" + app.slice(start, end).trim() + ")", context);
   handleStorageChange({ storageArea: context.localStorage, key: "workspace-test-key", newValue: "{}" });
