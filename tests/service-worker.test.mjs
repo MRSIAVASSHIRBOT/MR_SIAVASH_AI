@@ -335,7 +335,8 @@ test("online navigation caches each supported course document at its own URL", a
     ["https://example.test/app/python.html", "https://example.test/app/python.html"],
     ["https://example.test/app/academy.html", "https://example.test/app/academy.html"],
     ["https://example.test/app/studio.html", "https://example.test/app/studio.html"],
-    ["https://example.test/app/subtitle-studio.html", "https://example.test/app/subtitle-studio.html"]
+    ["https://example.test/app/subtitle-studio.html", "https://example.test/app/subtitle-studio.html"],
+    ["https://example.test/app/privacy.html", "https://example.test/app/privacy.html"]
   ];
   for (const [url, expectedCacheUrl] of targets) {
     const { listeners, writes } = createHarness(async () => new Response("<html>course</html>", {
@@ -354,7 +355,7 @@ test("offline Python and academy direct navigation restores each page from its o
     status: 200,
     headers: { "Content-Type": "text/html; charset=utf-8" }
   });
-  for (const path of ["python.html", "academy.html", "studio.html", "subtitle-studio.html"]) {
+  for (const path of ["python.html", "academy.html", "studio.html", "subtitle-studio.html", "privacy.html"]) {
     const { listeners, reads, writes } = createHarness(async () => {
       throw new Error("offline");
     }, cached);
