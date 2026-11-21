@@ -84,7 +84,7 @@ test("PWA metadata, active theme controller, and offline shell use the graphite 
   assert.match(privacy, /name="theme-color" content="#0b1018"/);
   assert.match(mainJs, /light\?"#f3f5f8":"#0b1018"/);
   assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v69"/);
-  for (const asset of ["./privacy.html", "./assets/css/style.css", "./assets/css/privacy.css", "./assets/js/main.js"]) {
+  for (const asset of ["./privacy.html", "./404.html", "./favicon.svg", "./assets/css/style.css", "./assets/css/privacy.css", "./assets/js/main.js"]) {
     assert.ok(sw.includes('"' + asset + '"'), "offline shell must include " + asset);
   }
 });
