@@ -29,20 +29,21 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
   assert.match(css, /@media\(forced-colors:active\)/);
 });
 
-test("offline shell precaches the shared stylesheet and advances to cache v66", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v66"/);
+test("offline shell precaches the shared stylesheet and advances to cache v67", () => {
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
   assert.match(sw, /"\.\/editorial-rebuild\.css"/);
 });
 
 
-test("browser and installed-app theme colors match the graphite surface on every main route", async () => {
+test("browser and installed-app theme metadata match the light editorial canvas on every main route", async () => {
   const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
   assert.equal(manifest.theme_color, "#f2f0e9");
   assert.equal(manifest.background_color, "#f2f0e9");
   for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
     assert.match(html, /<meta\s+name="theme-color"\s+content="#f2f0e9"/i, `${file}: browser chrome must use the shared graphite theme`);
+    assert.match(html, /<meta\s+name="color-scheme"\s+content="light"/i, `${file}: browser UI must use the light editorial scheme`);
   }
 });
 
