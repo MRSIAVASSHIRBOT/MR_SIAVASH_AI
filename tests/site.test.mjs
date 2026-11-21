@@ -1881,7 +1881,11 @@ test("foundation design layer defines the dark emerald system and accessible res
 });
 test("public pages expose unique canonical URLs and social metadata", async () => {
   const pages = [
-    ["legacy-app.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/legacy-app.html"],
+    ["index.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/"],
+    ["learn.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/learn.html"],
+    ["projects.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/projects.html"],
+    ["knowledge.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/knowledge.html"],
+    ["contact.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/contact.html"],
     ["studio.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/studio.html"],
     ["academy.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/academy.html"],
     ["python.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/python.html"],
@@ -1908,7 +1912,7 @@ test("crawler directives and sitemap only advertise public site routes", async (
   assert.ok(robots.startsWith("User-agent: *\nAllow: /"), "robots.txt must allow public crawling");
   assert.ok(robots.includes("Sitemap: https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/sitemap.xml"));
   assert.ok(sitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>'));
-  for (const route of ["/", "/studio.html", "/academy.html", "/python.html", "/subtitle-studio.html", "/privacy.html"]) {
+  for (const route of ["/", "/learn.html", "/projects.html", "/knowledge.html", "/contact.html", "/studio.html", "/academy.html", "/python.html", "/subtitle-studio.html", "/privacy.html"]) {
     assert.ok(sitemap.includes("https://mrsiavasshirbot.github.io/MR_SIAVASH_AI" + route), "missing sitemap route " + route);
   }
   assert.ok(!/localhost|127\.0\.0\.1|workers\.dev/.test(sitemap), "sitemap must not expose development or API hosts");
@@ -1945,7 +1949,7 @@ test("privacy page has the same defensive browser policy and discoverability met
 });
 
 test("all local assets referenced by public HTML pages exist and core routes are offline-cached", async () => {
-  const pages = ["legacy-app.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "privacy.html"];
+  const pages = ["legacy-app.html", "index.html", "learn.html", "projects.html", "knowledge.html", "contact.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "privacy.html", "404.html"];
   const localAssets = new Set();
   for (const page of pages) {
     const source = await readFile(new URL("../" + page, import.meta.url), "utf8");
