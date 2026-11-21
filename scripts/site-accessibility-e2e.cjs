@@ -242,7 +242,7 @@ async function auditPage(page, route) {
     const response = await fetch("./sw.js", { cache: "no-store" });
     if (!response.ok) return null;
     const source = await response.text();
-    return source.match(/const CACHE_NAME = CACHE_PREFIX \\+ "([^"]+)"/)?.[1] || null;
+    return source.match(/CACHE_NAME[^"]*"([^"]+)"/)?.[1] || null;
   });
   if (serviceWorkerCache !== "v69") {
     findings.push("unexpected service-worker cache version: " + String(serviceWorkerCache));
