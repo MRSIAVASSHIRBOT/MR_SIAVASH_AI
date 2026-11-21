@@ -103,7 +103,12 @@ test("responsive browser audit measures both required viewports and captures run
   assert.match(audit, /pageErrors/);
   assert.match(audit, /assets\/css\/style\.css/);
   assert.match(audit, /assets\/css\/privacy\.css/);
-  assert.match(audit, /serviceWorkerCache !== "v69"/);
+  assert.match(audit, /serviceWorkerState\.declaredCacheVersion !== "v69"/);
+  assert.match(audit, /serviceWorkers: "allow"/);
+  assert.match(audit, /registration\?\.active/);
+  assert.match(audit, /privacyHtmlCached/);
+  assert.match(audit, /privacyCssCached/);
+  assert.match(audit, /cacheName !== "mr-siavash-ai-shell-v69"/);
   assert.match(audit, /Mobile 390x844/);
   assert.match(audit, /Desktop 1440x900/);
 });
