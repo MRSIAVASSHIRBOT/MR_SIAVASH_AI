@@ -196,13 +196,7 @@
   }
 
   function closeMobileMenu() {
-    const nav = $("#mainNav");
-    const button = $("#mobileMenuButton");
-    if (nav) nav.classList.remove("is-open");
-    if (button) {
-      button.setAttribute("aria-expanded", "false");
-      button.setAttribute("aria-label", "باز کردن ناوبری");
-    }
+    return window.MRAppRouter.closeMobileMenu();
   }
 
   function parseRoute() {
