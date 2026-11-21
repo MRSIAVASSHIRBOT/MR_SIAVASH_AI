@@ -374,6 +374,7 @@ test("workspace loading blocks malformed and unsupported storage envelopes", () 
       favorites: new Set(),
       workspaceRecoveryBlocked: false,
       modules: [],
+      MAX_TASKS: 100,
       messages: [],
       window: (() => { const value = {}; vm.runInNewContext(appStorage, { window: value }); return value; })(),
       createId: (() => { let id = 0; return () => "generated-" + (++id); })(),
@@ -831,7 +832,7 @@ test("cross-tab synchronization remains active when workspace recovery is not bl
     } }
   };
   const handleStorageChange = vm.runInNewContext("(" + app.slice(start, end).trim() + ")", context);
-  handleStorageChange({ storageArea: context.localStorage, key: "workspace-test-key", newValue: "{}" });
+  handleStorageChange({ key: "workspace-test-key", newValue: "{}" });
   assert.equal(context.tasks, nextTasks);
   assert.equal(taskRenders, 1);
   handleStorageChange({ storageArea: context.localStorage, key: null, newValue: null });
