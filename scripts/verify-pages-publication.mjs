@@ -14,6 +14,8 @@ export const PAGES_PUBLIC_ASSETS = Object.freeze([
   "knowledge.html",
   "contact.html",
   "404.html",
+  "favicon.svg",
+  "manifest.webmanifest",
   "assets/css/style.css",
   "assets/js/main.js",
 ]);
