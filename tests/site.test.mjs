@@ -14,6 +14,7 @@ const fieldNotesCss = await readFile(new URL("../field-notes.css", import.meta.u
 const uiSounds = await readFile(new URL("../ui-sounds.js", import.meta.url), "utf8");
 const supportCss = await readFile(new URL("../support.css", import.meta.url), "utf8");
 const app = await readFile(new URL("../app.js", import.meta.url), "utf8");
+const appStorage = await readFile(new URL("../app-storage.js", import.meta.url), "utf8");
 const support = await readFile(new URL("../support.js", import.meta.url), "utf8");
 const privacyText = await readFile(new URL("../privacy.html", import.meta.url), "utf8");
 const supportTickets = await readFile(new URL("../support-tickets.mjs", import.meta.url), "utf8");
@@ -899,11 +900,9 @@ test("formal workspace backup JSON Schema matches the versioned import contract"
 });
 
 test("workspace backup runtime validator rejects unknown fields and invalid nested records", () => {
-  const start = app.indexOf("  function validateWorkspaceBackup(data) {");
-  const end = app.indexOf("\n  async function importWorkspace(file)", start);
-  assert.ok(start >= 0 && end > start, "workspace backup validator boundaries must exist");
-  const validate = vm.runInNewContext("(function() { const MAX_TASKS = 100; return (" +
-    app.slice(start, end).trim() + "); })()");
+  const storageWindow = {};
+  vm.runInNewContext(appStorage, { window: storageWindow });
+  const validate = storageWindow.MRAppStorage.validateWorkspaceBackup;
   const valid = {
     schema: "mr-siavash-ai-workspace",
     version: 1,
