@@ -3,47 +3,148 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#f2f0e9">
-  <meta name="color-scheme" content="light">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
+  <meta name="theme-color" content="#0b1018">
+  <meta name="color-scheme" content="dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; manifest-src 'self'; worker-src 'self'; form-action 'self'; frame-src 'none'; upgrade-insecure-requests">
   <meta name="referrer" content="strict-origin-when-cross-origin">
-  <meta name="description" content="اطلاعیهٔ حریم خصوصی و نحوهٔ نگهداری اطلاعات در MR_SIAVASH_AI">
+  <meta name="description" content="اطلاعیهٔ حریم خصوصی MR_SIAVASH_AI؛ شفافیت دربارهٔ داده‌های مرورگر، دستیار آنلاین و پشتیبانی.">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <link rel="canonical" href="https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/privacy.html">
   <meta property="og:title" content="حریم خصوصی | MR_SIAVASH_AI">
-  <meta property="og:description" content="اطلاعیهٔ شفاف دربارهٔ داده‌های مرورگر و وضعیت پشتیبانی سایت.">
+  <meta property="og:description" content="اطلاعیهٔ شفاف دربارهٔ داده‌های مرورگر، دستیار آنلاین و پشتیبانی سایت.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/privacy.html">
   <meta name="twitter:card" content="summary">
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+  <link rel="manifest" href="./manifest.webmanifest">
   <title>حریم خصوصی | MR_SIAVASH_AI</title>
-  <link rel="stylesheet" href="./styles.css">
-  <link rel="stylesheet" href="./support.css">
-  <link rel="stylesheet" href="./brand-refresh.css">
-  <link rel="stylesheet" href="./editorial-rebuild.css">
+  <link rel="stylesheet" href="./assets/css/style.css">
+  <link rel="stylesheet" href="./assets/css/privacy.css">
+  <script src="./assets/js/main.js" defer></script>
 </head>
-<body>
-  <main class="admin-support-page">
-    <section class="admin-support-intro">
-      <div class="eyebrow">PRIVACY NOTICE</div>
-      <h1>حریم <span>خصوصی</span></h1>
-      <p class="admin-note">این صفحه توضیح می‌دهد بخش‌های فعلی سایت چه داده‌هایی را در مرورگر نگه می‌دارند و راهنمای محلی، دستیار آنلاین و تیکت پشتیبانی چگونه داده را پردازش می‌کنند.</p>
-      <h2>وضعیت فعلی پشتیبانی</h2>
-      <p class="admin-note">راهنمای محلی پشتیبانی، پرسش را در مرورگر با فهرست عمومی سایت تطبیق می‌دهد و متن آن را ارسال نمی‌کند. حالت «دستیار هوشمند آنلاین» جداگانه و به‌صورت اختیاری فعال می‌شود؛ برای هر سؤال، تأیید صریح لازم است. در این حالت فقط متن سؤال جاری به Gateway ارسال می‌شود و برای تولید پاسخِ محدود به دانش تأییدشدهٔ سایت، در صورت فعال‌بودن سرویس، به Workers AI می‌رسد. تاریخچهٔ گفتگو همراه درخواست ارسال نمی‌شود و متن سؤال در جدول تیکت‌ها ذخیره نمی‌شود. برای کنترل نرخ درخواست، شمارنده‌ای با شناسهٔ مشتق‌شده از IP و به‌صورت هش در پایگاه داده نگهداری می‌شود. ثبت تیکت نیز پس از آماده‌بودن D1 و سیاست نگهداری فعال است؛ پیام و ایمیل اختیاری تیکت در D1 ذخیره می‌شوند.</p>
-      <h2>اطلاعاتی که هنگام فعال‌سازی تیکت دریافت می‌شود</h2>
-      <ul class="admin-note">
-        <li>موضوع، دسته‌بندی و متن درخواستی که خودت وارد می‌کنی.</li>
-        <li>ایمیل تماس، فقط اگر داوطلبانه واردش کنی.</li>
-        <li>کد پیگیری و یک کلید خصوصی یک‌بارنمایش؛ کلید خصوصی به‌صورت هش‌شده ذخیره می‌شود و برای مشاهدهٔ گفتگو در سربرگ Authorization فرستاده می‌شود، نه در نشانی صفحه.</li>
-      </ul>
-      <h2>مدت نگهداری</h2>
-      <p class="admin-note">مدت نگهداری فعال تیکت‌های پشتیبانی در محیط Production برابر ۹۰ روز از آخرین به‌روزرسانی است. تیکت‌هایی که در این مدت به‌روزرسانی نشوند، همراه پیام‌های وابسته در پاک‌سازی زمان‌بندی‌شده حذف می‌شوند. این سیاست به معنی ذخیره‌سازی متن پرسش‌های دستیار آنلاین به‌عنوان تیکت نیست؛ دستیار آنلاین فقط درخواست را برای پردازش به Gateway و Workers AI می‌فرستد.</p>
-      <h2>اطلاعاتی که نباید ارسال کنی</h2>
-      <p class="admin-note">رمز عبور، کلید API، کلید خصوصی، کد ورود یک‌بارمصرف، اطلاعات کارت یا حساب بانکی و هر دادهٔ حساس دیگری را در پیام پشتیبانی ننویس.</p>
-      <h2>فضای کار محلی</h2>
-      <p class="admin-note">وظایف، علاقه‌مندی ماژول‌ها و پیشرفت آموزشی در حال حاضر در فضای ذخیره‌سازی مرورگر همان دستگاه نگهداری می‌شوند و با حساب ابری همگام‌سازی نمی‌شوند.</p>
-      <p class="admin-note">این اطلاعیه توضیح فنی وضعیت فعلی محصول است و ادعای تأیید یا انطباق حقوقی در حوزه‌های مختلف محسوب نمی‌شود.</p>
-      <a class="button button-primary" href="./index.html">بازگشت به سایت</a>
+<body class="privacy-page" data-page="privacy">
+  <a class="skip-link" href="#main">رفتن به محتوای اصلی</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="./index.html" aria-label="MR_SIAVASH_AI، خانه">
+        <span class="brand-mark" aria-hidden="true">م</span>
+        <span class="brand-copy">
+          <span class="brand-name">MR_SIAVASH_AI</span>
+          <span class="brand-caption">یادگیری، ساختن، تجربه‌کردن</span>
+        </span>
+      </a>
+      <nav class="main-nav" id="mainNav" aria-label="ناوبری اصلی">
+        <a class="nav-link" href="./index.html">خانه</a>
+        <a class="nav-link" href="./learn.html">آموزش</a>
+        <a class="nav-link" href="./projects.html">پروژه‌ها</a>
+        <a class="nav-link" href="./knowledge.html">دانش‌نامه</a>
+        <a class="nav-link" href="./contact.html">ارتباط</a>
+        <a class="nav-link" href="./privacy.html" aria-current="page">حریم خصوصی</a>
+      </nav>
+      <div class="header-actions">
+        <button class="icon-button" id="themeToggle" type="button" aria-label="فعال‌کردن تم روشن" aria-pressed="false">
+          <span data-theme-icon aria-hidden="true">☼</span>
+        </button>
+        <button class="menu-toggle" id="menuToggle" type="button" aria-label="بازکردن منو" aria-controls="mainNav" aria-expanded="false">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main" class="container privacy-main">
+    <section class="privacy-hero">
+      <span class="eyebrow">PRIVACY NOTICE</span>
+      <h1>حریم خصوصی، <span>شفاف و قابل‌فهم</span></h1>
+      <p class="privacy-lead">این صفحه توضیح می‌دهد بخش‌های فعلی سایت چه داده‌هایی را در مرورگر نگه می‌دارند و راهنمای محلی، دستیار آنلاین و تیکت پشتیبانی چگونه داده را پردازش می‌کنند.</p>
+      <div class="privacy-meta" aria-label="مشخصات اطلاعیه">
+        <span>اطلاعیه فنی محصول</span>
+        <span>داده‌های مرورگر و پشتیبانی</span>
+        <span>بدون ادعای تأیید حقوقی</span>
+      </div>
     </section>
+
+    <section class="privacy-summary-grid" aria-label="خلاصه اصول حریم خصوصی">
+      <article class="privacy-summary">
+        <strong>فضای کار محلی</strong>
+        <p>وظایف، علاقه‌مندی‌ها و پیشرفت آموزشی در مرورگر همان دستگاه نگهداری می‌شوند.</p>
+      </article>
+      <article class="privacy-summary">
+        <strong>دستیار آنلاین اختیاری</strong>
+        <p>ارسال سؤال به Gateway فقط پس از تأیید صریح همان درخواست انجام می‌شود.</p>
+      </article>
+      <article class="privacy-summary">
+        <strong>اطلاعات حساس را ارسال نکن</strong>
+        <p>رمز عبور، کلیدها، کدهای ورود و اطلاعات مالی را در پیام پشتیبانی ننویس.</p>
+      </article>
+    </section>
+
+    <div class="privacy-layout">
+      <aside class="privacy-index" aria-labelledby="privacy-index-title">
+        <h2 id="privacy-index-title">در این صفحه</h2>
+        <nav aria-label="بخش‌های اطلاعیه حریم خصوصی">
+          <a href="#support-status">وضعیت فعلی پشتیبانی</a>
+          <a href="#ticket-data">اطلاعات تیکت</a>
+          <a href="#retention">مدت نگهداری</a>
+          <a href="#sensitive-data">اطلاعات حساس</a>
+          <a href="#local-workspace">فضای کار محلی</a>
+          <a href="#scope">دامنه اطلاعیه</a>
+        </nav>
+      </aside>
+
+      <div class="privacy-sections">
+        <section class="privacy-section" id="support-status" aria-labelledby="support-status-title">
+          <h2 id="support-status-title">وضعیت فعلی پشتیبانی</h2>
+          <p>راهنمای محلی پشتیبانی، پرسش را در مرورگر با فهرست عمومی سایت تطبیق می‌دهد و متن آن را ارسال نمی‌کند. حالت «دستیار هوشمند آنلاین» جداگانه و به‌صورت اختیاری فعال می‌شود؛ برای هر سؤال، تأیید صریح لازم است. در این حالت فقط متن سؤال جاری به Gateway ارسال می‌شود و برای تولید پاسخِ محدود به دانش تأییدشدهٔ سایت، در صورت فعال‌بودن سرویس، به Workers AI می‌رسد. تاریخچهٔ گفتگو همراه درخواست ارسال نمی‌شود و متن سؤال در جدول تیکت‌ها ذخیره نمی‌شود. برای کنترل نرخ درخواست، شمارنده‌ای با شناسهٔ مشتق‌شده از IP و به‌صورت هش در پایگاه داده نگهداری می‌شود. ثبت تیکت نیز پس از آماده‌بودن D1 و سیاست نگهداری فعال است؛ پیام و ایمیل اختیاری تیکت در D1 ذخیره می‌شوند.</p>
+        </section>
+
+        <section class="privacy-section" id="ticket-data" aria-labelledby="ticket-data-title">
+          <h2 id="ticket-data-title">اطلاعاتی که هنگام فعال‌سازی تیکت دریافت می‌شود</h2>
+          <ul>
+            <li>موضوع، دسته‌بندی و متن درخواستی که خودت وارد می‌کنی.</li>
+            <li>ایمیل تماس، فقط اگر داوطلبانه واردش کنی.</li>
+            <li>کد پیگیری و یک کلید خصوصی یک‌بارنمایش؛ کلید خصوصی به‌صورت هش‌شده ذخیره می‌شود و برای مشاهدهٔ گفتگو در سربرگ Authorization فرستاده می‌شود، نه در نشانی صفحه.</li>
+          </ul>
+        </section>
+
+        <section class="privacy-section" id="retention" aria-labelledby="retention-title">
+          <h2 id="retention-title">مدت نگهداری</h2>
+          <p>مدت نگهداری فعال تیکت‌های پشتیبانی در محیط Production برابر ۹۰ روز از آخرین به‌روزرسانی است. تیکت‌هایی که در این مدت به‌روزرسانی نشوند، همراه پیام‌های وابسته در پاک‌سازی زمان‌بندی‌شده حذف می‌شوند. این سیاست به معنی ذخیره‌سازی متن پرسش‌های دستیار آنلاین به‌عنوان تیکت نیست؛ دستیار آنلاین فقط درخواست را برای پردازش به Gateway و Workers AI می‌فرستد.</p>
+        </section>
+
+        <section class="privacy-section" id="sensitive-data" aria-labelledby="sensitive-data-title">
+          <h2 id="sensitive-data-title">اطلاعاتی که نباید ارسال کنی</h2>
+          <p class="privacy-warning">رمز عبور، کلید API، کلید خصوصی، کد ورود یک‌بارمصرف، اطلاعات کارت یا حساب بانکی و هر دادهٔ حساس دیگری را در پیام پشتیبانی ننویس.</p>
+        </section>
+
+        <section class="privacy-section" id="local-workspace" aria-labelledby="local-workspace-title">
+          <h2 id="local-workspace-title">فضای کار محلی</h2>
+          <p>وظایف، علاقه‌مندی ماژول‌ها و پیشرفت آموزشی در حال حاضر در فضای ذخیره‌سازی مرورگر همان دستگاه نگهداری می‌شوند و با حساب ابری همگام‌سازی نمی‌شوند.</p>
+        </section>
+
+        <section class="privacy-section" id="scope" aria-labelledby="scope-title">
+          <h2 id="scope-title">دامنه این اطلاعیه</h2>
+          <p>این اطلاعیه توضیح فنی وضعیت فعلی محصول است و ادعای تأیید یا انطباق حقوقی در حوزه‌های مختلف محسوب نمی‌شود.</p>
+        </section>
+      </div>
+    </div>
   </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <nav class="footer-nav" aria-label="پیوندهای پایین صفحه">
+        <a href="./index.html">خانه</a>
+        <a href="./learn.html">آموزش</a>
+        <a href="./projects.html">پروژه‌ها</a>
+        <a href="./knowledge.html">دانش‌نامه</a>
+        <a href="./contact.html">ارتباط</a>
+        <a href="./privacy.html" aria-current="page">حریم خصوصی</a>
+      </nav>
+      <p class="footer-note">© <span id="currentYear">۱۴۰۵</span> MR_SIAVASH_AI</p>
+    </div>
+  </footer>
 </body>
 </html>
