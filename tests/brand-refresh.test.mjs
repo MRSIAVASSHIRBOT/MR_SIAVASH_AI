@@ -17,7 +17,8 @@ test("shared stylesheet is linked after page-specific CSS on all primary surface
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
     assert.match(html, /<link rel="stylesheet" href="\.\/brand-refresh\.css">/);
     const stylesheets = [...html.matchAll(/<link[^>]+href="[^"]+\.css"[^>]*>/g)].map(match => match[0]);
-    assert.ok(stylesheets.at(-1)?.includes("brand-refresh.css"), `${file}: shared stylesheet must be last`);
+    const expectedLast = file === "index.html" ? "home-v2.css" : "brand-refresh.css";
+    assert.ok(stylesheets.at(-1)?.includes(expectedLast), `${file}: expected final stylesheet ${expectedLast}`);
   }
 });
 
@@ -28,8 +29,8 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
   assert.match(css, /@media\(forced-colors:active\)/);
 });
 
-test("offline shell precaches the shared stylesheet and advances to cache v65", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v65"/);
+test("offline shell precaches shared and homepage stylesheets and advances to cache v66", () => {
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v66"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
 });
 
