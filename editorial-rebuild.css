@@ -173,3 +173,12 @@ footer,.site-footer{border-color:var(--line)!important;color:#687281!important}
  .topbar,.studio-topbar,.ambient,.motion-toggle,.support-launcher{display:none!important}
  .module-card,.course-card,.journey-card,.project-card{break-inside:avoid!important;box-shadow:none!important}
 }
+/* Contrast corrections verified against the WCAG AA browser audit. */
+.brand-copy small,.hero-footnote,.hero-proof-row,.metrics-note,
+.studio-reviewed,.studio-reviewed time,.studio-proof span,
+.academy-dashboard-local,.academy-dashboard-tools .academy-dashboard-local,
+#lessonBody,#exercisePrompt,.python-lesson-body,.exercise-prompt{
+ color:#4f5967!important
+}
+.hero-proof-row i,.academy-stats b{color:#315f9a!important}
+.python-mark small{color:#f4f1e8!important}
