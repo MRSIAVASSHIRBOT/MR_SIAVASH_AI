@@ -100,6 +100,7 @@ self.addEventListener("fetch", event => {
       { requestUrl: new URL("./projects.html", scopeUrl).href, cacheUrl: new URL("./projects.html", scopeUrl).href },
       { requestUrl: new URL("./knowledge.html", scopeUrl).href, cacheUrl: new URL("./knowledge.html", scopeUrl).href },
       { requestUrl: new URL("./contact.html", scopeUrl).href, cacheUrl: new URL("./contact.html", scopeUrl).href },
+      { requestUrl: new URL("./privacy.html", scopeUrl).href, cacheUrl: new URL("./privacy.html", scopeUrl).href },
       { requestUrl: new URL("./404.html", scopeUrl).href, cacheUrl: new URL("./404.html", scopeUrl).href },
       { requestUrl: new URL("./", scopeUrl).href, cacheUrl: indexUrl },
       { requestUrl: indexUrl, cacheUrl: indexUrl },
