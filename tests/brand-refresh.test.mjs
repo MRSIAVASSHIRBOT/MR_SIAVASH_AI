@@ -7,10 +7,10 @@ const editorial = await readFile(new URL("../editorial-rebuild.css", import.meta
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 
 test("unified editorial palette replaces emerald dominance with graphite and blue", () => {
-  for (const token of ["--bg:#07110c", "--surface:#151f2c", "--text:#edf2f8", "--experience-accent:#83b4ff", "--amber:#d8a879"]) {
+  for (const token of ["--bg:#0b1018", "--surface:#151f2c", "--text:#edf2f8", "--experience-accent:#83b4ff", "--amber:#d8a879"]) {
     assert.ok(css.includes(token), `missing palette token: ${token}`);
   }
-  assert.match(css, /body\{[^}]*background:[^}]*#07110c/s);
+  assert.match(css, /body\{[^}]*background:[^}]*#0b1018/s);
 });
 
 test("shared stylesheet is linked after page-specific CSS on all primary surfaces", async () => {
