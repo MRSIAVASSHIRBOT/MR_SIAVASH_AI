@@ -280,7 +280,7 @@ test("Pages publication verification retries stale CDN content and accepts the m
     wait: async () => { waits += 1; },
     fetchImpl: async (input) => {
       const url = new URL(input);
-      const asset = url.pathname.split("/").at(-1);
+      const asset = url.pathname.split("/MR_SIAVASH_AI/").at(-1);
       if (asset === "sw.js" && url.searchParams.get("attempt") === "1") {
         return new Response("stale cache", { status: 200 });
       }
@@ -289,7 +289,7 @@ test("Pages publication verification retries stale CDN content and accepts the m
   });
 
   assert.equal(waits, 1);
-  assert.equal(results.length, 4);
+  assert.equal(results.length, 12);
 });
 
 test("Pages publication verification fails closed when a public asset remains stale", async () => {
