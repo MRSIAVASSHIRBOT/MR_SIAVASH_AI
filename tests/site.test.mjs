@@ -83,7 +83,7 @@ test("legacy workspace does not expose an administrator link in public navigatio
   const adminEntry = await readFile(new URL("../admin-support.html", import.meta.url), "utf8");
   assert.doesNotMatch(html, /admin-support\\.html|پنل مدیریت/);
   assert.match(adminEntry, /noindex,nofollow/);
-  assert.match(adminEntry, /https:\\/\\/mr-siavash-ai-gateway\\.mrsiavashirbot\\.workers\\.dev\\/admin/);
+  assert.ok(adminEntry.includes("https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev/admin"));
   assert.doesNotMatch(html, /mr-siavash-ai-gateway-preview/);
 });
 
