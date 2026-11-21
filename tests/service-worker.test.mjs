@@ -7,7 +7,7 @@ const source = await readFile(new URL("../sw.js", import.meta.url), "utf8");
 const validRegistry = JSON.stringify({ schema: "mr-siavash-ai-module-registry", version: 1, modules: [{}] });
 
 test("service worker cache version advances when subtitle modules change", () => {
-  assert.match(source, /const CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(source, /const CACHE_NAME = CACHE_PREFIX \+ "v68"/);
 });
 
 function createHarness(fetchImpl = async () => new Response("asset", {
@@ -94,6 +94,19 @@ test("service worker bypasses unknown and query-string navigation requests", () 
   assert.equal(dispatchFetch(listeners, {
     method: "GET", mode: "navigate", url: "https://example.test/app/?next=private"
   }), null);
+});
+
+test("privacy page is an explicit offline navigation target", async () => {
+  const { listeners, writes } = createHarness(async () => new Response("<html lang='fa'></html>", {
+    status: 200,
+    headers: { "Content-Type": "text/html; charset=utf-8" }
+  }));
+  const response = dispatchFetch(listeners, {
+    method: "GET", mode: "navigate", url: "https://example.test/app/privacy.html"
+  });
+  assert.ok(response instanceof Promise);
+  assert.equal((await response).status, 200);
+  assert.equal(writes[0].key, "https://example.test/app/privacy.html");
 });
 
 test("navigation caches only successful HTML responses for the app document", async () => {
