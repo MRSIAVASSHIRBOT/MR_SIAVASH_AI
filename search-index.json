@@ -882,7 +882,7 @@
       "type": "page",
       "title": "چطور یک مهارت فنی را واقعاً یاد بگیریم؟",
       "description": "چرخه هدف‌گذاری، تمرین فعال، بازخورد و پروژه کوچک برای یادگیری ماندگار.",
-      "href": "./index.html#knowledge-learning",
+      "href": "./legacy-app.html#knowledge-learning",
       "terms": [
         "یادگیری",
         "تمرین",
@@ -895,7 +895,7 @@
       "type": "page",
       "title": "هوش مصنوعی را چطور مسئولانه استفاده کنیم؟",
       "description": "ارزیابی خروجی مدل، بررسی منابع، حریم خصوصی و تصمیم‌گیری انسانی.",
-      "href": "./index.html#knowledge-ai",
+      "href": "./legacy-app.html#knowledge-ai",
       "terms": [
         "هوش مصنوعی",
         "AI",
@@ -908,7 +908,7 @@
       "type": "page",
       "title": "روش اصولی عیب‌یابی خطاهای نرم‌افزاری",
       "description": "بازتولید خطا، جمع‌آوری شواهد، فرضیه‌سازی و تست رگرسیون.",
-      "href": "./index.html#knowledge-debugging",
+      "href": "./legacy-app.html#knowledge-debugging",
       "terms": [
         "برنامه‌نویسی",
         "دیباگ",
@@ -921,7 +921,7 @@
       "type": "page",
       "title": "چک‌لیست پایه برای امنیت حساب‌های آنلاین",
       "description": "رمز منحصربه‌فرد، احراز هویت چندمرحله‌ای و بازبینی نشست‌ها.",
-      "href": "./index.html#knowledge-security",
+      "href": "./legacy-app.html#knowledge-security",
       "terms": [
         "امنیت",
         "حساب",
@@ -934,7 +934,7 @@
       "type": "page",
       "title": "چطور اعتبار یک خبر یا ادعا را ارزیابی کنیم؟",
       "description": "بررسی منبع اولیه، تاریخ، زمینه و شواهد مستقل.",
-      "href": "./index.html#knowledge-information",
+      "href": "./legacy-app.html#knowledge-information",
       "terms": [
         "سواد رسانه‌ای",
         "خبر",
@@ -947,7 +947,7 @@
       "type": "page",
       "title": "نظم فایل‌ها و پشتیبان‌گیری قابل اعتماد",
       "description": "ساختار پوشه، نام‌گذاری، نسخه پشتیبان و آزمون بازیابی.",
-      "href": "./index.html#knowledge-files",
+      "href": "./legacy-app.html#knowledge-files",
       "terms": [
         "فایل",
         "پشتیبان",
@@ -959,7 +959,7 @@
       "type": "page",
       "title": "چطور کارهای بزرگ را به قدم‌های قابل انجام تبدیل کنیم؟",
       "description": "تعریف خروجی، خردکردن کار، شناسایی وابستگی‌ها و انتخاب گام بعدی.",
-      "href": "./index.html#knowledge-focus",
+      "href": "./legacy-app.html#knowledge-focus",
       "terms": [
         "بهره‌وری",
         "برنامه‌ریزی",
@@ -971,7 +971,7 @@
       "type": "page",
       "title": "برای ساخت رزومه فنی، پروژه بهتر است یا مدرک؟",
       "description": "ساخت پروژه مستند، ارائه شواهد و توضیح شفاف تصمیم‌های فنی.",
-      "href": "./index.html#knowledge-career",
+      "href": "./legacy-app.html#knowledge-career",
       "terms": [
         "رزومه",
         "شغل",

@@ -9,7 +9,7 @@ const backupModule = await readFile(new URL("../academy-backup.mjs", import.meta
 const guideModule = await readFile(new URL("../academy-guides.mjs", import.meta.url), "utf8");
 const assessmentModule = await readFile(new URL("../academy-assessments.mjs", import.meta.url), "utf8");
 const css = await readFile(new URL("../academy.css", import.meta.url), "utf8");
-const home = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const home = await readFile(new URL("../legacy-app.html", import.meta.url), "utf8");
 const search = await readFile(new URL("../site-search.js", import.meta.url), "utf8");
 const searchIndex = JSON.parse(await readFile(new URL("../search-index.json", import.meta.url), "utf8"));
 const sw = await readFile(new URL("../sw.js", import.meta.url), "utf8");
@@ -71,7 +71,7 @@ test("academy navigation, global search, and offline shell are integrated", () =
   assert.match(sw, /"\.\/academy-achievements\.mjs"/);
   assert.match(sw, /"\.\/academy-backup\.mjs"/);
   assert.match(sw, /"\.\/academy-guides\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
 });
 
 test("academy layout supports mobile, keyboard, and reduced-motion preferences", () => {

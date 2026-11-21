@@ -4,7 +4,7 @@ import { access, readFile } from "node:fs/promises";
 import vm from "node:vm";
 import { supportGate, supportTrackingGate, validTicketCredentials } from "../support-tickets.mjs";
 
-const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+const html = await readFile(new URL("../legacy-app.html", import.meta.url), "utf8");
 const css = await readFile(new URL("../styles.css", import.meta.url), "utf8");
 const experienceCss = await readFile(new URL("../experience.css", import.meta.url), "utf8");
 const experienceNextCss = await readFile(new URL("../experience-next.css", import.meta.url), "utf8");
@@ -79,12 +79,11 @@ test("navigation buttons have real section targets", () => {
   assert.match(html, /href="\.\/studio\.html"/, "digital studio must be reachable from the main site");
 });
 
-test("administrator console navigation uses the reviewed production entry page, not Preview", async () => {
+test("legacy workspace does not expose an administrator link in public navigation", async () => {
   const adminEntry = await readFile(new URL("../admin-support.html", import.meta.url), "utf8");
-  assert.match(html, /href="\.\/admin-support\.html"/);
-  assert.match(html, /پنل مدیریت/);
-  assert.match(html, /target="_blank" rel="noopener noreferrer" aria-label="ورود به مرکز مدیریت پشتیبانی MR_SIAVASH_AI؛ نیازمند احراز هویت"/);
-  assert.match(adminEntry, /https:\/\/mr-siavash-ai-gateway\.mrsiavashirbot\.workers\.dev\/admin/);
+  assert.doesNotMatch(html, /admin-support\\.html|پنل مدیریت/);
+  assert.match(adminEntry, /noindex,nofollow/);
+  assert.ok(adminEntry.includes("https://mr-siavash-ai-gateway.mrsiavashirbot.workers.dev/admin"));
   assert.doesNotMatch(html, /mr-siavash-ai-gateway-preview/);
 });
 
@@ -218,7 +217,7 @@ test("web manifest is valid and scoped to the deployment path", () => {
 });
 
 test("service worker caches the static shell and ignores non-GET requests", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
   assert.match(sw, /SHELL_FILES/);
   assert.match(sw, /"\.\/modules\.json"/);
   assert.match(sw, /"\.\/python\.html"/);
@@ -311,7 +310,7 @@ test("workspace task controls are wired to accessible UI elements", () => {
 });
 
 test("service worker cache is versioned after front-end asset changes", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
 });
 
 test("workspace import rejects oversized backups and malformed task records", () => {
@@ -472,7 +471,7 @@ test("service worker caches only exact allowlisted static shell URLs", () => {
   assert.match(sw, /if \(!shellUrls\.has\(requestUrl\.href\)\) return/);
   assert.match(sw, /request\.method !== "GET"/);
   assert.match(sw, /contentType\.includes\("text\/html"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
 });
 
 
@@ -1331,7 +1330,7 @@ test("flagship styles and interface audio are loaded on both entry points and of
   assert.match(sw, /"\.\/experience\.css"/);
   assert.match(sw, /"\.\/studio\.css"/);
   assert.match(sw, /"\.\/ui-sounds\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
 });
 
 test("homepage foundation experience is present and versioned", () => {
@@ -1392,7 +1391,7 @@ test("multi-course academy is linked from the home page and cached offline", asy
   assert.match(academyCss, /#a8e2b7/);
   assert.doesNotMatch(academyCss, /#9c8cff|#68dff5|#b7aaff/);
   assert.match(sw, /"\.\/academy\.js"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
 });
 
 
@@ -1453,7 +1452,7 @@ test("local support guide stays private and ticket APIs fail closed behind reten
   assert.match(supportTickets, /consent: \$\("#supportConsent"\)\.checked/);
   assert.doesNotMatch(supportTickets, /localStorage|sessionStorage|innerHTML\s*=/);
   assert.match(sw, /"\.\/support-tickets\.mjs"/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
 });
 
 test("local support guide retries loading its index after an initial offline failure", async () => {
@@ -1883,6 +1882,10 @@ test("foundation design layer defines the dark emerald system and accessible res
 test("public pages expose unique canonical URLs and social metadata", async () => {
   const pages = [
     ["index.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/"],
+    ["learn.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/learn.html"],
+    ["projects.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/projects.html"],
+    ["knowledge.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/knowledge.html"],
+    ["contact.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/contact.html"],
     ["studio.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/studio.html"],
     ["academy.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/academy.html"],
     ["python.html", "https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/python.html"],
@@ -1909,7 +1912,7 @@ test("crawler directives and sitemap only advertise public site routes", async (
   assert.ok(robots.startsWith("User-agent: *\nAllow: /"), "robots.txt must allow public crawling");
   assert.ok(robots.includes("Sitemap: https://mrsiavasshirbot.github.io/MR_SIAVASH_AI/sitemap.xml"));
   assert.ok(sitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>'));
-  for (const route of ["/", "/studio.html", "/academy.html", "/python.html", "/subtitle-studio.html", "/privacy.html"]) {
+  for (const route of ["/", "/learn.html", "/projects.html", "/knowledge.html", "/contact.html", "/studio.html", "/academy.html", "/python.html", "/subtitle-studio.html", "/privacy.html"]) {
     assert.ok(sitemap.includes("https://mrsiavasshirbot.github.io/MR_SIAVASH_AI" + route), "missing sitemap route " + route);
   }
   assert.ok(!/localhost|127\.0\.0\.1|workers\.dev/.test(sitemap), "sitemap must not expose development or API hosts");
@@ -1918,13 +1921,13 @@ test("crawler directives and sitemap only advertise public site routes", async (
 
 test("public pages keep install metadata and browser chrome colors consistent", async () => {
   const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
-  const pages = ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html"];
+  const pages = ["legacy-app.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html"];
   for (const page of pages) {
     const source = await readFile(new URL("../" + page, import.meta.url), "utf8");
     assert.match(source, /<link\s+rel="manifest"\s+href="\.\/manifest\.webmanifest"/i, page + " must expose the install manifest");
     const theme = source.match(/<meta\s+name="theme-color"\s+content="([^"]+)"/i);
     assert.ok(theme, page + " must declare a browser theme color");
-    if (page === "index.html") assert.equal(theme[1], manifest.theme_color, "homepage and installed app use the foundation canvas");
+    if (page === "legacy-app.html") assert.equal(theme[1], manifest.theme_color, "homepage and installed app use the foundation canvas");
     else assert.equal(theme[1], "#f2f0e9", page + " retains the light editorial subpage chrome");
   }
   assert.equal(manifest.background_color, manifest.theme_color, "installed app launch canvas must match its primary homepage");
@@ -1946,7 +1949,7 @@ test("privacy page has the same defensive browser policy and discoverability met
 });
 
 test("all local assets referenced by public HTML pages exist and core routes are offline-cached", async () => {
-  const pages = ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "privacy.html"];
+  const pages = ["legacy-app.html", "index.html", "learn.html", "projects.html", "knowledge.html", "contact.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "privacy.html", "404.html"];
   const localAssets = new Set();
   for (const page of pages) {
     const source = await readFile(new URL("../" + page, import.meta.url), "utf8");
@@ -1970,15 +1973,15 @@ test("all local assets referenced by public HTML pages exist and core routes are
   const shell = new Set([...shellMatch[1].matchAll(/["']([^"']+)["']/g)].map(match => match[1].replace(/^\.\//, "")));
   for (const route of pages) assert.ok(shell.has(route), route + " must be available offline");
   for (const asset of localAssets) {
-    if (["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "privacy.html"].includes(asset)) continue;
+    if (["legacy-app.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "privacy.html"].includes(asset)) continue;
     assert.ok(shell.has(asset), asset + " is referenced by a public page but missing from the offline shell");
   }
-  assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(worker, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
 });
 
 
 test("curated knowledge library is searchable and included in the offline shell", async () => {
-  const html = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const html = await readFile(new URL("../legacy-app.html", import.meta.url), "utf8");
   const index = JSON.parse(await readFile(new URL("../search-index.json", import.meta.url), "utf8"));
   const worker = await readFile(new URL("../sw.js", import.meta.url), "utf8");
   assert.ok(html.includes('id="knowledge-library"'));
@@ -1988,9 +1991,9 @@ test("curated knowledge library is searchable and included in the offline shell"
   for (const item of index.items.filter(entry => entry.id.startsWith("knowledge-"))) {
     assert.ok(html.includes('id="' + item.id + '"'));
     assert.equal(item.type, "page");
-    assert.ok(item.href.startsWith("./index.html#"));
+    assert.ok(item.href.startsWith("./legacy-app.html#"));
   }
-  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v67"'));
+  assert.ok(worker.includes('CACHE_NAME = CACHE_PREFIX + "v68"'));
 });
 
 test("Hub integration is documented as separate until the security gates pass", async () => {

@@ -14,12 +14,12 @@ test("unified editorial palette replaces emerald dominance with graphite and blu
 });
 
 test("shared stylesheet is linked after page-specific CSS on all primary surfaces", async () => {
-  for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
+  for (const file of ["legacy-app.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
     const stylesheets = [...html.matchAll(/<link[^>]+href="[^"]+\.css"[^>]*>/g)].map(match => match[0]);
-    if (file === "index.html") {
+    if (file === "legacy-app.html") {
       assert.match(html, /<link rel="stylesheet" href="\.\/foundation\.css">/);
-      assert.ok(stylesheets.at(-1)?.includes("foundation.css"), "index.html: foundation layer must be last");
+      assert.ok(stylesheets.at(-1)?.includes("foundation.css"), "legacy-app.html: foundation layer must be last");
       assert.doesNotMatch(html, /brand-refresh\.css|editorial-rebuild\.css/);
     } else {
       assert.match(html, /<link rel="stylesheet" href="\.\/brand-refresh\.css">/);
@@ -36,7 +36,7 @@ test("shared design system preserves mobile, reduced-motion, focus and forced-co
 });
 
 test("offline shell precaches the shared stylesheet and advances to cache v67", () => {
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
   assert.match(sw, /"\.\/brand-refresh\.css"/);
   assert.match(sw, /"\.\/editorial-rebuild\.css"/);
 });
@@ -46,9 +46,9 @@ test("homepage uses the dark foundation canvas while editorial subpages retain t
   const manifest = JSON.parse(await readFile(new URL("../manifest.webmanifest", import.meta.url), "utf8"));
   assert.equal(manifest.theme_color, "#07110c");
   assert.equal(manifest.background_color, "#07110c");
-  for (const file of ["index.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
+  for (const file of ["legacy-app.html", "studio.html", "academy.html", "python.html", "subtitle-studio.html", "admin-support.html", "academy-content-studio.html", "privacy.html"]) {
     const html = await readFile(new URL(`../${file}`, import.meta.url), "utf8");
-    if (file === "index.html") {
+    if (file === "legacy-app.html") {
       assert.match(html, /<meta\s+name="theme-color"\s+content="#07110c"/i);
       assert.match(html, /<meta\s+name="color-scheme"\s+content="dark"/i);
     } else {

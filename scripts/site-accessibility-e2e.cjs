@@ -7,7 +7,7 @@ const { chromium } = require("playwright");
 const AXE_PATH = require.resolve("axe-core");
 
 const ROOT = path.resolve(__dirname, "..");
-const ROUTES = ["index.html", "studio.html", "academy.html", "python.html", "privacy.html"];
+const ROUTES = ["index.html", "learn.html", "projects.html", "knowledge.html", "contact.html", "404.html", "studio.html", "academy.html", "python.html", "privacy.html"];
 const MIME = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css; charset=utf-8",

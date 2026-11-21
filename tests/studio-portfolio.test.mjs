@@ -94,7 +94,7 @@ test("print action produces a dedicated concise portfolio, not the whole interac
 });
 
 test("home metrics distinguish personal cloud workspace from bounded gateway services", async () => {
-  const home = await readFile(new URL("../index.html", import.meta.url), "utf8");
+  const home = await readFile(new URL("../legacy-app.html", import.meta.url), "utf8");
   assert.match(home, /<strong>۰<\/strong><span>حساب کاربری و فضای کار ابری شخصی<\/span>/);
   assert.doesNotMatch(home, /سرویس محصولی ابری متصل در این نسخه/);
 });
@@ -119,7 +119,7 @@ test("studio registers and is included in the offline shell", () => {
   assert.match(html, /studio-portfolio\.css/);
   assert.match(html, /studio-portfolio\.js/);
   assert.match(js, /serviceWorker\.register\("\.\/sw\.js"\)/);
-  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v67"/);
+  assert.match(sw, /CACHE_NAME = CACHE_PREFIX \+ "v68"/);
   for (const asset of ["studio.html", "studio-portfolio.css", "studio-portfolio.js"]) {
     assert.ok(sw.includes('"./' + asset + '"'), "missing offline asset: " + asset);
   }
