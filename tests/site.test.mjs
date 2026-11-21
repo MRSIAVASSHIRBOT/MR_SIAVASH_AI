@@ -1923,9 +1923,10 @@ test("public pages keep install metadata and browser chrome colors consistent", 
     assert.match(source, /<link\s+rel="manifest"\s+href="\.\/manifest\.webmanifest"/i, page + " must expose the install manifest");
     const theme = source.match(/<meta\s+name="theme-color"\s+content="([^"]+)"/i);
     assert.ok(theme, page + " must declare a browser theme color");
-    assert.equal(theme[1], manifest.theme_color, page + " theme must match the installed app");
+    if (page === "index.html") assert.equal(theme[1], manifest.theme_color, "homepage and installed app use the foundation canvas");
+    else assert.equal(theme[1], "#f2f0e9", page + " retains the light editorial subpage chrome");
   }
-  assert.equal(manifest.background_color, manifest.theme_color, "installed app launch and browser chrome should use one coherent canvas color");
+  assert.equal(manifest.background_color, manifest.theme_color, "installed app launch canvas must match its primary homepage");
   assert.equal(manifest.lang, "fa");
   assert.equal(manifest.dir, "rtl");
 });
